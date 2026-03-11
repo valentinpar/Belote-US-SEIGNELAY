@@ -217,11 +217,10 @@
   <button class="tab" id="tab-equipes" onclick="goTab('equipes',this)">👥 Équipes <span class="badge" id="badge-eq">0</span></button>
   <button class="tab" id="tab-setup" onclick="goTab('setup',this)">⚙️ Config</button>
   <button class="tab" id="tab-manche" onclick="goTab('manche',this)">🃏 Manche <span class="badge" id="badge-manche">1</span></button>
-  <button class="tab visible" id="tab-classement" onclick="goTab('classement',this)">📊 Classement</button>
+  <button class="tab visible" id="tab-classement" onclick="goTab('classement',this)" class="tab visible active">📊 Classement</button>
   <button class="tab visible" id="tab-historique" onclick="goTab('historique',this)">📜 Historique</button>
   <button class="tab visible" id="tab-qr" onclick="goTab('qr',this)">📱 QR Code</button>
-  <button class="tab visible active" id="tab-events-public" onclick="goTab('events-public',this)">📅 Événements</button>
-  <button class="tab" id="tab-events" onclick="goTab('events',this)">📅 ✏️ Gérer</button>
+  <button class="tab visible" id="tab-events-public" onclick="window.location.href='index.html'" style="color:#86efac">📅 Événements</button>
 </nav>
 
 <!-- MODALE MOT DE PASSE -->
@@ -385,7 +384,7 @@
 </section>
 
 <!-- CLASSEMENT -->
-<section id="sec-classement" class="section">
+<section id="sec-classement" class="section active">
   <div id="classement-content">
     <div class="empty-state"><div class="icon">📊</div>Le classement apparaît après le démarrage du tournoi</div>
   </div>
@@ -398,31 +397,7 @@
   </div>
 </section>
 
-<!-- ÉVÉNEMENTS PUBLIC (lecture seule) -->
-<section id="sec-events-public" class="section active">
-  <div class="card">
-    <h2>📅 Événements à venir</h2>
-    <div id="liste-events-public"><div class="empty-state"><div class="icon">📅</div>Aucun événement programmé</div></div>
-  </div>
-</section>
 
-<!-- ÉVÉNEMENTS ADMIN -->
-<section id="sec-events" class="section">
-  <div class="card">
-    <h2>📅 Ajouter un événement</h2>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem">
-      <div><label>Titre</label><input type="text" id="ev-titre" placeholder="Ex: Tournoi printemps…"></div>
-      <div><label>Date</label><input type="text" id="ev-date" placeholder="Ex: 15 avril 2025"></div>
-    </div>
-    <div style="margin-bottom:0.75rem"><label>Description (optionnel)</label><input type="text" id="ev-desc" placeholder="Ex: Salle des fêtes, 14h…" onkeydown="if(event.key==='Enter')addEvent()"></div>
-    <button class="btn btn-primary" onclick="addEvent()">➕ Ajouter</button>
-    <div id="alert-ev" class="mt-1"></div>
-  </div>
-  <div class="card">
-    <h2>📋 Événements à venir</h2>
-    <div id="liste-events"><div class="empty-state"><div class="icon">📅</div>Aucun événement programmé</div></div>
-  </div>
-</section>
 
 <!-- QR CODE -->
 <section id="sec-qr" class="section">
@@ -475,8 +450,6 @@ function checkPwd() {
     document.getElementById('tab-equipes').classList.add('visible');
     document.getElementById('tab-setup').classList.add('visible');
     document.getElementById('tab-manche').classList.add('visible');
-    document.getElementById('tab-events').classList.add('visible');
-    document.getElementById('tab-events-public').classList.remove('visible');
     // Swap boutons header
     document.getElementById('btn-orga').style.display = 'none';
     document.getElementById('btn-lock').style.display = 'block';
@@ -498,8 +471,6 @@ function verrouiller() {
   document.getElementById('tab-equipes').classList.remove('visible');
   document.getElementById('tab-setup').classList.remove('visible');
   document.getElementById('tab-manche').classList.remove('visible');
-  document.getElementById('tab-events').classList.remove('visible');
-  document.getElementById('tab-events-public').classList.add('visible');
   // Swap boutons header
   document.getElementById('btn-lock').style.display = 'none';
   document.getElementById('btn-orga').style.display = 'block';
@@ -538,8 +509,7 @@ function goTab(name, btn) {
   if (name === 'historique') renderHistorique();
   if (name === 'manche') renderManche();
   if (name === 'qr') setTimeout(initQR, 50);
-  if (name === 'events') renderEvents();
-  if (name === 'events-public') renderEvents();
+
 }
 
 // ══════════════════════════════════════════
@@ -960,7 +930,6 @@ let _enTrainDeSauver = false;
 function appliquerDonnees(data) {
   if (!data) return;
   if (Array.isArray(data.equipes)) equipes = data.equipes;
-  if (Array.isArray(data.events)) events = data.events;
   else if (data.equipes) equipes = Object.values(data.equipes);
   if (data.cfg)     cfg     = data.cfg;
   if (data.tournoi) tournoi = data.tournoi;
@@ -1017,7 +986,6 @@ function sauvegarderFirebase() {
     equipes: equipes,
     cfg: cfg,
     tournoi: tournoi,
-    events: events,
     mdp: mdp,
     questionSecrete: questionSecrete,
     reponseSecrete: reponseSecrete
@@ -1058,8 +1026,6 @@ if (localStorage.getItem('belote_session') === '1') {
   document.getElementById('tab-equipes').classList.add('visible');
   document.getElementById('tab-setup').classList.add('visible');
   document.getElementById('tab-manche').classList.add('visible');
-  document.getElementById('tab-events').classList.add('visible');
-  document.getElementById('tab-events-public').classList.remove('visible');
   document.getElementById('btn-orga').style.display = 'none';
   document.getElementById('btn-lock').style.display = 'block';
 }
@@ -1069,76 +1035,6 @@ initFirebase();
 if (tournoi) {
   document.getElementById('badge-manche').textContent = tournoi.mancheActuelle;
   renderClassement();
-}
-
-// ══════════════════════════════════════════
-//  ÉVÉNEMENTS
-// ══════════════════════════════════════════
-let events = [];
-
-function addEvent() {
-  const titre = document.getElementById('ev-titre').value.trim();
-  const date  = document.getElementById('ev-date').value.trim();
-  const desc  = document.getElementById('ev-desc').value.trim();
-  const alertDiv = document.getElementById('alert-ev');
-  if (!titre) { flash(alertDiv, 'warning', '⚠️ Entrez un titre.'); return; }
-  if (!date)  { flash(alertDiv, 'warning', '⚠️ Entrez une date.'); return; }
-  events.push({ id: 'ev_' + Date.now(), titre, date, desc });
-  document.getElementById('ev-titre').value = '';
-  document.getElementById('ev-date').value  = '';
-  document.getElementById('ev-desc').value  = '';
-  flash(alertDiv, 'success', '✅ Événement ajouté !');
-  renderEvents();
-  sauvegarder();
-}
-
-function delEvent(id) {
-  events = events.filter(e => e.id !== id);
-  renderEvents();
-  sauvegarder();
-}
-
-function renderEvents() {
-  // Vue admin (avec bouton supprimer)
-  const div = document.getElementById('liste-events');
-  if (div) {
-    if (!events.length) {
-      div.innerHTML = '<div class="empty-state"><div class="icon">📅</div>Aucun événement programmé</div>';
-    } else {
-      div.innerHTML = events.map(e => `
-        <div style="display:flex;align-items:center;gap:0.75rem;background:var(--gris-fonce);border:1px solid var(--gris-moyen);border-radius:6px;padding:0.7rem 1rem;margin-bottom:0.5rem;transition:border-color 0.2s" onmouseover="this.style.borderColor='var(--or)'" onmouseout="this.style.borderColor='var(--gris-moyen)'">
-          <div style="background:var(--rouge-fonce);border-radius:6px;padding:0.4rem 0.7rem;text-align:center;flex-shrink:0">
-            <div style="font-size:0.7rem;color:var(--rouge-clair);text-transform:uppercase;letter-spacing:0.05em">Date</div>
-            <div style="font-weight:800;color:var(--or);font-size:0.88rem">${e.date}</div>
-          </div>
-          <div style="flex:1">
-            <div style="font-weight:700;font-size:0.95rem">${e.titre}</div>
-            ${e.desc ? `<div style="font-size:0.8rem;color:#a8a29e;margin-top:0.15rem">${e.desc}</div>` : ''}
-          </div>
-          <button class="btn btn-danger btn-sm" onclick="delEvent('${e.id}')">✕</button>
-        </div>`).join('');
-    }
-  }
-
-  // Vue publique (lecture seule, sans bouton supprimer)
-  const divPub = document.getElementById('liste-events-public');
-  if (divPub) {
-    if (!events.length) {
-      divPub.innerHTML = '<div class="empty-state"><div class="icon">📅</div>Aucun événement programmé</div>';
-    } else {
-      divPub.innerHTML = events.map(e => `
-        <div style="display:flex;align-items:center;gap:0.75rem;background:var(--gris-fonce);border:1px solid var(--gris-moyen);border-radius:6px;padding:0.7rem 1rem;margin-bottom:0.5rem;transition:border-color 0.2s" onmouseover="this.style.borderColor='var(--or)'" onmouseout="this.style.borderColor='var(--gris-moyen)'">
-          <div style="background:var(--rouge-fonce);border-radius:6px;padding:0.4rem 0.7rem;text-align:center;flex-shrink:0">
-            <div style="font-size:0.7rem;color:var(--rouge-clair);text-transform:uppercase;letter-spacing:0.05em">Date</div>
-            <div style="font-weight:800;color:var(--or);font-size:0.88rem">${e.date}</div>
-          </div>
-          <div style="flex:1">
-            <div style="font-weight:700;font-size:0.95rem">${e.titre}</div>
-            ${e.desc ? `<div style="font-size:0.8rem;color:#a8a29e;margin-top:0.15rem">${e.desc}</div>` : ''}
-          </div>
-        </div>`).join('');
-    }
-  }
 }
 
 // QR Code
