@@ -940,7 +940,8 @@ function initFirebase() {
       try {
         if (data.equipes) equipes = data.equipes;
         if (data.cfg)     cfg     = data.cfg;
-        if (data.tournoi) tournoi = data.tournoi;
+        if (data.tournoi && !data.tournoi.vide) tournoi = data.tournoi;
+        else if (data.tournoi && data.tournoi.vide) tournoi = null;
         if (data.mdp)     mdp     = data.mdp;
         if (data.questionSecrete) questionSecrete = data.questionSecrete;
         if (data.reponseSecrete)  reponseSecrete  = data.reponseSecrete;
@@ -976,10 +977,17 @@ function sauvegarderLocal() {
 function sauvegarderFirebase() {
   if (!firebaseOk || !db) return;
   _pauseListener = true;
-  db.ref('belote').set({
-    equipes, cfg, tournoi, mdp,
-    questionSecrete, reponseSecrete
-  }).then(() => {
+  const payload = {
+    equipes: equipes || [],
+    cfg: cfg || {},
+    tournoi: tournoi || null,
+    mdp: mdp || '1234',
+    questionSecrete: questionSecrete || '',
+    reponseSecrete: reponseSecrete || ''
+  };
+  // Firebase n'accepte pas null comme valeur directe, on convertit
+  if (!payload.tournoi) payload.tournoi = { vide: true };
+  db.ref('belote').set(payload).then(() => {
     setTimeout(() => { _pauseListener = false; }, 2000);
   }).catch(e => {
     _pauseListener = false;
