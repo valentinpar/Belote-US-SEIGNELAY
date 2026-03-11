@@ -541,7 +541,7 @@ function renderEquipes() {
       <span class="equipe-num">${i + 1}</span>
       <span class="equipe-name">${e.nom}</span>
       <span class="equipe-joueurs">${e.joueurs || ''}</span>
-      <button class="btn btn-danger btn-sm" onclick="delEquipe(${e.id})">✕</button>
+      <button class="btn btn-danger btn-sm" onclick="delEquipe('${e.id}')">✕</button>
     </li>`).join('');
 }
 
