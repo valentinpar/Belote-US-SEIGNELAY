@@ -182,8 +182,17 @@
   .link-btn:hover { color: #b45309; }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 </head>
 <body>
+
+<!-- BANDEAU FIREBASE NON CONFIGURÉ -->
+<div id="bandeau-firebase" style="display:none;background:#92400e;color:#fcd34d;padding:0.6rem 1.2rem;font-size:0.82rem;align-items:center;justify-content:center;gap:0.5rem;text-align:center;flex-wrap:wrap">
+  ⚠️ <strong>Firebase non configuré</strong> — Le tournoi est sauvegardé localement uniquement (pas de sync entre appareils).
+  <a href="#" onclick="goTab('setup',document.getElementById('tab-setup'));debloque&&document.getElementById('tab-setup').classList.add('visible')" style="color:#fcd34d;font-weight:700">→ Voir le guide Config</a>
+</div>
 
 <!-- HEADER -->
 <header>
@@ -343,6 +352,19 @@
       <input type="text" id="cfg-reponse" placeholder="Votre réponse (insensible à la casse)">
     </div>
     <div id="alert-question" class="mt-1"></div>
+  </div>
+
+  <div class="card" id="card-firebase">
+    <h2>🔥 Synchronisation Firebase</h2>
+    <p style="color:#a8a29e;font-size:0.85rem;margin-bottom:1rem">Pour synchroniser le tournoi en temps réel sur tous les appareils, configurez Firebase :</p>
+    <div style="background:var(--gris-fonce);border-radius:6px;padding:1rem;font-size:0.82rem;color:#a8a29e;line-height:1.9;margin-bottom:1rem">
+      1. Allez sur <strong style="color:var(--or)">console.firebase.google.com</strong><br>
+      2. Créez un projet → Activez <strong style="color:var(--or)">Realtime Database</strong> (mode test)<br>
+      3. Dans les paramètres du projet → <strong style="color:var(--or)">Config Web</strong> → copiez les valeurs<br>
+      4. Collez-les dans le fichier HTML à l'endroit indiqué <code style="color:var(--rouge-clair)">firebaseConfig</code><br>
+      5. Remettez le fichier à jour sur GitHub
+    </div>
+    <div id="alert-firebase"></div>
   </div>
 
   <div class="card">
@@ -884,15 +906,85 @@ function sauverNouveauMdp() {
 }
 
 // ══════════════════════════════════════════
-//  SAUVEGARDE / CHARGEMENT (localStorage)
+//  FIREBASE — SYNCHRONISATION TEMPS RÉEL
 // ══════════════════════════════════════════
-function sauvegarder() {
-  localStorage.setItem('belote_equipes', JSON.stringify(equipes));
-  localStorage.setItem('belote_cfg', JSON.stringify(cfg));
-  localStorage.setItem('belote_tournoi', JSON.stringify(tournoi));
+
+// ⚠️  REMPLACEZ CES VALEURS PAR VOTRE CONFIG FIREBASE
+const firebaseConfig = {
+  apiKey: "AIzaSyDnjxRbAzDJPMUcvoNsB5hoHQnMTP7lZb4",
+  authDomain: "belote-us-seignelay.firebaseapp.com",
+  databaseURL: "https://belote-us-seignelay-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "belote-us-seignelay",
+  storageBucket: "belote-us-seignelay.firebasestorage.app",
+  messagingSenderId: "881100486907",
+  appId: "1:881100486907:web:a04a29dd9683ad8fa9d85e"
+};
+
+let db = null;
+let firebaseOk = false;
+let _pauseListener = false;
+
+function initFirebase() {
+  try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.database();
+    firebaseOk = true;
+    console.log("✅ Firebase connecté");
+    // Écouter les changements en temps réel
+    db.ref('belote').on('value', snap => {
+      if (_pauseListener) return;
+      const data = snap.val();
+      if (!data) return;
+      try {
+        if (data.equipes) equipes = data.equipes;
+        if (data.cfg)     cfg     = data.cfg;
+        if (data.tournoi) tournoi = data.tournoi;
+        if (data.mdp)     mdp     = data.mdp;
+        if (data.questionSecrete) questionSecrete = data.questionSecrete;
+        if (data.reponseSecrete)  reponseSecrete  = data.reponseSecrete;
+      } catch(e) {}
+      renderEquipes();
+      if (tournoi) {
+        document.getElementById('badge-manche').textContent = tournoi.mancheActuelle;
+      }
+      // Rafraîchir l'onglet actif
+      const active = document.querySelector('.section.active');
+      if (active) {
+        const name = active.id.replace('sec-', '');
+        if (name === 'classement') renderClassement();
+        if (name === 'historique') renderHistorique();
+        if (name === 'manche')     renderManche();
+      }
+    });
+    masquerBandeauFirebase();
+  } catch(e) {
+    console.warn("Firebase non configuré :", e.message);
+    afficherBandeauFirebase();
+    chargerLocal();
+  }
 }
 
-function charger() {
+function sauvegarder() {
+  // Toujours sauvegarder en local
+  localStorage.setItem('belote_equipes', JSON.stringify(equipes));
+  localStorage.setItem('belote_cfg',     JSON.stringify(cfg));
+  localStorage.setItem('belote_tournoi', JSON.stringify(tournoi));
+
+  // Sauvegarder sur Firebase si connecté
+  if (!firebaseOk || !db) return;
+  _pauseListener = true;
+  db.ref('belote').set({
+    equipes, cfg, tournoi, mdp,
+    questionSecrete, reponseSecrete
+  }).then(() => {
+    setTimeout(() => { _pauseListener = false; }, 300);
+  }).catch(e => {
+    _pauseListener = false;
+    console.warn("Erreur Firebase save:", e);
+  });
+}
+
+function chargerLocal() {
   try {
     const eq = localStorage.getItem('belote_equipes');
     const c  = localStorage.getItem('belote_cfg');
@@ -900,13 +992,18 @@ function charger() {
     if (eq) equipes = JSON.parse(eq);
     if (c)  cfg     = JSON.parse(c);
     if (t)  tournoi = JSON.parse(t);
-  } catch(e) {
-    console.warn('Erreur chargement sauvegarde', e);
-  }
+  } catch(e) {}
+}
+
+function afficherBandeauFirebase() {
+  document.getElementById('bandeau-firebase').style.display = 'flex';
+}
+function masquerBandeauFirebase() {
+  document.getElementById('bandeau-firebase').style.display = 'none';
 }
 
 // Init
-charger();
+initFirebase();
 renderEquipes();
 if (tournoi) {
   document.getElementById('badge-manche').textContent = tournoi.mancheActuelle;
