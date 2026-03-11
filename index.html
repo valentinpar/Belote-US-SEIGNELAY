@@ -932,33 +932,54 @@ function initFirebase() {
     db = firebase.database();
     firebaseOk = true;
     console.log("✅ Firebase connecté");
-    // Écouter les changements en temps réel
-    db.ref('belote').on('value', snap => {
-      if (_pauseListener) return;
+
+    // Charger UNE FOIS au démarrage, puis écouter les changements
+    db.ref('belote').once('value').then(snap => {
       const data = snap.val();
-      if (!data) return;
-      try {
-        if (data.equipes) equipes = data.equipes;
-        if (data.cfg)     cfg     = data.cfg;
-        if (data.tournoi && !data.tournoi.vide) tournoi = data.tournoi;
-        else if (data.tournoi && data.tournoi.vide) tournoi = null;
-        if (data.mdp)     mdp     = data.mdp;
-        if (data.questionSecrete) questionSecrete = data.questionSecrete;
-        if (data.reponseSecrete)  reponseSecrete  = data.reponseSecrete;
-      } catch(e) {}
+      if (data) {
+        try {
+          if (data.equipes) equipes = data.equipes;
+          if (data.cfg)     cfg     = data.cfg;
+          if (data.tournoi && !data.tournoi.vide) tournoi = data.tournoi;
+          else tournoi = null;
+          if (data.mdp)     mdp     = data.mdp;
+          if (data.questionSecrete) questionSecrete = data.questionSecrete;
+          if (data.reponseSecrete)  reponseSecrete  = data.reponseSecrete;
+        } catch(e) {}
+      }
+      // Mettre à jour l'interface après chargement initial
       renderEquipes();
       if (tournoi) {
         document.getElementById('badge-manche').textContent = tournoi.mancheActuelle;
+        renderClassement();
       }
-      // Rafraîchir l'onglet actif — SAUF la manche (pour ne pas écraser les inputs en cours)
-      const active = document.querySelector('.section.active');
-      if (active) {
-        const name = active.id.replace('sec-', '');
-        if (name === 'classement') renderClassement();
-        if (name === 'historique') renderHistorique();
-        // La manche est rafraîchie uniquement si on n'est pas en train de saisir
-        if (name === 'manche' && !debloque) renderManche();
-      }
+
+      // Ensuite écouter les changements en temps réel
+      db.ref('belote').on('value', snap => {
+        if (_pauseListener) return;
+        const data = snap.val();
+        if (!data) return;
+        try {
+          if (data.equipes) equipes = data.equipes;
+          if (data.cfg)     cfg     = data.cfg;
+          if (data.tournoi && !data.tournoi.vide) tournoi = data.tournoi;
+          else if (data.tournoi && data.tournoi.vide) tournoi = null;
+          if (data.mdp)     mdp     = data.mdp;
+          if (data.questionSecrete) questionSecrete = data.questionSecrete;
+          if (data.reponseSecrete)  reponseSecrete  = data.reponseSecrete;
+        } catch(e) {}
+        renderEquipes();
+        if (tournoi) {
+          document.getElementById('badge-manche').textContent = tournoi.mancheActuelle;
+        }
+        const active = document.querySelector('.section.active');
+        if (active) {
+          const name = active.id.replace('sec-', '');
+          if (name === 'classement') renderClassement();
+          if (name === 'historique') renderHistorique();
+          if (name === 'manche' && !debloque) renderManche();
+        }
+      });
     });
     masquerBandeauFirebase();
   } catch(e) {
