@@ -582,8 +582,8 @@ function getClassement() {
   return [...equipes].sort((a, b) => {
     const sa = tournoi.stats[a.id], sb = tournoi.stats[b.id];
     if (!sa || !sb) return 0;
-    if (sb.pts !== sa.pts) return sb.pts - sa.pts;
-    return sb.bp - sa.bp;
+    if (sb.bp !== sa.bp) return sb.bp - sa.bp;
+    return sb.pts - sa.pts;
   });
 }
 
