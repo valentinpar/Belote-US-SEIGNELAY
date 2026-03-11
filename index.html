@@ -199,7 +199,7 @@
   <button id="btn-orga" class="header-btn" onclick="ouvrirLogin()">🔑 Orga</button>
   <button id="btn-lock" class="header-btn" onclick="verrouiller()">🔒 Verrouiller</button>
   <h1>♥ Tournoi de <span>Belote</span> ♠</h1>
-  <p>Mode Championnat par rotation</p>
+  <p>US Seignelay</p>
 </header>
 
 <!-- TABS (les 3 protégés sont cachés par défaut) -->
@@ -352,19 +352,6 @@
       <input type="text" id="cfg-reponse" placeholder="Votre réponse (insensible à la casse)">
     </div>
     <div id="alert-question" class="mt-1"></div>
-  </div>
-
-  <div class="card" id="card-firebase">
-    <h2>🔥 Synchronisation Firebase</h2>
-    <p style="color:#a8a29e;font-size:0.85rem;margin-bottom:1rem">Pour synchroniser le tournoi en temps réel sur tous les appareils, configurez Firebase :</p>
-    <div style="background:var(--gris-fonce);border-radius:6px;padding:1rem;font-size:0.82rem;color:#a8a29e;line-height:1.9;margin-bottom:1rem">
-      1. Allez sur <strong style="color:var(--or)">console.firebase.google.com</strong><br>
-      2. Créez un projet → Activez <strong style="color:var(--or)">Realtime Database</strong> (mode test)<br>
-      3. Dans les paramètres du projet → <strong style="color:var(--or)">Config Web</strong> → copiez les valeurs<br>
-      4. Collez-les dans le fichier HTML à l'endroit indiqué <code style="color:var(--rouge-clair)">firebaseConfig</code><br>
-      5. Remettez le fichier à jour sur GitHub
-    </div>
-    <div id="alert-firebase"></div>
   </div>
 
   <div class="card">
