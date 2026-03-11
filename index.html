@@ -217,10 +217,10 @@
   <button class="tab" id="tab-equipes" onclick="goTab('equipes',this)">👥 Équipes <span class="badge" id="badge-eq">0</span></button>
   <button class="tab" id="tab-setup" onclick="goTab('setup',this)">⚙️ Config</button>
   <button class="tab" id="tab-manche" onclick="goTab('manche',this)">🃏 Manche <span class="badge" id="badge-manche">1</span></button>
-  <button class="tab visible active" id="tab-classement" onclick="goTab('classement',this)">📊 Classement</button>
+  <button class="tab visible" id="tab-classement" onclick="goTab('classement',this)">📊 Classement</button>
   <button class="tab visible" id="tab-historique" onclick="goTab('historique',this)">📜 Historique</button>
   <button class="tab visible" id="tab-qr" onclick="goTab('qr',this)">📱 QR Code</button>
-  <button class="tab visible" id="tab-events-public" onclick="goTab('events-public',this)">📅 Événements</button>
+  <button class="tab visible active" id="tab-events-public" onclick="goTab('events-public',this)">📅 Événements</button>
   <button class="tab" id="tab-events" onclick="goTab('events',this)">📅 ✏️ Gérer</button>
 </nav>
 
@@ -385,7 +385,7 @@
 </section>
 
 <!-- CLASSEMENT -->
-<section id="sec-classement" class="section active">
+<section id="sec-classement" class="section">
   <div id="classement-content">
     <div class="empty-state"><div class="icon">📊</div>Le classement apparaît après le démarrage du tournoi</div>
   </div>
@@ -399,7 +399,7 @@
 </section>
 
 <!-- ÉVÉNEMENTS PUBLIC (lecture seule) -->
-<section id="sec-events-public" class="section">
+<section id="sec-events-public" class="section active">
   <div class="card">
     <h2>📅 Événements à venir</h2>
     <div id="liste-events-public"><div class="empty-state"><div class="icon">📅</div>Aucun événement programmé</div></div>
