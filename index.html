@@ -431,6 +431,7 @@ function checkPwd() {
   const val = document.getElementById('pwd-input').value;
   if (val === mdp) {
     debloque = true;
+    localStorage.setItem('belote_session', '1');
     fermerModal();
     // Afficher les onglets protégés
     document.getElementById('tab-equipes').classList.add('visible');
@@ -452,6 +453,7 @@ function checkPwd() {
 
 function verrouiller() {
   debloque = false;
+  localStorage.removeItem('belote_session');
   // Cacher les onglets protégés
   document.getElementById('tab-equipes').classList.remove('visible');
   document.getElementById('tab-setup').classList.remove('visible');
@@ -557,7 +559,7 @@ function demarrerTournoi() {
   cfg.ptsN = parseInt(document.getElementById('cfg-ptsn').value);
   cfg.ptsD = parseInt(document.getElementById('cfg-ptsd').value);
   const stats = {};
-  equipes.forEach(e => { stats[String(e.id).replace(/[.#$/\[\]]/g, '_')] = { pts: 0, j: 0, v: 0, n: 0, d: 0, bp: 0, bc: 0 }; });
+  equipes.forEach(e => { stats[String(e.id).replace(/[.#$/\[\]]/g, '_')] = { pts: 0, j: 0, v: 0, n: 0, d: 0, bp: 0 }; });
   tournoi = { mancheActuelle: 1, mancheMax: cfg.manches, manches: [], stats, termine: false };
   genererManche();
   sauvegarder();
@@ -579,9 +581,8 @@ function resetTournoi() {
 function getClassement() {
   return [...equipes].sort((a, b) => {
     const sa = tournoi.stats[a.id], sb = tournoi.stats[b.id];
+    if (!sa || !sb) return 0;
     if (sb.pts !== sa.pts) return sb.pts - sa.pts;
-    const da = sa.bp - sa.bc, db = sb.bp - sb.bc;
-    if (db !== da) return db - da;
     return sb.bp - sa.bp;
   });
 }
@@ -710,8 +711,8 @@ function validerManche() {
     const s1 = +m.score1, s2 = +m.score2;
     const st1 = tournoi.stats[m.eq1.id], st2 = tournoi.stats[m.eq2.id];
     st1.j++; st2.j++;
-    st1.bp += s1; st1.bc += s2;
-    st2.bp += s2; st2.bc += s1;
+    st1.bp += s1;
+    st2.bp += s2;
     if (s1 > s2) { st1.v++; st1.pts += cfg.ptsV; st2.d++; st2.pts += cfg.ptsD; }
     else if (s2 > s1) { st2.v++; st2.pts += cfg.ptsV; st1.d++; st1.pts += cfg.ptsD; }
     else { st1.n++; st1.pts += cfg.ptsN; st2.n++; st2.pts += cfg.ptsN; }
@@ -746,8 +747,8 @@ function renderFin(div) {
   </div>
   <div class="card"><h2>📊 Classement final</h2>
     <div class="classement-wrap"><table>
-      <thead><tr><th>#</th><th>Équipe</th><th>Joueurs</th><th>J</th><th>V</th><th>N</th><th>D</th><th>BP</th><th>BC</th><th>Diff</th><th>Pts</th></tr></thead>
-      <tbody>${cl.map((e, i) => { const s = stats[e.id], d = s.bp - s.bc; return `<tr class="${i<3?'p'+(i+1):''}"><td>${medals[i]||i+1}</td><td class="font-bold">${e.nom}</td><td class="text-muted">${e.joueurs||'-'}</td><td>${s.j}</td><td>${s.v}</td><td>${s.n}</td><td>${s.d}</td><td>${s.bp}</td><td>${s.bc}</td><td style="color:${d>0?'var(--vert-clair)':d<0?'var(--rouge-clair)':'#a8a29e'}">${d>0?'+':''}${d}</td><td class="pts-cell">${s.pts}</td></tr>`; }).join('')}</tbody>
+      <thead><tr><th>#</th><th>Équipe</th><th>Joueurs</th><th>J</th><th>V</th><th>N</th><th>D</th><th>Points marqués</th><th>Pts</th></tr></thead>
+      <tbody>${cl.map((e, i) => { const s = stats[e.id]; if(!s) return ''; return `<tr class="${i<3?'p'+(i+1):''}"><td>${medals[i]||i+1}</td><td class="font-bold">${e.nom}</td><td class="text-muted">${e.joueurs||'-'}</td><td>${s.j}</td><td>${s.v}</td><td>${s.n}</td><td>${s.d}</td><td>${s.bp}</td><td class="pts-cell">${s.pts}</td></tr>`; }).join('')}</tbody>
     </table></div>
   </div>
   <div class="flex gap-1 wrap">
@@ -770,8 +771,8 @@ function renderClassement() {
       ${tournoi.termine ? '🏁 Tournoi terminé — ' + cfg.manches + ' manches jouées' : '⏳ Manche ' + tournoi.mancheActuelle + ' / ' + cfg.manches}
     </div>
     <div class="classement-wrap"><table>
-      <thead><tr><th>#</th><th>Équipe</th><th>Joueurs</th><th>J</th><th>V</th><th>N</th><th>D</th><th>BP</th><th>BC</th><th>Diff</th><th>Pts</th></tr></thead>
-      <tbody>${cl.map((e, i) => { const s = stats[e.id], d = s.bp - s.bc; return `<tr class="${i<3?'p'+(i+1):''}"><td>${medals[i]||i+1}</td><td class="font-bold">${e.nom}</td><td class="text-muted">${e.joueurs||'-'}</td><td>${s.j}</td><td>${s.v}</td><td>${s.n}</td><td>${s.d}</td><td>${s.bp}</td><td>${s.bc}</td><td style="color:${d>0?'var(--vert-clair)':d<0?'var(--rouge-clair)':'#a8a29e'}">${d>0?'+':''}${d}</td><td class="pts-cell">${s.pts}</td></tr>`; }).join('')}</tbody>
+      <thead><tr><th>#</th><th>Équipe</th><th>Joueurs</th><th>J</th><th>V</th><th>N</th><th>D</th><th>Points marqués</th><th>Pts</th></tr></thead>
+      <tbody>${cl.map((e, i) => { const s = stats[e.id]; if(!s) return ''; return `<tr class="${i<3?'p'+(i+1):''}"><td>${medals[i]||i+1}</td><td class="font-bold">${e.nom}</td><td class="text-muted">${e.joueurs||'-'}</td><td>${s.j}</td><td>${s.v}</td><td>${s.n}</td><td>${s.d}</td><td>${s.bp}</td><td class="pts-cell">${s.pts}</td></tr>`; }).join('')}</tbody>
     </table></div>
   </div>`;
 }
@@ -875,6 +876,7 @@ function sauverNouveauMdp() {
   fermerRecup();
   // Connecter automatiquement
   debloque = true;
+  localStorage.setItem('belote_session', '1');
   document.getElementById('tab-equipes').classList.add('visible');
   document.getElementById('tab-setup').classList.add('visible');
   document.getElementById('tab-manche').classList.add('visible');
@@ -1000,6 +1002,16 @@ function afficherBandeauFirebase() {
 }
 function masquerBandeauFirebase() {
   document.getElementById('bandeau-firebase').style.display = 'none';
+}
+
+// Restaurer la session orga si connecté précédemment
+if (localStorage.getItem('belote_session') === '1') {
+  debloque = true;
+  document.getElementById('tab-equipes').classList.add('visible');
+  document.getElementById('tab-setup').classList.add('visible');
+  document.getElementById('tab-manche').classList.add('visible');
+  document.getElementById('btn-orga').style.display = 'none';
+  document.getElementById('btn-lock').style.display = 'block';
 }
 
 // Init
