@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tournoi de Belote</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --rouge: #b91c1c; --rouge-fonce: #7f1d1d; --rouge-clair: #fca5a5;
+    --or: #d97706;
+    --noir: #0f0a0a; --gris-fonce: #1c1917; --gris: #292524; --gris-moyen: #44403c;
+    --beige-clair: #fdf8f2; --texte-clair: #e7e5e4;
+    --vert-clair: #86efac;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Source Sans 3', sans-serif; background: var(--gris-fonce); color: var(--texte-clair); min-height: 100vh; }
+
+  /* HEADER */
+  header {
+    background: linear-gradient(135deg, var(--noir) 0%, var(--rouge-fonce) 60%, var(--gris-fonce) 100%);
+    padding: 1.8rem 2rem; text-align: center; border-bottom: 3px solid var(--or);
+    position: relative; overflow: hidden;
+  }
+  header::before {
+    content: '♠ ♥ ♦ ♣'; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    font-size: 10rem; opacity: 0.04; letter-spacing: 2rem; pointer-events: none; white-space: nowrap;
+  }
+  header h1 { font-family: 'Playfair Display', serif; font-size: clamp(1.8rem,5vw,3rem); font-weight: 900; color: var(--beige-clair); text-shadow: 2px 2px 8px rgba(0,0,0,0.6); }
+  header h1 span { color: var(--or); }
+  header p { color: var(--rouge-clair); font-size: 0.85rem; margin-top: 0.3rem; letter-spacing: 0.1em; text-transform: uppercase; }
+
+  /* Bouton haut-gauche header */
+  .header-btn {
+    position: absolute; top: 1rem; left: 1rem; z-index: 10;
+    border-radius: 6px; padding: 0.4rem 0.9rem; font-size: 0.82rem; font-weight: 700;
+    cursor: pointer; font-family: 'Source Sans 3', sans-serif; letter-spacing: 0.03em;
+    border: 1px solid; transition: all 0.2s;
+  }
+  #btn-orga { background: rgba(217,119,6,0.15); border-color: rgba(217,119,6,0.4); color: #a8a29e; }
+  #btn-orga:hover { background: rgba(217,119,6,0.3); color: var(--or); }
+  #btn-lock { display: none; background: rgba(127,29,29,0.7); border-color: var(--rouge); color: var(--rouge-clair); }
+  #btn-lock:hover { background: rgba(185,28,28,0.9); }
+
+  /* TABS */
+  .tabs { display: flex; gap: 2px; background: var(--noir); border-bottom: 2px solid var(--or); overflow-x: auto; }
+  .tab {
+    flex: 1; min-width: 110px; padding: 0.85rem 1rem; background: var(--gris); color: #a8a29e; border: none;
+    font-family: 'Source Sans 3', sans-serif; font-size: 0.85rem; font-weight: 600;
+    letter-spacing: 0.04em; text-transform: uppercase; cursor: pointer; transition: all 0.2s;
+    align-items: center; justify-content: center; gap: 0.35rem;
+    display: none; /* tabs protégés cachés par défaut */
+  }
+  .tab.visible { display: flex; }
+  .tab:hover { background: var(--gris-moyen); color: var(--texte-clair); }
+  .tab.active { background: var(--rouge-fonce); color: var(--beige-clair); border-bottom: 3px solid var(--or); }
+  .tab .badge { background: var(--or); color: var(--noir); border-radius: 10px; padding: 1px 6px; font-size: 0.72rem; }
+
+  /* MAIN */
+  main { max-width: 900px; margin: 0 auto; padding: 1.5rem; }
+  .section { display: none; }
+  .section.active { display: block; animation: fadeIn 0.25s ease; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+
+  /* CARD */
+  .card { background: var(--gris); border: 1px solid var(--gris-moyen); border-radius: 8px; padding: 1.4rem; margin-bottom: 1.4rem; }
+  .card h2 { font-family: 'Playfair Display', serif; font-size: 1.3rem; color: var(--or); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+
+  /* INPUTS */
+  input[type="text"], input[type="number"], input[type="password"], select {
+    background: var(--gris-fonce); border: 1px solid var(--gris-moyen);
+    color: var(--texte-clair); padding: 0.55rem 0.85rem; border-radius: 5px;
+    font-family: 'Source Sans 3', sans-serif; font-size: 0.92rem; width: 100%; transition: border-color 0.2s;
+  }
+  input:focus, select:focus { outline: none; border-color: var(--or); }
+  label { display: block; color: #a8a29e; font-size: 0.82rem; margin-bottom: 0.28rem; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  /* BOUTONS */
+  .btn { padding: 0.6rem 1.3rem; border: none; border-radius: 5px; font-family: 'Source Sans 3', sans-serif; font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: all 0.2s; letter-spacing: 0.03em; display: inline-flex; align-items: center; gap: 0.4rem; }
+  .btn-primary { background: var(--rouge); color: white; }
+  .btn-primary:hover { background: var(--rouge-fonce); transform: translateY(-1px); }
+  .btn-gold { background: var(--or); color: var(--noir); }
+  .btn-gold:hover { background: #b45309; color: white; transform: translateY(-1px); }
+  .btn-ghost { background: transparent; color: var(--rouge-clair); border: 1px solid var(--rouge); }
+  .btn-ghost:hover { background: rgba(185,28,28,0.15); }
+  .btn-green { background: #15803d; color: white; }
+  .btn-green:hover { background: #166534; transform: translateY(-1px); }
+  .btn-sm { padding: 0.35rem 0.75rem; font-size: 0.78rem; }
+  .btn-danger { background: #7f1d1d; color: white; }
+  .btn-danger:hover { background: #991b1b; }
+
+  /* UTILS */
+  .flex { display: flex; } .gap-1 { gap: 0.5rem; } .wrap { flex-wrap: wrap; }
+  .mt-1 { margin-top: 0.5rem; } .mt-2 { margin-top: 1rem; }
+  .text-muted { color: #a8a29e; } .font-bold { font-weight: 700; }
+
+  /* ÉQUIPES */
+  .equipe-form { display: grid; grid-template-columns: 1fr 1fr auto; gap: 0.75rem; align-items: end; margin-bottom: 1rem; }
+  @media(max-width:580px){ .equipe-form { grid-template-columns: 1fr; } }
+  .equipe-list { list-style: none; display: flex; flex-direction: column; gap: 0.35rem; }
+  .equipe-item { display: flex; align-items: center; background: var(--gris-fonce); border: 1px solid var(--gris-moyen); border-radius: 5px; padding: 0.55rem 0.9rem; transition: border-color 0.2s; }
+  .equipe-item:hover { border-color: var(--or); }
+  .equipe-num { width: 26px; height: 26px; background: var(--rouge-fonce); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: var(--or); flex-shrink: 0; }
+  .equipe-name { flex: 1; margin-left: 0.75rem; font-weight: 600; }
+  .equipe-joueurs { color: #a8a29e; font-size: 0.82rem; margin-right: 0.5rem; }
+
+  /* MANCHE */
+  .manche-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; background: linear-gradient(90deg, var(--rouge-fonce), transparent); border-radius: 6px; padding: 0.8rem 1.2rem; margin-bottom: 1.2rem; }
+  .manche-titre { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 900; color: var(--or); }
+  .manche-statut { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; padding: 0.3rem 0.8rem; border-radius: 20px; font-weight: 700; }
+  .statut-en-cours { background: rgba(217,119,6,0.25); color: var(--or); border: 1px solid var(--or); }
+  .statut-termine { background: rgba(20,83,45,0.3); color: var(--vert-clair); border: 1px solid var(--vert-clair); }
+  .matchs-manche { display: flex; flex-direction: column; gap: 0.9rem; }
+  .match-card { background: var(--gris-fonce); border: 1px solid var(--gris-moyen); border-radius: 8px; overflow: hidden; transition: border-color 0.2s; }
+  .match-card:hover { border-color: rgba(217,119,6,0.4); }
+  .match-card.joue { border-color: #166534; }
+  .match-card.joue .match-body { background: rgba(20,83,45,0.08); }
+  .match-label { background: var(--gris); padding: 0.3rem 0.9rem; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: #78716c; border-bottom: 1px solid var(--gris-moyen); }
+  .match-body { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 0.6rem; padding: 0.8rem 1rem; }
+  .match-eq { display: flex; flex-direction: column; }
+  .match-eq.right { align-items: flex-end; text-align: right; }
+  .match-eq-nom { font-weight: 700; font-size: 0.95rem; }
+  .match-eq-joueurs { font-size: 0.78rem; color: #a8a29e; }
+  .match-centre { display: flex; flex-direction: column; align-items: center; gap: 0.3rem; }
+  .score-row { display: flex; align-items: center; gap: 0.4rem; }
+  .score-input { width: 58px; text-align: center; font-size: 1.05rem; font-weight: 700; padding: 0.35rem 0.25rem; }
+  .vs-badge { color: var(--or); font-weight: 900; font-size: 0.75rem; }
+  .progress-bar { background: var(--gris-fonce); border-radius: 4px; height: 6px; margin: 0.5rem 0 1rem; overflow: hidden; }
+  .progress-fill { background: var(--or); height: 6px; border-radius: 4px; transition: width 0.4s ease; }
+
+  /* CLASSEMENT */
+  .classement-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  th { background: rgba(0,0,0,0.3); color: #a8a29e; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 0.55rem 0.75rem; text-align: left; border-bottom: 1px solid var(--gris-moyen); white-space: nowrap; }
+  td { padding: 0.55rem 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.04); font-size: 0.88rem; }
+  tr:last-child td { border-bottom: none; }
+  tr.p1 { background: linear-gradient(90deg, rgba(217,119,6,0.18) 0%, transparent 70%); }
+  tr.p2 { background: linear-gradient(90deg, rgba(148,163,184,0.1) 0%, transparent 70%); }
+  tr.p3 { background: linear-gradient(90deg, rgba(180,83,9,0.1) 0%, transparent 70%); }
+  .pts-cell { font-weight: 800; color: var(--or); font-size: 1rem; }
+
+  /* HISTORIQUE */
+  .histo-manche { margin-bottom: 1.2rem; }
+  .histo-titre { font-family: 'Playfair Display', serif; color: var(--or); font-size: 1rem; font-weight: 700; margin-bottom: 0.6rem; }
+  .histo-match { display: flex; align-items: center; justify-content: space-between; background: var(--gris-fonce); border-radius: 5px; padding: 0.45rem 0.9rem; margin-bottom: 0.3rem; font-size: 0.85rem; }
+  .histo-score { font-weight: 800; color: var(--or); font-family: monospace; }
+  .histo-win { color: var(--vert-clair); font-weight: 700; }
+  .histo-lose { color: #a8a29e; }
+
+  /* CONFIG */
+  .setup-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 1rem; margin-bottom: 1rem; }
+  .pwd-row { display: grid; grid-template-columns: 1fr 1fr auto; gap: 0.75rem; align-items: end; }
+  @media(max-width:580px){ .pwd-row { grid-template-columns: 1fr; } }
+  .pwd-wrap { position: relative; }
+  .pwd-wrap input { padding-right: 2.5rem; }
+  .pwd-eye { position: absolute; right: 0.6rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: #a8a29e; cursor: pointer; font-size: 1rem; }
+
+  /* MODALE */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal-box { background: var(--gris); border: 1px solid var(--or); border-radius: 10px; padding: 2rem; width: min(380px,92vw); text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.6); }
+  .modal-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+  .modal-titre { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--or); margin-bottom: 0.4rem; }
+  .modal-sous { color: #a8a29e; font-size: 0.85rem; margin-bottom: 1.3rem; }
+  .modal-error { color: var(--rouge-clair); font-size: 0.82rem; margin-bottom: 0.7rem; min-height: 1.1rem; }
+  .modal-hint { margin-top: 1.2rem; font-size: 0.75rem; color: #57534e; }
+
+  /* DIVERS */
+  .empty-state { text-align: center; padding: 2.5rem; color: #57534e; }
+  .empty-state .icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+  .alert { padding: 0.7rem 1.1rem; border-radius: 6px; margin-bottom: 0.8rem; font-size: 0.88rem; }
+  .alert-success { background: rgba(20,83,45,0.3); border: 1px solid #166534; color: var(--vert-clair); }
+  .alert-warning { background: rgba(120,53,15,0.3); border: 1px solid #92400e; color: #fcd34d; }
+  .alert-info { background: rgba(30,58,138,0.25); border: 1px solid #1e40af; color: #93c5fd; }
+  .champion-banner { text-align: center; padding: 2rem; border: 2px solid var(--or); background: linear-gradient(135deg, rgba(217,119,6,0.1), rgba(127,29,29,0.2)); border-radius: 10px; margin-bottom: 1.5rem; }
+  .champion-banner .icon { font-size: 4rem; }
+  .champion-banner .nom { font-family: 'Playfair Display', serif; font-size: 2.2rem; font-weight: 900; color: var(--or); }
+  .champion-banner .joueurs { color: #a8a29e; margin-top: 0.3rem; }
+  .champion-banner .label { color: var(--rouge-clair); text-transform: uppercase; letter-spacing: 0.12em; font-size: 0.82rem; margin-top: 0.6rem; font-weight: 700; }
+  footer { text-align: center; padding: 1.4rem; color: #57534e; font-size: 0.78rem; border-top: 1px solid var(--gris); margin-top: 1.5rem; }
+  .link-btn { background: none; border: none; color: var(--or); font-size: 0.78rem; cursor: pointer; text-decoration: underline; font-family: 'Source Sans 3', sans-serif; padding: 0; margin-top: 0.6rem; display: inline-block; }
+  .link-btn:hover { color: #b45309; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <button id="btn-orga" class="header-btn" onclick="ouvrirLogin()">🔑 Orga</button>
+  <button id="btn-lock" class="header-btn" onclick="verrouiller()">🔒 Verrouiller</button>
+  <h1>♥ Tournoi de <span>Belote</span> ♠</h1>
+  <p>Mode Championnat par rotation</p>
+</header>
+
+<!-- TABS (les 3 protégés sont cachés par défaut) -->
+<nav class="tabs">
+  <button class="tab" id="tab-equipes" onclick="goTab('equipes',this)">👥 Équipes <span class="badge" id="badge-eq">0</span></button>
+  <button class="tab" id="tab-setup" onclick="goTab('setup',this)">⚙️ Config</button>
+  <button class="tab" id="tab-manche" onclick="goTab('manche',this)">🃏 Manche <span class="badge" id="badge-manche">1</span></button>
+  <button class="tab visible active" id="tab-classement" onclick="goTab('classement',this)">📊 Classement</button>
+  <button class="tab visible" id="tab-historique" onclick="goTab('historique',this)">📜 Historique</button>
+</nav>
+
+<!-- MODALE MOT DE PASSE -->
+<div class="modal-overlay" id="modal-pwd">
+  <div class="modal-box">
+    <div class="modal-icon">🔐</div>
+    <div class="modal-titre">Accès organisateur</div>
+    <div class="modal-sous">Entrez le mot de passe pour continuer</div>
+    <div class="pwd-wrap" style="margin-bottom:0.8rem">
+      <input type="password" id="pwd-input" placeholder="Mot de passe…" onkeydown="if(event.key==='Enter')checkPwd()">
+      <button class="pwd-eye" onclick="toggleEye('pwd-input',this)">👁</button>
+    </div>
+    <div class="modal-error" id="pwd-error"></div>
+    <div class="flex gap-1" style="justify-content:center">
+      <button class="btn btn-gold" onclick="checkPwd()">🔓 Entrer</button>
+      <button class="btn btn-ghost btn-sm" onclick="fermerModal()">Annuler</button>
+    </div>
+    <div class="modal-hint">Mot de passe par défaut : <strong style="color:#a8a29e">1234</strong></div>
+    <div style="margin-top:0.5rem"><button class="link-btn" onclick="ouvrirRecup()">Mot de passe oublié ?</button></div>
+  </div>
+</div>
+
+<!-- MODALE RÉCUPÉRATION -->
+<div class="modal-overlay" id="modal-recup">
+  <div class="modal-box">
+    <div id="recup-etape1">
+      <div class="modal-icon">🔮</div>
+      <div class="modal-titre">Récupération</div>
+      <div class="modal-sous">Définissez d'abord une question secrète dans la Config.<br>Répondez-y pour réinitialiser votre mot de passe.</div>
+      <div style="margin-bottom:0.8rem">
+        <div style="background:var(--gris-fonce);border:1px solid var(--gris-moyen);border-radius:5px;padding:0.7rem 0.9rem;color:var(--or);font-size:0.95rem;font-weight:600;margin-bottom:0.6rem" id="recup-question">Aucune question définie</div>
+        <input type="text" id="recup-reponse" placeholder="Votre réponse…" onkeydown="if(event.key==='Enter')checkRecup()">
+      </div>
+      <div class="modal-error" id="recup-error"></div>
+      <div class="flex gap-1" style="justify-content:center">
+        <button class="btn btn-gold" onclick="checkRecup()">✅ Valider</button>
+        <button class="btn btn-ghost btn-sm" onclick="fermerRecup()">Annuler</button>
+      </div>
+    </div>
+    <div id="recup-etape2" style="display:none">
+      <div class="modal-icon">🔑</div>
+      <div class="modal-titre">Nouveau mot de passe</div>
+      <div class="modal-sous">Réponse correcte ! Choisissez un nouveau mot de passe.</div>
+      <div class="pwd-wrap" style="margin-bottom:0.6rem">
+        <input type="password" id="recup-new-pwd" placeholder="Nouveau mot de passe…" onkeydown="if(event.key==='Enter')sauverNouveauMdp()">
+        <button class="pwd-eye" onclick="toggleEye('recup-new-pwd',this)">👁</button>
+      </div>
+      <div class="pwd-wrap" style="margin-bottom:0.8rem">
+        <input type="password" id="recup-new-pwd2" placeholder="Confirmer…" onkeydown="if(event.key==='Enter')sauverNouveauMdp()">
+        <button class="pwd-eye" onclick="toggleEye('recup-new-pwd2',this)">👁</button>
+      </div>
+      <div class="modal-error" id="recup-error2"></div>
+      <div class="flex gap-1" style="justify-content:center">
+        <button class="btn btn-gold" onclick="sauverNouveauMdp()">💾 Enregistrer</button>
+        <button class="btn btn-ghost btn-sm" onclick="fermerRecup()">Annuler</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<main>
+
+<!-- ÉQUIPES -->
+<section id="sec-equipes" class="section">
+  <div class="card">
+    <h2>👥 Équipes</h2>
+    <div class="equipe-form">
+      <div><label>Nom de l'équipe</label><input type="text" id="inp-nom" placeholder="Ex: Les As de Cœur" onkeydown="if(event.key==='Enter')addEquipe()"></div>
+      <div><label>Joueurs (optionnel)</label><input type="text" id="inp-joueurs" placeholder="Ex: Jean & Marie" onkeydown="if(event.key==='Enter')addEquipe()"></div>
+      <button class="btn btn-primary" onclick="addEquipe()">➕ Ajouter</button>
+    </div>
+    <div id="alert-eq"></div>
+    <ul class="equipe-list" id="liste-eq"></ul>
+  </div>
+  <div class="card">
+    <h2>⚡ Équipes rapides</h2>
+    <div class="flex gap-1 wrap">
+      <button class="btn btn-ghost btn-sm" onclick="genEq(4)">4 équipes</button>
+      <button class="btn btn-ghost btn-sm" onclick="genEq(6)">6 équipes</button>
+      <button class="btn btn-ghost btn-sm" onclick="genEq(8)">8 équipes</button>
+      <button class="btn btn-ghost btn-sm" onclick="genEq(10)">10 équipes</button>
+      <button class="btn btn-ghost btn-sm" onclick="genEq(12)">12 équipes</button>
+      <button class="btn btn-danger btn-sm" onclick="clearEq()">🗑 Effacer tout</button>
+    </div>
+  </div>
+</section>
+
+<!-- CONFIG -->
+<section id="sec-setup" class="section">
+  <div class="card">
+    <h2>⚙️ Configuration du tournoi</h2>
+    <div class="setup-grid">
+      <div><label>Nombre de manches</label>
+        <select id="cfg-manches">
+          <option value="3">3 manches</option>
+          <option value="4" selected>4 manches</option>
+          <option value="5">5 manches</option>
+          <option value="6">6 manches</option>
+          <option value="8">8 manches</option>
+          <option value="10">10 manches</option>
+        </select>
+      </div>
+      <div><label>Pts victoire</label><input type="number" id="cfg-ptsv" value="3" min="1" max="10"></div>
+      <div><label>Pts nul</label><input type="number" id="cfg-ptsn" value="1" min="0" max="5"></div>
+      <div><label>Pts défaite</label><input type="number" id="cfg-ptsd" value="0" min="0" max="3"></div>
+      <div><label>Lieu</label><input type="text" id="cfg-lieu" placeholder="Salle des fêtes..."></div>
+      <div><label>Date</label><input type="text" id="cfg-date" placeholder="12 avril 2025"></div>
+    </div>
+    <div id="alert-setup"></div>
+    <div class="flex gap-1 wrap mt-2">
+      <button class="btn btn-gold" onclick="demarrerTournoi()">🎲 Démarrer le tournoi</button>
+      <button class="btn btn-danger btn-sm" onclick="resetTournoi()">🔄 Réinitialiser</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🔑 Changer le mot de passe</h2>
+    <div class="pwd-row">
+      <div><label>Nouveau mot de passe</label>
+        <div class="pwd-wrap"><input type="password" id="new-pwd" placeholder="Nouveau…"><button class="pwd-eye" onclick="toggleEye('new-pwd',this)">👁</button></div>
+      </div>
+      <div><label>Confirmer</label>
+        <input type="password" id="new-pwd2" placeholder="Confirmer…" onkeydown="if(event.key==='Enter')changerMdp()">
+      </div>
+      <button class="btn btn-primary" onclick="changerMdp()">💾 Sauver</button>
+    </div>
+    <div id="alert-mdp" class="mt-1"></div>
+  </div>
+
+  <div class="card">
+    <h2>❓ Question secrète de récupération</h2>
+    <p style="color:#a8a29e;font-size:0.85rem;margin-bottom:1rem">En cas d'oubli du mot de passe, cette question vous permettra de le réinitialiser.</p>
+    <div style="display:grid;grid-template-columns:1fr auto;gap:0.75rem;align-items:end;margin-bottom:0.75rem">
+      <div><label>Votre question secrète</label>
+        <input type="text" id="cfg-question" placeholder="Ex: Quel est le nom de votre premier chien ?">
+      </div>
+      <button class="btn btn-primary" onclick="sauverQuestion()">💾 Sauver</button>
+    </div>
+    <div><label>Votre réponse secrète</label>
+      <input type="text" id="cfg-reponse" placeholder="Votre réponse (insensible à la casse)">
+    </div>
+    <div id="alert-question" class="mt-1"></div>
+  </div>
+
+  <div class="card">
+    <h2>ℹ️ Comment ça marche ?</h2>
+    <p style="color:#a8a29e;line-height:1.7;font-size:0.9rem">
+      À chaque manche, les équipes s'affrontent selon leur classement :<br>
+      <strong style="color:var(--texte-clair)">1er vs 2e · 3e vs 4e · 5e vs 6e · …</strong><br><br>
+      Après saisie des scores → valider la manche → classement mis à jour → manche suivante.<br>
+      <strong style="color:var(--or)">⚠️ Le nombre d'équipes doit être pair.</strong>
+    </p>
+  </div>
+</section>
+
+<!-- MANCHE -->
+<section id="sec-manche" class="section">
+  <div id="manche-content">
+    <div class="empty-state"><div class="icon">🃏</div>Démarrez le tournoi dans la configuration</div>
+  </div>
+</section>
+
+<!-- CLASSEMENT -->
+<section id="sec-classement" class="section active">
+  <div id="classement-content">
+    <div class="empty-state"><div class="icon">📊</div>Le classement apparaît après le démarrage du tournoi</div>
+  </div>
+</section>
+
+<!-- HISTORIQUE -->
+<section id="sec-historique" class="section">
+  <div id="historique-content">
+    <div class="empty-state"><div class="icon">📜</div>L'historique des manches jouées apparaîtra ici</div>
+  </div>
+</section>
+
+</main>
+<footer>♠ ♥ Tournoi de Belote ♦ ♣ — Bonne chance à tous !</footer>
+
+<script>
+// ══════════════════════════════════════════
+//  ÉTAT
+// ══════════════════════════════════════════
+let equipes = [];
+let cfg = { manches: 4, ptsV: 3, ptsN: 1, ptsD: 0 };
+let tournoi = null;
+// Charger le mdp depuis localStorage (défaut : 1234)
+let mdp = localStorage.getItem('belote_mdp') || '1234';
+let debloque = false;
+
+// ══════════════════════════════════════════
+//  MOT DE PASSE
+// ══════════════════════════════════════════
+function ouvrirLogin() {
+  document.getElementById('pwd-input').value = '';
+  document.getElementById('pwd-error').textContent = '';
+  document.getElementById('modal-pwd').classList.add('open');
+  setTimeout(() => document.getElementById('pwd-input').focus(), 50);
+}
+
+function fermerModal() {
+  document.getElementById('modal-pwd').classList.remove('open');
+}
+
+function checkPwd() {
+  const val = document.getElementById('pwd-input').value;
+  if (val === mdp) {
+    debloque = true;
+    fermerModal();
+    // Afficher les onglets protégés
+    document.getElementById('tab-equipes').classList.add('visible');
+    document.getElementById('tab-setup').classList.add('visible');
+    document.getElementById('tab-manche').classList.add('visible');
+    // Swap boutons header
+    document.getElementById('btn-orga').style.display = 'none';
+    document.getElementById('btn-lock').style.display = 'block';
+    // Aller sur équipes
+    goTab('equipes', document.getElementById('tab-equipes'));
+  } else {
+    const err = document.getElementById('pwd-error');
+    err.textContent = '❌ Mot de passe incorrect';
+    document.getElementById('pwd-input').value = '';
+    document.getElementById('pwd-input').focus();
+    setTimeout(() => err.textContent = '', 2500);
+  }
+}
+
+function verrouiller() {
+  debloque = false;
+  // Cacher les onglets protégés
+  document.getElementById('tab-equipes').classList.remove('visible');
+  document.getElementById('tab-setup').classList.remove('visible');
+  document.getElementById('tab-manche').classList.remove('visible');
+  // Swap boutons header
+  document.getElementById('btn-lock').style.display = 'none';
+  document.getElementById('btn-orga').style.display = 'block';
+  // Aller sur classement
+  goTab('classement', document.getElementById('tab-classement'));
+}
+
+function changerMdp() {
+  const v1 = document.getElementById('new-pwd').value;
+  const v2 = document.getElementById('new-pwd2').value;
+  const alertDiv = document.getElementById('alert-mdp');
+  if (!v1) { flash(alertDiv, 'warning', '⚠️ Entrez un nouveau mot de passe.'); return; }
+  if (v1 !== v2) { flash(alertDiv, 'warning', '⚠️ Les mots de passe ne correspondent pas.'); return; }
+  mdp = v1;
+  localStorage.setItem('belote_mdp', mdp);
+  document.getElementById('new-pwd').value = '';
+  document.getElementById('new-pwd2').value = '';
+  flash(alertDiv, 'success', '✅ Mot de passe modifié et sauvegardé !');
+}
+
+function toggleEye(id, btn) {
+  const inp = document.getElementById(id);
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+// ══════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════
+function goTab(name, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  document.getElementById('sec-' + name).classList.add('active');
+  if (name === 'classement') renderClassement();
+  if (name === 'historique') renderHistorique();
+  if (name === 'manche') renderManche();
+}
+
+// ══════════════════════════════════════════
+//  ÉQUIPES
+// ══════════════════════════════════════════
+const NOMS = ['Les Rois du Carreau','Les Piques d\'Or','Cœur Vaillant','Trèfle Chanceux',
+  'Les As Masqués','Belote & Rebelo','Les Couperets','Les Atouts Majeurs',
+  'Pique & Pique','Les Valets Fous','Double Annonce','Les Capots',
+  'Sans Atout Club','Tout Atout','Les Batteurs','Les Donateurs'];
+const PRENOMS = ['Jean','Pierre','Marie','Luc','Sophie','Paul','Anna','Marc','Léa','Hugo','Emma','Tom','Nadia','Eric'];
+
+function addEquipe() {
+  const nom = document.getElementById('inp-nom').value.trim();
+  const joueurs = document.getElementById('inp-joueurs').value.trim();
+  const alertDiv = document.getElementById('alert-eq');
+  if (!nom) { flash(alertDiv, 'warning', '⚠️ Entrez un nom.'); return; }
+  if (equipes.find(e => e.nom.toLowerCase() === nom.toLowerCase())) { flash(alertDiv, 'warning', '⚠️ Équipe déjà existante.'); return; }
+  equipes.push({ id: Date.now() + Math.random(), nom, joueurs });
+  document.getElementById('inp-nom').value = '';
+  document.getElementById('inp-joueurs').value = '';
+  flash(alertDiv, 'success', '✅ ' + nom + ' ajoutée !');
+  renderEquipes();
+}
+
+function delEquipe(id) { equipes = equipes.filter(e => e.id !== id); renderEquipes(); }
+function clearEq() { if (confirm('Effacer toutes les équipes ?')) { equipes = []; renderEquipes(); } }
+
+function genEq(n) {
+  equipes = [];
+  [...NOMS].sort(() => Math.random() - .5).slice(0, n).forEach(nom => {
+    const j1 = PRENOMS[Math.floor(Math.random() * PRENOMS.length)];
+    const j2 = PRENOMS[Math.floor(Math.random() * PRENOMS.length)];
+    equipes.push({ id: Date.now() + Math.random(), nom, joueurs: j1 + ' & ' + j2 });
+  });
+  renderEquipes();
+}
+
+function renderEquipes() {
+  document.getElementById('badge-eq').textContent = equipes.length;
+  const ul = document.getElementById('liste-eq');
+  if (!equipes.length) { ul.innerHTML = '<li class="text-muted" style="padding:1rem;text-align:center">Aucune équipe enregistrée</li>'; return; }
+  ul.innerHTML = equipes.map((e, i) => `
+    <li class="equipe-item">
+      <span class="equipe-num">${i + 1}</span>
+      <span class="equipe-name">${e.nom}</span>
+      <span class="equipe-joueurs">${e.joueurs || ''}</span>
+      <button class="btn btn-danger btn-sm" onclick="delEquipe(${e.id})">✕</button>
+    </li>`).join('');
+}
+
+// ══════════════════════════════════════════
+//  TOURNOI
+// ══════════════════════════════════════════
+function demarrerTournoi() {
+  const alertDiv = document.getElementById('alert-setup');
+  if (equipes.length < 2) { flash(alertDiv, 'warning', '⚠️ Ajoutez au moins 2 équipes.'); return; }
+  if (equipes.length % 2 !== 0) { flash(alertDiv, 'warning', '⚠️ Le nombre d\'équipes doit être pair (' + equipes.length + ' actuellement).'); return; }
+  cfg.manches = parseInt(document.getElementById('cfg-manches').value);
+  cfg.ptsV = parseInt(document.getElementById('cfg-ptsv').value);
+  cfg.ptsN = parseInt(document.getElementById('cfg-ptsn').value);
+  cfg.ptsD = parseInt(document.getElementById('cfg-ptsd').value);
+  const stats = {};
+  equipes.forEach(e => { stats[e.id] = { pts: 0, j: 0, v: 0, n: 0, d: 0, bp: 0, bc: 0 }; });
+  tournoi = { mancheActuelle: 1, mancheMax: cfg.manches, manches: [], stats, termine: false };
+  genererManche();
+  document.getElementById('badge-manche').textContent = '1';
+  flash(alertDiv, 'success', '✅ Tournoi démarré ! ' + equipes.length + ' équipes · ' + cfg.manches + ' manches.');
+  goTab('manche', document.getElementById('tab-manche'));
+}
+
+function resetTournoi() {
+  if (!confirm('Réinitialiser le tournoi ? (Les équipes sont conservées)')) return;
+  tournoi = null;
+  document.getElementById('badge-manche').textContent = '1';
+  document.getElementById('manche-content').innerHTML = '<div class="empty-state"><div class="icon">🃏</div>Démarrez le tournoi dans la configuration</div>';
+  document.getElementById('classement-content').innerHTML = '<div class="empty-state"><div class="icon">📊</div>Le classement apparaît après le démarrage du tournoi</div>';
+  document.getElementById('historique-content').innerHTML = '<div class="empty-state"><div class="icon">📜</div>L\'historique des manches jouées apparaîtra ici</div>';
+}
+
+function getClassement() {
+  return [...equipes].sort((a, b) => {
+    const sa = tournoi.stats[a.id], sb = tournoi.stats[b.id];
+    if (sb.pts !== sa.pts) return sb.pts - sa.pts;
+    const da = sa.bp - sa.bc, db = sb.bp - sb.bc;
+    if (db !== da) return db - da;
+    return sb.bp - sa.bp;
+  });
+}
+
+function genererManche() {
+  const cl = getClassement();
+  const matchs = [];
+  for (let i = 0; i < cl.length; i += 2) {
+    matchs.push({ id: 'm_' + tournoi.mancheActuelle + '_' + i, eq1: cl[i], eq2: cl[i + 1], rang1: i + 1, rang2: i + 2, score1: '', score2: '', joue: false });
+  }
+  tournoi.manches.push({ num: tournoi.mancheActuelle, matchs, valide: false });
+}
+
+// ══════════════════════════════════════════
+//  RENDER MANCHE
+// ══════════════════════════════════════════
+function renderManche() {
+  const div = document.getElementById('manche-content');
+  if (!tournoi) { div.innerHTML = '<div class="empty-state"><div class="icon">🃏</div>Démarrez le tournoi dans la configuration</div>'; return; }
+  if (tournoi.termine) { renderFin(div); return; }
+  const manche = tournoi.manches[tournoi.mancheActuelle - 1];
+  const joues = manche.matchs.filter(m => m.joue).length;
+  const total = manche.matchs.length;
+  const pct = total ? joues / total * 100 : 0;
+  const ok = joues === total;
+
+  let html = `<div class="manche-header">
+    <div>
+      <div class="manche-titre">Manche ${manche.num} / ${cfg.manches}</div>
+      <div class="text-muted" style="font-size:0.82rem" id="manche-sub">${joues}/${total} matchs joués</div>
+    </div>
+    <span class="manche-statut ${manche.valide ? 'statut-termine' : 'statut-en-cours'}">${manche.valide ? '✅ Validée' : '⏳ En cours'}</span>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="prog" style="width:${pct}%"></div></div>
+  <div class="matchs-manche">`;
+
+  manche.matchs.forEach(m => {
+    const s1 = +m.score1, s2 = +m.score2;
+    const e1w = m.joue && s1 > s2, e2w = m.joue && s2 > s1, nul = m.joue && s1 === s2;
+    html += `<div class="match-card ${m.joue ? 'joue' : ''}" id="mc-${m.id}">
+      <div class="match-label">🂠 ${m.rang1}${m.rang1===1?'er':'e'} vs ${m.rang2}e</div>
+      <div class="match-body">
+        <div class="match-eq">
+          <div class="match-eq-nom" style="color:${e1w ? 'var(--vert-clair)' : ''}">${m.eq1.nom}${e1w ? ' ✓' : ''}</div>
+          <div class="match-eq-joueurs">${m.eq1.joueurs || ''}</div>
+        </div>
+        <div class="match-centre">
+          <div class="score-row">
+            <input type="number" class="score-input" value="${m.score1}" min="0" placeholder="—"
+              ${manche.valide ? 'disabled' : ''} oninput="sauverScore('${m.id}',1,this.value)">
+            <span class="vs-badge">VS</span>
+            <input type="number" class="score-input" value="${m.score2}" min="0" placeholder="—"
+              ${manche.valide ? 'disabled' : ''} oninput="sauverScore('${m.id}',2,this.value)">
+          </div>
+          ${nul ? '<div style="font-size:0.7rem;color:#a8a29e">Nul</div>' : ''}
+        </div>
+        <div class="match-eq right">
+          <div class="match-eq-nom" style="color:${e2w ? 'var(--vert-clair)' : ''}">${e2w ? '✓ ' : ''}${m.eq2.nom}</div>
+          <div class="match-eq-joueurs">${m.eq2.joueurs || ''}</div>
+        </div>
+      </div>
+    </div>`;
+  });
+
+  html += '</div>';
+
+  if (!manche.valide) {
+    html += `<div class="flex gap-1 wrap mt-2">
+      <button class="btn btn-green" id="btn-valider" onclick="validerManche()" ${ok ? '' : 'disabled style="opacity:0.45;cursor:not-allowed"'}>
+        ✅ ${ok ? 'Valider la manche' : 'Entrez tous les scores pour valider'}
+      </button>
+    </div>`;
+  } else if (tournoi.mancheActuelle < cfg.manches) {
+    html += `<div class="flex gap-1 wrap mt-2">
+      <button class="btn btn-gold" onclick="mancheSuivante()">▶ Manche suivante →</button>
+      <button class="btn btn-ghost btn-sm" onclick="goTab('classement',document.getElementById('tab-classement'))">📊 Classement</button>
+    </div>`;
+  }
+
+  div.innerHTML = html;
+}
+
+function sauverScore(id, eq, val) {
+  const manche = tournoi.manches[tournoi.mancheActuelle - 1];
+  if (manche.valide) return;
+  const m = manche.matchs.find(x => x.id === id);
+  if (!m) return;
+  if (eq === 1) m.score1 = val === '' ? '' : +val;
+  else m.score2 = val === '' ? '' : +val;
+  m.joue = m.score1 !== '' && m.score2 !== '';
+
+  // Update visuals
+  const card = document.getElementById('mc-' + id);
+  if (card) {
+    card.classList.toggle('joue', m.joue);
+    const noms = card.querySelectorAll('.match-eq-nom');
+    if (noms.length === 2 && m.joue) {
+      const s1 = +m.score1, s2 = +m.score2;
+      noms[0].style.color = s1 > s2 ? 'var(--vert-clair)' : '';
+      noms[0].textContent = m.eq1.nom + (s1 > s2 ? ' ✓' : '');
+      noms[1].style.color = s2 > s1 ? 'var(--vert-clair)' : '';
+      noms[1].textContent = (s2 > s1 ? '✓ ' : '') + m.eq2.nom;
+    }
+  }
+  const joues = manche.matchs.filter(x => x.joue).length;
+  const total = manche.matchs.length;
+  const fill = document.getElementById('prog');
+  if (fill) fill.style.width = (joues / total * 100) + '%';
+  const sub = document.getElementById('manche-sub');
+  if (sub) sub.textContent = joues + '/' + total + ' matchs joués';
+  const btn = document.getElementById('btn-valider');
+  if (btn) {
+    const ok = joues === total;
+    btn.disabled = !ok;
+    btn.style.opacity = ok ? '1' : '0.45';
+    btn.style.cursor = ok ? 'pointer' : 'not-allowed';
+    btn.textContent = ok ? '✅ Valider la manche' : 'Entrez tous les scores pour valider';
+  }
+}
+
+function validerManche() {
+  const manche = tournoi.manches[tournoi.mancheActuelle - 1];
+  if (!manche.matchs.every(m => m.joue)) return;
+  manche.matchs.forEach(m => {
+    const s1 = +m.score1, s2 = +m.score2;
+    const st1 = tournoi.stats[m.eq1.id], st2 = tournoi.stats[m.eq2.id];
+    st1.j++; st2.j++;
+    st1.bp += s1; st1.bc += s2;
+    st2.bp += s2; st2.bc += s1;
+    if (s1 > s2) { st1.v++; st1.pts += cfg.ptsV; st2.d++; st2.pts += cfg.ptsD; }
+    else if (s2 > s1) { st2.v++; st2.pts += cfg.ptsV; st1.d++; st1.pts += cfg.ptsD; }
+    else { st1.n++; st1.pts += cfg.ptsN; st2.n++; st2.pts += cfg.ptsN; }
+  });
+  manche.valide = true;
+  if (tournoi.mancheActuelle >= cfg.manches) tournoi.termine = true;
+  renderManche();
+}
+
+function mancheSuivante() {
+  tournoi.mancheActuelle++;
+  document.getElementById('badge-manche').textContent = tournoi.mancheActuelle;
+  genererManche();
+  renderManche();
+}
+
+// ══════════════════════════════════════════
+//  FIN
+// ══════════════════════════════════════════
+function renderFin(div) {
+  const cl = getClassement();
+  const champ = cl[0];
+  const medals = ['🥇', '🥈', '🥉'];
+  const stats = tournoi.stats;
+  div.innerHTML = `<div class="champion-banner">
+    <div class="icon">🏆</div>
+    <div class="nom">${champ.nom}</div>
+    <div class="joueurs">${champ.joueurs || ''}</div>
+    <div class="label">Champion du tournoi !</div>
+  </div>
+  <div class="card"><h2>📊 Classement final</h2>
+    <div class="classement-wrap"><table>
+      <thead><tr><th>#</th><th>Équipe</th><th>Joueurs</th><th>J</th><th>V</th><th>N</th><th>D</th><th>BP</th><th>BC</th><th>Diff</th><th>Pts</th></tr></thead>
+      <tbody>${cl.map((e, i) => { const s = stats[e.id], d = s.bp - s.bc; return `<tr class="${i<3?'p'+(i+1):''}"><td>${medals[i]||i+1}</td><td class="font-bold">${e.nom}</td><td class="text-muted">${e.joueurs||'-'}</td><td>${s.j}</td><td>${s.v}</td><td>${s.n}</td><td>${s.d}</td><td>${s.bp}</td><td>${s.bc}</td><td style="color:${d>0?'var(--vert-clair)':d<0?'var(--rouge-clair)':'#a8a29e'}">${d>0?'+':''}${d}</td><td class="pts-cell">${s.pts}</td></tr>`; }).join('')}</tbody>
+    </table></div>
+  </div>
+  <div class="flex gap-1 wrap">
+    <button class="btn btn-ghost" onclick="goTab('historique',document.getElementById('tab-historique'))">📜 Historique</button>
+    <button class="btn btn-danger btn-sm" onclick="resetTournoi()">🔄 Nouveau tournoi</button>
+  </div>`;
+}
+
+// ══════════════════════════════════════════
+//  CLASSEMENT
+// ══════════════════════════════════════════
+function renderClassement() {
+  const div = document.getElementById('classement-content');
+  if (!tournoi) { div.innerHTML = '<div class="empty-state"><div class="icon">📊</div>Démarrez le tournoi d\'abord</div>'; return; }
+  const cl = getClassement();
+  const stats = tournoi.stats;
+  const medals = ['🥇', '🥈', '🥉'];
+  div.innerHTML = `<div class="card"><h2>📊 Classement général</h2>
+    <div class="alert ${tournoi.termine ? 'alert-success' : 'alert-info'}" style="margin-bottom:1rem">
+      ${tournoi.termine ? '🏁 Tournoi terminé — ' + cfg.manches + ' manches jouées' : '⏳ Manche ' + tournoi.mancheActuelle + ' / ' + cfg.manches}
+    </div>
+    <div class="classement-wrap"><table>
+      <thead><tr><th>#</th><th>Équipe</th><th>Joueurs</th><th>J</th><th>V</th><th>N</th><th>D</th><th>BP</th><th>BC</th><th>Diff</th><th>Pts</th></tr></thead>
+      <tbody>${cl.map((e, i) => { const s = stats[e.id], d = s.bp - s.bc; return `<tr class="${i<3?'p'+(i+1):''}"><td>${medals[i]||i+1}</td><td class="font-bold">${e.nom}</td><td class="text-muted">${e.joueurs||'-'}</td><td>${s.j}</td><td>${s.v}</td><td>${s.n}</td><td>${s.d}</td><td>${s.bp}</td><td>${s.bc}</td><td style="color:${d>0?'var(--vert-clair)':d<0?'var(--rouge-clair)':'#a8a29e'}">${d>0?'+':''}${d}</td><td class="pts-cell">${s.pts}</td></tr>`; }).join('')}</tbody>
+    </table></div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════
+//  HISTORIQUE
+// ══════════════════════════════════════════
+function renderHistorique() {
+  const div = document.getElementById('historique-content');
+  if (!tournoi) { div.innerHTML = '<div class="empty-state"><div class="icon">📜</div>Aucune manche jouée</div>'; return; }
+  const validees = tournoi.manches.filter(m => m.valide);
+  if (!validees.length) { div.innerHTML = '<div class="empty-state"><div class="icon">📜</div>Aucune manche validée</div>'; return; }
+  let html = '';
+  validees.forEach(manche => {
+    html += `<div class="histo-manche"><div class="histo-titre">Manche ${manche.num}</div>`;
+    manche.matchs.forEach(m => {
+      const s1 = +m.score1, s2 = +m.score2;
+      html += `<div class="histo-match">
+        <span class="${s1>s2?'histo-win':'histo-lose'}">${m.rang1}. ${m.eq1.nom}</span>
+        <span class="histo-score">${m.score1} — ${m.score2}</span>
+        <span class="${s2>s1?'histo-win':'histo-lose'}">${m.eq2.nom} .${m.rang2}</span>
+      </div>`;
+    });
+    html += '</div>';
+  });
+  div.innerHTML = '<div class="card"><h2>📜 Historique des manches</h2>' + html + '</div>';
+}
+
+// ══════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════
+function flash(el, type, msg) {
+  el.innerHTML = '<div class="alert alert-' + type + '">' + msg + '</div>';
+  setTimeout(() => el.innerHTML = '', 3000);
+}
+
+// ══════════════════════════════════════════
+//  RÉCUPÉRATION MOT DE PASSE
+// ══════════════════════════════════════════
+let questionSecrete = localStorage.getItem('belote_question') || '';
+let reponseSecrete = localStorage.getItem('belote_reponse') || '';
+
+function sauverQuestion() {
+  const q = document.getElementById('cfg-question').value.trim();
+  const r = document.getElementById('cfg-reponse').value.trim();
+  const alertDiv = document.getElementById('alert-question');
+  if (!q) { flash(alertDiv, 'warning', '⚠️ Entrez une question secrète.'); return; }
+  if (!r) { flash(alertDiv, 'warning', '⚠️ Entrez une réponse secrète.'); return; }
+  questionSecrete = q;
+  reponseSecrete = r.toLowerCase();
+  localStorage.setItem('belote_question', questionSecrete);
+  localStorage.setItem('belote_reponse', reponseSecrete);
+  flash(alertDiv, 'success', '✅ Question secrète enregistrée et sauvegardée !');
+}
+
+function ouvrirRecup() {
+  fermerModal();
+  if (!questionSecrete) {
+    alert('Aucune question secrète définie.\nConnectez-vous d\'abord et configurez une question secrète dans Config > Question secrète.');
+    return;
+  }
+  document.getElementById('recup-question').textContent = questionSecrete;
+  document.getElementById('recup-reponse').value = '';
+  document.getElementById('recup-error').textContent = '';
+  document.getElementById('recup-new-pwd').value = '';
+  document.getElementById('recup-new-pwd2').value = '';
+  document.getElementById('recup-error2').textContent = '';
+  document.getElementById('recup-etape1').style.display = 'block';
+  document.getElementById('recup-etape2').style.display = 'none';
+  document.getElementById('modal-recup').classList.add('open');
+  setTimeout(() => document.getElementById('recup-reponse').focus(), 50);
+}
+
+function fermerRecup() {
+  document.getElementById('modal-recup').classList.remove('open');
+}
+
+function checkRecup() {
+  const rep = document.getElementById('recup-reponse').value.trim().toLowerCase();
+  if (rep === reponseSecrete) {
+    document.getElementById('recup-etape1').style.display = 'none';
+    document.getElementById('recup-etape2').style.display = 'block';
+    setTimeout(() => document.getElementById('recup-new-pwd').focus(), 50);
+  } else {
+    const err = document.getElementById('recup-error');
+    err.textContent = '❌ Réponse incorrecte';
+    document.getElementById('recup-reponse').value = '';
+    document.getElementById('recup-reponse').focus();
+    setTimeout(() => err.textContent = '', 2500);
+  }
+}
+
+function sauverNouveauMdp() {
+  const v1 = document.getElementById('recup-new-pwd').value;
+  const v2 = document.getElementById('recup-new-pwd2').value;
+  const err = document.getElementById('recup-error2');
+  if (!v1) { err.textContent = '⚠️ Entrez un mot de passe.'; return; }
+  if (v1 !== v2) { err.textContent = '⚠️ Les mots de passe ne correspondent pas.'; return; }
+  mdp = v1;
+  localStorage.setItem('belote_mdp', mdp);
+  fermerRecup();
+  // Connecter automatiquement
+  debloque = true;
+  document.getElementById('tab-equipes').classList.add('visible');
+  document.getElementById('tab-setup').classList.add('visible');
+  document.getElementById('tab-manche').classList.add('visible');
+  document.getElementById('btn-orga').style.display = 'none';
+  document.getElementById('btn-lock').style.display = 'block';
+  goTab('setup', document.getElementById('tab-setup'));
+  // Petite notif
+  setTimeout(() => {
+    const a = document.createElement('div');
+    a.className = 'alert alert-success';
+    a.textContent = '✅ Mot de passe réinitialisé avec succès !';
+    a.style.cssText = 'position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);z-index:9999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,0.4)';
+    document.body.appendChild(a);
+    setTimeout(() => a.remove(), 3500);
+  }, 200);
+}
+
+// Init
+renderEquipes();
+</script>
+</body>
+</html>
