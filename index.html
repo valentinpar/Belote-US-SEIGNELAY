@@ -685,7 +685,9 @@ function sauverScore(id, eq, val) {
   if (eq === 1) m.score1 = val === '' ? '' : +val;
   else m.score2 = val === '' ? '' : +val;
   m.joue = m.score1 !== '' && m.score2 !== '';
-  sauvegarder();
+  sauvegarderLocal();
+  clearTimeout(window._scoreTimer);
+  window._scoreTimer = setTimeout(sauvegarderFirebase, 1500);
 
   // Update visuals
   const card = document.getElementById('mc-' + id);
@@ -947,13 +949,14 @@ function initFirebase() {
       if (tournoi) {
         document.getElementById('badge-manche').textContent = tournoi.mancheActuelle;
       }
-      // Rafraîchir l'onglet actif
+      // Rafraîchir l'onglet actif — SAUF la manche (pour ne pas écraser les inputs en cours)
       const active = document.querySelector('.section.active');
       if (active) {
         const name = active.id.replace('sec-', '');
         if (name === 'classement') renderClassement();
         if (name === 'historique') renderHistorique();
-        if (name === 'manche')     renderManche();
+        // La manche est rafraîchie uniquement si on n'est pas en train de saisir
+        if (name === 'manche' && !debloque) renderManche();
       }
     });
     masquerBandeauFirebase();
@@ -964,24 +967,29 @@ function initFirebase() {
   }
 }
 
-function sauvegarder() {
-  // Toujours sauvegarder en local
+function sauvegarderLocal() {
   localStorage.setItem('belote_equipes', JSON.stringify(equipes));
   localStorage.setItem('belote_cfg',     JSON.stringify(cfg));
   localStorage.setItem('belote_tournoi', JSON.stringify(tournoi));
+}
 
-  // Sauvegarder sur Firebase si connecté
+function sauvegarderFirebase() {
   if (!firebaseOk || !db) return;
   _pauseListener = true;
   db.ref('belote').set({
     equipes, cfg, tournoi, mdp,
     questionSecrete, reponseSecrete
   }).then(() => {
-    setTimeout(() => { _pauseListener = false; }, 300);
+    setTimeout(() => { _pauseListener = false; }, 2000);
   }).catch(e => {
     _pauseListener = false;
     console.warn("Erreur Firebase save:", e);
   });
+}
+
+function sauvegarder() {
+  sauvegarderLocal();
+  sauvegarderFirebase();
 }
 
 function chargerLocal() {
