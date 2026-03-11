@@ -473,6 +473,7 @@ function changerMdp() {
   if (v1 !== v2) { flash(alertDiv, 'warning', '⚠️ Les mots de passe ne correspondent pas.'); return; }
   mdp = v1;
   localStorage.setItem('belote_mdp', mdp);
+  sauvegarderFirebase();
   document.getElementById('new-pwd').value = '';
   document.getElementById('new-pwd2').value = '';
   flash(alertDiv, 'success', '✅ Mot de passe modifié et sauvegardé !');
@@ -873,6 +874,7 @@ function sauverNouveauMdp() {
   if (v1 !== v2) { err.textContent = '⚠️ Les mots de passe ne correspondent pas.'; return; }
   mdp = v1;
   localStorage.setItem('belote_mdp', mdp);
+  sauvegarderFirebase();
   fermerRecup();
   // Connecter automatiquement
   debloque = true;
