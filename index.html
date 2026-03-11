@@ -523,7 +523,7 @@ function addEquipe() {
   const alertDiv = document.getElementById('alert-eq');
   if (!nom) { flash(alertDiv, 'warning', '⚠️ Entrez un nom.'); return; }
   if (equipes.find(e => e.nom.toLowerCase() === nom.toLowerCase())) { flash(alertDiv, 'warning', '⚠️ Équipe déjà existante.'); return; }
-  equipes.push({ id: Date.now() + Math.random(), nom, joueurs });
+  equipes.push({ id: 'eq_' + Date.now() + '_' + Math.floor(Math.random()*10000), nom, joueurs });
   document.getElementById('inp-nom').value = '';
   document.getElementById('inp-joueurs').value = '';
   flash(alertDiv, 'success', '✅ ' + nom + ' ajoutée !');
@@ -539,7 +539,7 @@ function genEq(n) {
   [...NOMS].sort(() => Math.random() - .5).slice(0, n).forEach(nom => {
     const j1 = PRENOMS[Math.floor(Math.random() * PRENOMS.length)];
     const j2 = PRENOMS[Math.floor(Math.random() * PRENOMS.length)];
-    equipes.push({ id: Date.now() + Math.random(), nom, joueurs: j1 + ' & ' + j2 });
+    equipes.push({ id: 'eq_' + Date.now() + '_' + Math.floor(Math.random()*10000), nom, joueurs: j1 + ' & ' + j2 });
   });
   renderEquipes();
   sauvegarder();
@@ -570,7 +570,7 @@ function demarrerTournoi() {
   cfg.ptsN = parseInt(document.getElementById('cfg-ptsn').value);
   cfg.ptsD = parseInt(document.getElementById('cfg-ptsd').value);
   const stats = {};
-  equipes.forEach(e => { stats[e.id] = { pts: 0, j: 0, v: 0, n: 0, d: 0, bp: 0, bc: 0 }; });
+  equipes.forEach(e => { stats[String(e.id).replace(/[.#$/\[\]]/g, '_')] = { pts: 0, j: 0, v: 0, n: 0, d: 0, bp: 0, bc: 0 }; });
   tournoi = { mancheActuelle: 1, mancheMax: cfg.manches, manches: [], stats, termine: false };
   genererManche();
   sauvegarder();
