@@ -1007,8 +1007,19 @@ function sauvegarderFirebase() {
     reponseSecrete: reponseSecrete || ''
   };
   // Firebase n'accepte pas null comme valeur directe, on convertit
+  // Mais seulement si aucun tournoi n'est en cours
   if (!payload.tournoi) payload.tournoi = { vide: true };
-  db.ref('belote').set(payload).then(() => {
+  // Sauvegarder chaque champ séparément pour éviter d'écraser le tournoi
+  const updates = {
+    'belote/equipes': payload.equipes,
+    'belote/cfg': payload.cfg,
+    'belote/mdp': payload.mdp,
+    'belote/questionSecrete': payload.questionSecrete,
+    'belote/reponseSecrete': payload.reponseSecrete,
+  };
+  // Ne sauvegarder le tournoi que s'il existe vraiment
+  if (tournoi) updates['belote/tournoi'] = tournoi;
+  db.ref('/').update(updates).then(() => {
     setTimeout(() => { _pauseListener = false; }, 2000);
   }).catch(e => {
     _pauseListener = false;
