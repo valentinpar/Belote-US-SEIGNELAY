@@ -197,7 +197,7 @@ if(localStorage.getItem('pet_session')==='1'){deb=true;['tab-equipes','tab-setup
 initFB();if(T){document.getElementById('badge-tour').textContent=T.tour;rRes()}
 // QR CODE
 let qrGenerated=false;
-function initQR(){if(qrGenerated)return;qrGenerated=true;new QRCode(document.getElementById('qrcode'),{text:'https://valentinpar.github.io/Belote-US-SEIGNELAY/tournoi-petanque.html',width:220,height:220,colorDark:'#5C4610',colorLight:'#f5e6c8',correctLevel:QRCode.CorrectLevel.M})}
+function initQR(){if(qrGenerated)return;qrGenerated=true;new QRCode(document.getElementById('qrcode'),{text:'https://valentinpar.github.io/Belote-US-SEIGNELAY/',width:220,height:220,colorDark:'#5C4610',colorLight:'#f5e6c8',correctLevel:QRCode.CorrectLevel.M})}
 function telechargerQR(){setTimeout(()=>{const c=document.querySelector('#qrcode canvas');if(c){const a=document.createElement('a');a.download='qrcode-tournoi-petanque.png';a.href=c.toDataURL('image/png');a.click()}},100)}
 </script>
 </body>
