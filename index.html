@@ -94,6 +94,8 @@
   .btn-voir:hover { background: var(--vert); }
   .btn-voir.belote { background: #b91c1c; }
   .btn-voir.belote:hover { background: #7f1d1d; }
+  .btn-voir.foot { background: #1a5c2a; }
+  .btn-voir.foot:hover { background: #0d3318; }
 
   /* EMPTY */
   .empty-state { text-align: center; padding: 3rem; color: var(--texte-muted); }
@@ -121,6 +123,8 @@
   .modal-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
   .btn-modal-belote { background: #b91c1c; color: white; border: none; border-radius: 7px; padding: 0.65rem 1.3rem; font-size: 0.9rem; font-weight: 700; cursor: pointer; font-family: 'Source Sans 3', sans-serif; transition: background 0.2s; display: flex; align-items: center; gap: 0.4rem; }
   .btn-modal-belote:hover { background: #7f1d1d; }
+  .btn-modal-foot { background: #1a5c2a; color: white; border: none; border-radius: 7px; padding: 0.65rem 1.3rem; font-size: 0.9rem; font-weight: 700; cursor: pointer; font-family: 'Source Sans 3', sans-serif; transition: background 0.2s; display: flex; align-items: center; gap: 0.4rem; }
+  .btn-modal-foot:hover { background: #0d3318; }
   .btn-modal-close { background: var(--gris-moyen); color: var(--texte-muted); border: none; border-radius: 7px; padding: 0.65rem 1.3rem; font-size: 0.9rem; cursor: pointer; font-family: 'Source Sans 3', sans-serif; transition: background 0.2s; }
   .btn-modal-close:hover { background: var(--gris-fonce); color: var(--texte-clair); }
 
@@ -402,7 +406,7 @@ function renderEvents() {
   }
   const typeLabel = { belote: '🃏 Tournoi de belote', foot: '⚽ Football', autre: '📌 Événement' };
   const typeBadge = { belote: 'badge-belote', foot: 'badge-foot', autre: 'badge-autre' };
-  const typeBtnClass = { belote: 'belote', foot: '', autre: '' };
+  const typeBtnClass = { belote: 'belote', foot: 'foot', autre: '' };
   container.innerHTML = '<div class="events-grid">' + events.map(e => `
     <div class="event-card" onclick="ouvrirEvent('${e.id}')">
       <div class="event-card-banner">
@@ -436,6 +440,8 @@ function ouvrirEvent(id) {
   const actions = document.getElementById('modal-actions');
   actions.innerHTML = e.type === 'belote'
     ? `<button class="btn-modal-belote" onclick="window.location.href='tournoi-belote.html'">🃏 Accéder au tournoi de belote</button>`
+    : e.type === 'foot'
+    ? `<button class="btn-modal-foot" onclick="window.location.href='tournoi-foot.html'">⚽ Accéder au tournoi de football</button>`
     : '';
   actions.innerHTML += `<button class="btn-modal-close" onclick="fermerEvent()">Fermer</button>`;
   document.getElementById('modal-event').classList.add('open');
