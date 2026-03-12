@@ -83,6 +83,7 @@
   }
   .badge-belote { background: rgba(185,28,28,0.3); color: #fca5a5; border: 1px solid rgba(185,28,28,0.5); }
   .badge-foot   { background: rgba(26,92,42,0.5); color: var(--vert-pale); border: 1px solid rgba(45,138,69,0.5); }
+  .badge-petanque { background: rgba(139,105,20,0.3); color: #e8d088; border: 1px solid rgba(139,105,20,0.5); }
   .badge-autre  { background: rgba(212,160,23,0.2); color: var(--or); border: 1px solid rgba(212,160,23,0.4); }
   .event-card-titre { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; color: var(--texte-clair); }
   .event-card-body { padding: 1rem 1.2rem; flex: 1; display: flex; flex-direction: column; gap: 0.5rem; }
@@ -96,6 +97,8 @@
   .btn-voir.belote:hover { background: #7f1d1d; }
   .btn-voir.foot { background: #1a5c2a; }
   .btn-voir.foot:hover { background: #0d3318; }
+  .btn-voir.petanque { background: #8B6914; }
+  .btn-voir.petanque:hover { background: #5C4610; }
 
   /* EMPTY */
   .empty-state { text-align: center; padding: 3rem; color: var(--texte-muted); }
@@ -125,6 +128,8 @@
   .btn-modal-belote:hover { background: #7f1d1d; }
   .btn-modal-foot { background: #1a5c2a; color: white; border: none; border-radius: 7px; padding: 0.65rem 1.3rem; font-size: 0.9rem; font-weight: 700; cursor: pointer; font-family: 'Source Sans 3', sans-serif; transition: background 0.2s; display: flex; align-items: center; gap: 0.4rem; }
   .btn-modal-foot:hover { background: #0d3318; }
+  .btn-modal-petanque { background: #8B6914; color: white; border: none; border-radius: 7px; padding: 0.65rem 1.3rem; font-size: 0.9rem; font-weight: 700; cursor: pointer; font-family: 'Source Sans 3', sans-serif; transition: background 0.2s; display: flex; align-items: center; gap: 0.4rem; }
+  .btn-modal-petanque:hover { background: #5C4610; }
   .btn-modal-close { background: var(--gris-moyen); color: var(--texte-muted); border: none; border-radius: 7px; padding: 0.65rem 1.3rem; font-size: 0.9rem; cursor: pointer; font-family: 'Source Sans 3', sans-serif; transition: background 0.2s; }
   .btn-modal-close:hover { background: var(--gris-fonce); color: var(--texte-clair); }
 
@@ -243,6 +248,7 @@
         <select id="edit-type">
           <option value="belote">🃏 Tournoi de belote</option>
           <option value="foot">⚽ Football</option>
+          <option value="petanque">🎱 Pétanque</option>
           <option value="autre">📌 Autre</option>
         </select>
       </div>
@@ -290,6 +296,7 @@
         <select id="ev-type">
           <option value="belote">🃏 Tournoi de belote</option>
           <option value="foot">⚽ Football</option>
+          <option value="petanque">🎱 Pétanque</option>
           <option value="autre">📌 Autre</option>
         </select>
       </div>
@@ -404,9 +411,9 @@ function renderEvents() {
     container.innerHTML = '<div class="empty-state"><div class="icon">📅</div><p>Aucun événement programmé pour le moment</p></div>';
     return;
   }
-  const typeLabel = { belote: '🃏 Tournoi de belote', foot: '⚽ Football', autre: '📌 Événement' };
-  const typeBadge = { belote: 'badge-belote', foot: 'badge-foot', autre: 'badge-autre' };
-  const typeBtnClass = { belote: 'belote', foot: 'foot', autre: '' };
+  const typeLabel = { belote: '🃏 Tournoi de belote', foot: '⚽ Football', petanque: '🎱 Pétanque', autre: '📌 Événement' };
+  const typeBadge = { belote: 'badge-belote', foot: 'badge-foot', petanque: 'badge-petanque', autre: 'badge-autre' };
+  const typeBtnClass = { belote: 'belote', foot: 'foot', petanque: 'petanque', autre: '' };
   container.innerHTML = '<div class="events-grid">' + events.map(e => `
     <div class="event-card" onclick="ouvrirEvent('${e.id}')">
       <div class="event-card-banner">
@@ -428,8 +435,8 @@ function renderEvents() {
 function ouvrirEvent(id) {
   const e = events.find(x => x.id === id);
   if (!e) return;
-  const typeLabel = { belote: '🃏 Tournoi de belote', foot: '⚽ Football', autre: '📌 Événement' };
-  const typeBadge = { belote: 'badge-belote', foot: 'badge-foot', autre: 'badge-autre' };
+  const typeLabel = { belote: '🃏 Tournoi de belote', foot: '⚽ Football', petanque: '🎱 Pétanque', autre: '📌 Événement' };
+  const typeBadge = { belote: 'badge-belote', foot: 'badge-foot', petanque: 'badge-petanque', autre: 'badge-autre' };
   document.getElementById('modal-badge').textContent = typeLabel[e.type] || '📌 Événement';
   document.getElementById('modal-badge').className = 'event-type-badge ' + (typeBadge[e.type] || 'badge-autre');
   document.getElementById('modal-titre').textContent = e.titre;
@@ -442,6 +449,8 @@ function ouvrirEvent(id) {
     ? `<button class="btn-modal-belote" onclick="window.location.href='tournoi-belote.html'">🃏 Accéder au tournoi de belote</button>`
     : e.type === 'foot'
     ? `<button class="btn-modal-foot" onclick="window.location.href='tournoi-foot.html'">⚽ Accéder au tournoi de football</button>`
+    : e.type === 'petanque'
+    ? `<button class="btn-modal-petanque" onclick="window.location.href='tournoi-petanque.html'">🎱 Accéder au tournoi de pétanque</button>`
     : '';
   actions.innerHTML += `<button class="btn-modal-close" onclick="fermerEvent()">Fermer</button>`;
   document.getElementById('modal-event').classList.add('open');
