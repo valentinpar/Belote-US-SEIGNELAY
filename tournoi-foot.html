@@ -159,10 +159,32 @@ function save(){saveLocal();saveFB()}
 function loadLocal(){try{const e=localStorage.getItem('foot_E'),c=localStorage.getItem('foot_C'),t=localStorage.getItem('foot_T');if(e)E=JSON.parse(e);if(c)C=JSON.parse(c);if(t)T=JSON.parse(t)}catch(e){}}
 if(localStorage.getItem('foot_session')==='1'){deb=true;['tab-equipes','tab-setup','tab-poules','tab-elim'].forEach(t=>document.getElementById(t).classList.add('visible'));document.getElementById('btn-orga').style.display='none';document.getElementById('btn-lock').style.display='block'}
 initFB();if(T)rRes();
-// QR CODE
-let qrGenerated=false;
-function initQR(){if(qrGenerated)return;qrGenerated=true;new QRCode(document.getElementById('qrcode'),{text:'https://valentinpar.github.io/Belote-US-SEIGNELAY/tournoi-foot.html',width:220,height:220,colorDark:'#0d3318',colorLight:'#f0f8f0',correctLevel:QRCode.CorrectLevel.M})}
-function telechargerQR(){setTimeout(()=>{const c=document.querySelector('#qrcode canvas');if(c){const a=document.createElement('a');a.download='qrcode-tournoi-foot.png';a.href=c.toDataURL('image/png');a.click()}},100)}
+// QR Code
+let qrGenerated = false;
+function initQR() {
+  if (qrGenerated) return;
+  qrGenerated = true;
+  new QRCode(document.getElementById('qrcode'), {
+    text: 'https://valentinpar.github.io/Belote-US-SEIGNELAY/',
+    width: 220,
+    height: 220,
+    colorDark: '#0f0a0a',
+    colorLight: '#fdf8f2',
+    correctLevel: QRCode.CorrectLevel.M
+  });
+}
+
+function telechargerQR() {
+  setTimeout(() => {
+    const canvas = document.querySelector('#qrcode canvas');
+    if (canvas) {
+      const a = document.createElement('a');
+      a.download = 'qrcode-tournoi-belote.png';
+      a.href = canvas.toDataURL('image/png');
+      a.click();
+    }
+  }, 100);
+}
 </script>
 </body>
 </html>
