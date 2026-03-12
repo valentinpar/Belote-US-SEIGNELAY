@@ -189,9 +189,21 @@ var e1=realMatch?realMatch.e1.nom:'⏳ ?';var e2=realMatch?realMatch.e2.nom:'⏳
 ms.push({id:s.id,e1:e1,e2:e2,phase:s.phase+' — '+s.label,heure:s.heure||'',terrain:s.terrain||'',isSlot:true})})}
 return ms}
 function findMatch(id){if(!T)return null;for(var i=0;i<T.ps.length;i++){var m=T.ps[i].ms.find(function(x){return x.id===id});if(m)return m}if(T.el){for(var j=0;j<T.el.rs.length;j++){var m2=T.el.rs[j].ms.find(function(x){return x.id===id});if(m2)return m2}}return null}
-function setMatchPlanning(id,field,val){var m=findMatch(id);if(m){m[field]=val;save()}}
-function setElimSlot(id,field,val){if(!T||!T.elimSlots)return;var s=T.elimSlots.find(function(x){return x.id===id});if(s){s[field]=val;save()}}
-function rPlanningEditor(){var d=document.getElementById('planning-editor');if(!d)return;if(!T){d.innerHTML='<div class="empty-state" style="padding:.6rem">Lancez le tournoi</div>';return}var terrOpts='<option value="">— Terrain —</option>';terrains.forEach(function(t){terrOpts+='<option value="'+t+'">'+t+'</option>'});var h='';
+function setMatchPlanning(id,field,val){var m=findMatch(id);if(m){m[field]=val;save();rPlanningEditor()}}
+function setElimSlot(id,field,val){if(!T||!T.elimSlots)return;var s=T.elimSlots.find(function(x){return x.id===id});if(s){s[field]=val;save();rPlanningEditor()}}
+function checkConflits(){if(!T)return[];var all=[];
+// Matchs de poule
+if(T.tours){T.tours.forEach(function(tour){tour.ms.forEach(function(m){if(m.heure&&m.terrain)all.push({id:m.id,e1:m.e1.nom,e2:m.e2.nom,heure:m.heure,terrain:m.terrain,label:'Tour '+tour.num+' · Poule '+tour.poule})})})}
+// Elim slots
+if(T.elimSlots){T.elimSlots.forEach(function(s){if(s.heure&&s.terrain)all.push({id:s.id,e1:'',e2:'',heure:s.heure,terrain:s.terrain,label:s.label})})}
+// Détecter les doublons heure+terrain
+var conflits=[];
+for(var i=0;i<all.length;i++){for(var j=i+1;j<all.length;j++){if(all[i].heure===all[j].heure&&all[i].terrain===all[j].terrain){conflits.push({a:all[i],b:all[j]})}}}
+return conflits}
+function renderConflitAlert(){var conflits=checkConflits();if(!conflits.length)return'';var h='<div class="alert alert-warning" style="margin-bottom:.7rem">⚠️ <strong>Conflits détectés !</strong> Plusieurs matchs sont programmés sur le même terrain à la même heure :<ul style="margin:.4rem 0 0 1.2rem;font-size:.8rem">';
+conflits.forEach(function(c){h+='<li><strong>'+c.a.heure+'</strong> sur <strong>'+c.a.terrain+'</strong> : '+c.a.label+' et '+c.b.label+'</li>'});
+h+='</ul></div>';return h}
+function rPlanningEditor(){var d=document.getElementById('planning-editor');if(!d)return;if(!T){d.innerHTML='<div class="empty-state" style="padding:.6rem">Lancez le tournoi</div>';return}var terrOpts='<option value="">— Terrain —</option>';terrains.forEach(function(t){terrOpts+='<option value="'+t+'">'+t+'</option>'});var h=renderConflitAlert();
 // Phase de poules — groupé par poule
 if(T.tours&&T.tours.length){h+='<div style="margin-bottom:.8rem"><div style="font-weight:700;color:var(--or);margin-bottom:.4rem;font-size:.9rem">📋 Phase de poules</div>';
 // Récupérer les poules uniques
@@ -220,7 +232,7 @@ function rPlanning(){var d=document.getElementById('planning-content');if(!T){d.
 var poolMs=ms.filter(function(m){return!m.isSlot});var elimMs=ms.filter(function(m){return m.isSlot});
 var anyPlanned=ms.some(function(m){return m.heure||m.terrain});
 if(!anyPlanned){d.innerHTML='<div class="card"><h2>🗓️ Planning des matchs</h2><div class="alert alert-info">L\'organisateur n\'a pas encore assigné les horaires et terrains.</div></div>';return}
-var h='';
+var h=renderConflitAlert();
 // POULES — groupées par poule
 if(poolMs.length){h+='<div class="card"><h2><span class="phase-tag phase-poules">📋 Phase de poules</span></h2>';
 // Récupérer les noms de poules uniques
