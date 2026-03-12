@@ -60,7 +60,18 @@
 <main>
 <section id="sec-equipes" class="section"><div class="card"><h2>👥 Équipes</h2><div class="equipe-form"><div><label>Nom</label><input type="text" id="inp-nom" placeholder="FC Seignelay" onkeydown="if(event.key==='Enter')addEquipe()"></div><div><label>Responsable</label><input type="text" id="inp-resp" placeholder="Coach Martin" onkeydown="if(event.key==='Enter')addEquipe()"></div><button class="btn btn-primary" onclick="addEquipe()">➕</button></div><div id="alert-eq"></div><ul class="equipe-list" id="liste-eq"></ul></div><div class="card"><h2>⚡ Génération rapide</h2><div class="flex gap-1 wrap"><button class="btn btn-ghost btn-sm" onclick="genEq(4)">4</button><button class="btn btn-ghost btn-sm" onclick="genEq(5)">5</button><button class="btn btn-ghost btn-sm" onclick="genEq(6)">6</button><button class="btn btn-ghost btn-sm" onclick="genEq(8)">8</button><button class="btn btn-ghost btn-sm" onclick="genEq(10)">10</button><button class="btn btn-ghost btn-sm" onclick="genEq(12)">12</button><button class="btn btn-ghost btn-sm" onclick="genEq(16)">16</button><button class="btn btn-danger btn-sm" onclick="clearEq()">🗑</button></div></div></section>
 <section id="sec-setup" class="section"><div class="card"><h2>⚙️ Configuration</h2><div class="setup-grid"><div><label>Poules</label><select id="cfg-poules"><option value="2">2</option><option value="3">3</option><option value="4" selected>4</option></select></div><div><label>Pts victoire</label><input type="number" id="cfg-ptsv" value="3" min="1"></div><div><label>Pts nul</label><input type="number" id="cfg-ptsn" value="1" min="0"></div><div><label>Pts défaite</label><input type="number" id="cfg-ptsd" value="0" min="0"></div><div><label>Format éliminatoire</label><select id="cfg-elim"><option value="quarts">Quarts + Demis + Finale</option><option value="demis">Demis + Finale</option><option value="finale">Finale uniquement</option></select></div></div><div id="alert-setup"></div><div class="flex gap-1 wrap mt-1"><button class="btn btn-gold" onclick="startT()">🏟️ Lancer</button><button class="btn btn-danger btn-sm" onclick="resetT()">🔄 Reset</button></div></div><div class="card"><h2>🏟️ Terrains</h2><div class="equipe-form" style="grid-template-columns:1fr auto"><div><label>Nom du terrain</label><input type="text" id="inp-terrain" placeholder="Ex: Terrain A, Terrain synthétique…" onkeydown="if(event.key==='Enter')addTerrain()"></div><button class="btn btn-primary" onclick="addTerrain()">➕</button></div><div id="alert-terrain"></div><ul class="equipe-list" id="liste-terrains"></ul></div>
-<div class="card"><h2>🗓️ Gestion du planning</h2><p style="color:var(--muted);font-size:.82rem;margin-bottom:.8rem">Assignez une heure et un terrain à chaque match. Le planning sera visible par tous dans l'onglet Planning.</p><div id="planning-editor"><div class="empty-state" style="padding:.8rem"><div class="icon" style="font-size:1.5rem">📋</div>Lancez le tournoi pour gérer le planning</div></div></div>
+<div class="card"><h2>🗓️ Gestion du planning</h2><p style="color:var(--muted);font-size:.82rem;margin-bottom:.8rem">Assignez une heure et un terrain à chaque match, ou utilisez le remplissage automatique.</p>
+<div id="auto-planning" style="background:rgba(0,0,0,.15);border:1px solid var(--gris-moyen);border-radius:6px;padding:.7rem;margin-bottom:.8rem">
+<div style="font-weight:700;color:var(--or);font-size:.85rem;margin-bottom:.5rem">⚡ Remplissage automatique</div>
+<div class="setup-grid" style="margin-bottom:.5rem">
+<div><label>Heure de début</label><input type="time" id="auto-heure" value="09:00" style="font-family:monospace;font-weight:700"></div>
+<div><label>Durée match (min)</label><input type="number" id="auto-duree" value="15" min="5" max="90"></div>
+<div><label>Pause entre matchs (min)</label><input type="number" id="auto-pause" value="5" min="0" max="60"></div>
+</div>
+<div id="alert-auto"></div>
+<button class="btn btn-gold" onclick="autoPlanning()">⚡ Générer le planning</button>
+</div>
+<div id="planning-editor"><div class="empty-state" style="padding:.8rem"><div class="icon" style="font-size:1.5rem">📋</div>Lancez le tournoi pour gérer le planning</div></div></div>
 <div class="card"><h2>❓ Question secrète de récupération</h2><p style="color:var(--muted);font-size:.8rem;margin-bottom:.7rem">En cas d'oubli du mot de passe, cette question permet de le réinitialiser.</p><div style="display:grid;grid-template-columns:1fr auto;gap:.6rem;align-items:end;margin-bottom:.5rem"><div><label>Question secrète</label><input type="text" id="cfg-question" placeholder="Ex: Nom de votre premier chien ?"></div><button class="btn btn-primary" onclick="sauverQuestion()">💾</button></div><div><label>Réponse secrète</label><input type="text" id="cfg-reponse" placeholder="Votre réponse (insensible à la casse)"></div><div id="alert-question" class="mt-1"></div></div>
 <div class="card"><h2>🔑 Mot de passe</h2><div class="pwd-row"><div><label>Nouveau</label><div class="pwd-wrap"><input type="password" id="new-pwd"><button class="pwd-eye" onclick="toggleEye('new-pwd')">👁</button></div></div><div><label>Confirmer</label><input type="password" id="new-pwd2" onkeydown="if(event.key==='Enter')chgMdp()"></div><button class="btn btn-primary" onclick="chgMdp()">💾</button></div><div id="alert-mdp" class="mt-1"></div></div><div class="card"><h2>ℹ️ Règles</h2><p style="color:var(--muted);line-height:1.6;font-size:.83rem"><strong style="color:var(--txt)">📋 Poules :</strong> Tous vs tous avec rotation par tours. Les matchs sont répartis en tours successifs sur la journée. Chaque équipe joue 1 match par tour et se repose entre deux. Classement : pts → diff buts → buts marqués.<br><br><strong style="color:var(--txt)">🏆 Élim :</strong> 1ers + 2es → Quarts → Demis → Petite finale → Finale. <strong style="color:var(--or)">Pas de nul en élim.</strong><br><br><strong style="color:var(--or)">3 pts victoire · 1 pt nul · 0 pt défaite</strong></p></div></section>
 <section id="sec-poules" class="section"><div id="poules-content"><div class="empty-state"><div class="icon">📋</div>Lancez le tournoi</div></div></section>
@@ -191,6 +202,72 @@ return ms}
 function findMatch(id){if(!T)return null;for(var i=0;i<T.ps.length;i++){var m=T.ps[i].ms.find(function(x){return x.id===id});if(m)return m}if(T.el){for(var j=0;j<T.el.rs.length;j++){var m2=T.el.rs[j].ms.find(function(x){return x.id===id});if(m2)return m2}}return null}
 function setMatchPlanning(id,field,val){var m=findMatch(id);if(m){m[field]=val;save();rPlanningEditor()}}
 function setElimSlot(id,field,val){if(!T||!T.elimSlots)return;var s=T.elimSlots.find(function(x){return x.id===id});if(s){s[field]=val;save();rPlanningEditor()}}
+function autoPlanning(){if(!T){flash(document.getElementById('alert-auto'),'warning','⚠️ Lancez le tournoi d\'abord.');return}
+if(!terrains.length){flash(document.getElementById('alert-auto'),'warning','⚠️ Ajoutez au moins un terrain.');return}
+var startTime=document.getElementById('auto-heure').value;var duree=+document.getElementById('auto-duree').value||15;var pause=+document.getElementById('auto-pause').value||0;
+if(!startTime){flash(document.getElementById('alert-auto'),'warning','⚠️ Choisissez une heure de début.');return}
+var parts=startTime.split(':');var startMin=+parts[0]*60+(+parts[1]);
+var nbTerrains=terrains.length;
+var nbPoules=T.ps.length;
+function minToStr(m){var h=Math.floor(m/60);var mn=m%60;return(h<10?'0':'')+h+':'+(mn<10?'0':'')+mn}
+// 1) Assigner un terrain fixe par poule
+// Si plus de poules que de terrains, on fait tourner
+var pouleTerrainMap={};
+T.ps.forEach(function(p,i){pouleTerrainMap[p.nm]=terrains[i%nbTerrains]});
+// 2) Regrouper les tours par poule
+var toursByPoule={};
+T.ps.forEach(function(p){toursByPoule[p.nm]=[]});
+if(T.tours){T.tours.forEach(function(tour){if(toursByPoule[tour.poule])toursByPoule[tour.poule].push(tour)})}
+// 3) Trouver le max de rounds par poule
+var maxRounds=0;
+Object.keys(toursByPoule).forEach(function(pn){if(toursByPoule[pn].length>maxRounds)maxRounds=toursByPoule[pn].length});
+// 4) Planifier round par round
+// À chaque créneau, les poules qui partagent le même terrain jouent en séquence,
+// celles qui ont des terrains différents jouent en parallèle
+var currentMin=startMin;
+for(var r=0;r<maxRounds;r++){
+// Regrouper les poules par terrain pour ce round
+var terrainGroups={};
+Object.keys(toursByPoule).forEach(function(pn){
+if(r<toursByPoule[pn].length){
+var ter=pouleTerrainMap[pn];
+if(!terrainGroups[ter])terrainGroups[ter]=[];
+terrainGroups[ter].push({poule:pn,tour:toursByPoule[pn][r]})}});
+// Pour chaque terrain, on empile les matchs séquentiellement
+// Mais les terrains jouent en parallèle
+var maxCreneaux=0;
+Object.keys(terrainGroups).forEach(function(ter){
+var groups=terrainGroups[ter];
+var localOffset=0;
+groups.forEach(function(g){
+g.tour.ms.forEach(function(m){
+m.heure=minToStr(currentMin+localOffset);
+m.terrain=ter;
+localOffset+=duree+pause})});
+if(localOffset>maxCreneaux)maxCreneaux=localOffset});
+currentMin+=maxCreneaux;
+}
+// 5) Élim : répartir sur les terrains en parallèle
+if(T.elimSlots&&T.elimSlots.length){
+var elimIdx=0;var terrIdx=0;
+// Grouper les élim par phase pour les jouer phase par phase
+var elimPhases={};T.elimSlots.forEach(function(s){if(!elimPhases[s.phase])elimPhases[s.phase]=[];elimPhases[s.phase].push(s)});
+Object.keys(elimPhases).forEach(function(phaseName){
+var slots=elimPhases[phaseName];
+terrIdx=0;
+var phaseStart=currentMin;
+var maxOff=0;
+slots.forEach(function(s,i){
+s.heure=minToStr(phaseStart);
+s.terrain=terrains[terrIdx%nbTerrains];
+terrIdx++;
+if(terrIdx>=nbTerrains){terrIdx=0;phaseStart+=duree+pause}});
+// Avancer currentMin après cette phase
+var nbCreneaux=Math.ceil(slots.length/nbTerrains);
+currentMin+=nbCreneaux*(duree+pause)})}
+save();rPlanningEditor();
+var finMin=currentMin-pause;
+flash(document.getElementById('alert-auto'),'success','✅ Planning généré ! Début '+minToStr(startMin)+' · Fin estimée '+minToStr(finMin)+' · '+terrains.length+' terrain(s)')}
 function checkConflits(){if(!T)return[];var all=[];
 // Matchs de poule
 if(T.tours){T.tours.forEach(function(tour){tour.ms.forEach(function(m){if(m.heure&&m.terrain)all.push({id:m.id,e1:m.e1.nom,e2:m.e2.nom,heure:m.heure,terrain:m.terrain,label:'Tour '+tour.num+' · Poule '+tour.poule})})})}
