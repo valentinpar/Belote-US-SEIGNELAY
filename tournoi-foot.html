@@ -197,7 +197,7 @@ function getAllMatchs(){var ms=[];if(!T)return ms;T.ps.forEach(function(p){p.ms.
 if(T.elimSlots){T.elimSlots.forEach(function(s){
 var realMatch=null;if(T.el){T.el.rs.forEach(function(r){r.ms.forEach(function(m){if(m.e1&&m.e2&&m.lb&&m.lb.indexOf(s.label)>=0)realMatch=m;if(m.e1&&m.e2&&s.label==='3e place'&&m.lb&&m.lb.indexOf('3e')>=0)realMatch=m;if(m.e1&&m.e2&&s.label==='Finale'&&r.nm==='Finale')realMatch=m})})}
 var e1=realMatch?realMatch.e1.nom:'⏳ ?';var e2=realMatch?realMatch.e2.nom:'⏳ ?';
-ms.push({id:s.id,e1:e1,e2:e2,phase:s.phase+' — '+s.label,heure:s.heure||'',terrain:s.terrain||'',isSlot:true})})}
+ms.push({id:s.id,e1:e1,e2:e2,phase:s.phase,label:s.label,tg:s.tg,heure:s.heure||'',terrain:s.terrain||'',isSlot:true})})}
 return ms}
 function findMatch(id){if(!T)return null;for(var i=0;i<T.ps.length;i++){var m=T.ps[i].ms.find(function(x){return x.id===id});if(m)return m}if(T.el){for(var j=0;j<T.el.rs.length;j++){var m2=T.el.rs[j].ms.find(function(x){return x.id===id});if(m2)return m2}}return null}
 function setMatchPlanning(id,field,val){var m=findMatch(id);if(m){m[field]=val;save();rPlanningEditor()}}
@@ -324,12 +324,22 @@ if(pUnplanned.length){h+='<div style="margin-top:.3rem"><div style="color:var(--
 h+='</div>'});
 h+='</div>'}
 // ÉLIMINATOIRES
-if(elimMs.length){h+='<div class="card"><h2><span class="phase-tag phase-finale">🏆 Phase éliminatoire</span></h2>';
-var elimPlanned=elimMs.filter(function(m){return m.heure||m.terrain});
-var elimUnplanned=elimMs.filter(function(m){return!m.heure&&!m.terrain});
-elimPlanned.sort(function(a,b){if(!a.heure)return 1;if(!b.heure)return-1;return a.heure.localeCompare(b.heure)});
-elimPlanned.forEach(function(m){var isKnown=m.e1.indexOf('⏳')<0;var st=isKnown?'font-weight:600':'color:var(--muted);font-style:italic';h+='<div class="planning-pub-row" style="border-left:3px solid var(--or)"><span class="pp-heure">'+(m.heure||'—')+'</span><span class="pp-eq" style="'+st+'">'+m.e1+'</span><span class="pp-vs">VS</span><span class="pp-eq" style="text-align:right;'+st+'">'+m.e2+'</span><span class="pp-terrain">🏟️ '+(m.terrain||'—')+'</span></div>'});
-if(elimUnplanned.length){h+='<div style="margin-top:.6rem;padding-top:.5rem;border-top:1px solid var(--gris-moyen)"><div style="color:var(--muted);font-size:.76rem;margin-bottom:.3rem">⏳ Horaire à définir :</div>';elimUnplanned.forEach(function(m){h+='<div style="display:flex;justify-content:space-between;background:var(--gris-fonce);padding:.25rem .6rem;border-radius:4px;margin-bottom:.1rem;font-size:.78rem;color:var(--muted);border-left:3px solid var(--or)"><span>'+m.phase+'</span><span style="font-size:.68rem">'+(m.e1.indexOf('⏳')<0?m.e1+' vs '+m.e2:'à déterminer')+'</span></div>'});h+='</div>'}
+if(elimMs.length){h+='<div class="card"><h2>🏆 Phase éliminatoire</h2>';
+// Grouper par phase en conservant l'ordre
+var elimPhases=[];var phasesSeen={};
+elimMs.forEach(function(m){if(!phasesSeen[m.phase]){phasesSeen[m.phase]=true;elimPhases.push(m.phase)}});
+elimPhases.forEach(function(phaseName){
+var phaseMs=elimMs.filter(function(m){return m.phase===phaseName});
+var tg=phaseMs[0].tg||'phase-finale';
+var planned=phaseMs.filter(function(m){return m.heure||m.terrain});
+var unplanned=phaseMs.filter(function(m){return!m.heure&&!m.terrain});
+h+='<div style="margin-bottom:.7rem"><div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.35rem"><span class="phase-tag '+tg+'" style="font-size:.68rem">'+phaseName+'</span><span style="font-size:.7rem;color:var(--muted)">'+phaseMs.length+' match'+(phaseMs.length>1?'s':'')+'</span></div>';
+planned.sort(function(a,b){if(!a.heure)return 1;if(!b.heure)return-1;return a.heure.localeCompare(b.heure)});
+planned.forEach(function(m){var isKnown=m.e1.indexOf('⏳')<0;var st=isKnown?'font-weight:600':'color:var(--muted);font-style:italic';
+h+='<div class="planning-pub-row" style="border-left:3px solid '+(tg==='phase-quarts'?'var(--or)':tg==='phase-demis'?'var(--rouge-clair)':tg==='phase-petite'?'#94a3b8':'var(--or)')+'"><span class="pp-heure">'+(m.heure||'—')+'</span><span class="pp-eq" style="'+st+'">'+(isKnown?m.e1:m.label)+'</span><span class="pp-vs">VS</span><span class="pp-eq" style="text-align:right;'+st+'">'+(isKnown?m.e2:'⏳')+'</span><span class="pp-terrain">🏟️ '+(m.terrain||'—')+'</span></div>'});
+if(unplanned.length){unplanned.forEach(function(m){var isKnown=m.e1.indexOf('⏳')<0;
+h+='<div style="display:flex;justify-content:space-between;align-items:center;background:var(--gris-fonce);padding:.3rem .6rem;border-radius:4px;margin-bottom:.1rem;font-size:.78rem;color:var(--muted);border-left:3px solid '+(tg==='phase-quarts'?'var(--or)':tg==='phase-demis'?'var(--rouge-clair)':tg==='phase-petite'?'#94a3b8':'var(--or)')+'"><span>'+m.label+'</span><span>'+(isKnown?m.e1+' vs '+m.e2:'⏳ à déterminer')+'</span></div>'})}
+h+='</div>'});
 h+='</div>'}
 d.innerHTML=h}
 function flash(e,t,m){e.innerHTML='<div class="alert alert-'+t+'">'+m+'</div>';setTimeout(()=>e.innerHTML='',3e3)}
