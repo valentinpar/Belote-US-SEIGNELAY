@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestionnaire de Tournois — US Seignelay</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --or:#d4a017;--or-f:#b8860b;
+  --noir:#080810;--gf:#0e0e18;--g:#16162a;--gm:#242440;
+  --txt:#ddddf5;--muted:#6e6e9a;--vert-pale:#86efac;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Source Sans 3',sans-serif;background:var(--gf);color:var(--txt);min-height:100vh}
+
+/* HEADER */
+header{background:linear-gradient(135deg,var(--noir) 0%,#1a0d3a 55%,var(--gf) 100%);padding:2.2rem 2rem;text-align:center;border-bottom:3px solid var(--or);position:relative;overflow:hidden}
+header::before{content:'🏆';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:14rem;opacity:.03;pointer-events:none}
+header h1{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,5vw,3rem);font-weight:900;color:#f0f0ff;letter-spacing:-.02em}
+header h1 span{color:var(--or)}
+header p{color:#7070b0;font-size:.85rem;margin-top:.4rem;letter-spacing:.12em;text-transform:uppercase}
+
+/* MAIN */
+main{max-width:960px;margin:0 auto;padding:1.8rem 1.2rem}
+
+/* SECTION TITLE */
+.stitle{font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--or);margin:2rem 0 1rem;display:flex;align-items:center;gap:.5rem;border-bottom:1px solid var(--gm);padding-bottom:.5rem}
+
+/* TOURNOI CARDS GRID */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1rem}
+
+/* CARD */
+.tcard{background:var(--g);border:1px solid var(--gm);border-radius:12px;overflow:hidden;transition:all .25s;cursor:pointer;position:relative}
+.tcard:hover{border-color:var(--or);transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,.5)}
+.tcard-banner{height:90px;display:flex;align-items:center;justify-content:center;font-size:3.5rem;position:relative;overflow:hidden}
+.tcard-banner::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,rgba(0,0,0,.4))}
+.tcard-body{padding:1rem 1rem .6rem}
+.tcard-tag{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;padding:.15rem .6rem;border-radius:20px;border:1px solid;font-weight:700;display:inline-block;margin-bottom:.45rem}
+.tcard-nom{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;color:#f0f0ff;margin-bottom:.3rem}
+.tcard-desc{font-size:.76rem;color:var(--muted);line-height:1.4}
+.tcard-foot{padding:.65rem 1rem;border-top:1px solid var(--gm);display:flex;gap:.4rem;align-items:center;background:rgba(0,0,0,.15)}
+
+/* ADD CARD */
+.add-card{border:2px dashed var(--gm);border-radius:12px;min-height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.6rem;cursor:pointer;transition:all .25s;color:var(--muted);background:transparent}
+.add-card:hover{border-color:var(--or);color:var(--or);background:rgba(212,160,23,.04);transform:translateY(-4px)}
+.add-card-ico{font-size:2.8rem;transition:transform .25s}
+.add-card:hover .add-card-ico{transform:scale(1.15) rotate(10deg)}
+.add-card-txt{font-weight:700;font-size:.92rem}
+.add-card-sub{font-size:.74rem;opacity:.7}
+
+/* BUTTONS */
+.btn{padding:.45rem 1rem;border:none;border-radius:6px;font-family:inherit;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:.3rem}
+.btn-gold{background:var(--or);color:var(--noir)}.btn-gold:hover{background:var(--or-f)}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--gm)}.btn-ghost:hover{border-color:var(--or);color:var(--or)}
+.btn-open{background:rgba(212,160,23,.12);color:var(--or);border:1px solid rgba(212,160,23,.25)}.btn-open:hover{background:rgba(212,160,23,.28)}
+.btn-danger{background:transparent;color:#f87171;border:1px solid #7f1d1d}.btn-danger:hover{background:rgba(127,29,29,.35)}
+.btn-sm{padding:.28rem .65rem;font-size:.74rem}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:1000;align-items:center;justify-content:center;padding:1rem}
+.modal-overlay.open{display:flex}
+.modal-box{background:var(--g);border:1px solid var(--gm);border-radius:14px;padding:1.8rem;width:min(620px,96vw);max-height:90vh;overflow-y:auto;box-shadow:0 30px 80px rgba(0,0,0,.7)}
+.modal-titre{font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--or);margin-bottom:1.3rem;display:flex;align-items:center;gap:.5rem}
+.modal-close{margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.3rem;padding:.2rem .4rem;transition:color .2s}.modal-close:hover{color:var(--txt)}
+
+/* STEPS */
+.steps{display:flex;margin-bottom:1.5rem;border-radius:8px;overflow:hidden}
+.step-ind{flex:1;text-align:center;padding:.55rem .3rem;font-size:.73rem;font-weight:600;letter-spacing:.03em;text-transform:uppercase;border-bottom:3px solid transparent;color:var(--muted);transition:all .2s;background:rgba(0,0,0,.2)}
+.step-ind.active{color:var(--or);border-color:var(--or)}
+.step-ind.done{color:#4ade80;border-color:#4ade80}
+
+/* WIZARD STEPS */
+.wstep{display:none}.wstep.active{display:block;animation:fadeIn .2s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* FORM */
+.fgroup{margin-bottom:1rem}
+label{display:block;color:var(--muted);font-size:.73rem;margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.05em}
+input[type="text"],input[type="password"],select{background:var(--gf);border:1px solid var(--gm);color:var(--txt);padding:.55rem .8rem;border-radius:6px;font-family:inherit;font-size:.88rem;width:100%;transition:border-color .2s}
+input:focus,select:focus{outline:none;border-color:var(--or)}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+@media(max-width:480px){.frow{grid-template-columns:1fr}}
+.hint{font-size:.72rem;color:var(--muted);margin-top:.25rem}
+.required{color:#f87171}
+
+/* SPORT SELECTOR */
+.sport-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(115px,1fr));gap:.55rem;margin-bottom:.5rem}
+.sport-btn{background:var(--gf);border:2px solid var(--gm);border-radius:9px;padding:.8rem .5rem;text-align:center;cursor:pointer;transition:all .2s;font-family:inherit;width:100%}
+.sport-btn:hover{border-color:var(--muted)}
+.sport-btn.sel{border-color:var(--or);background:rgba(212,160,23,.1)}
+.sport-btn .se{font-size:2rem;display:block;margin-bottom:.3rem}
+.sport-btn .sn{font-size:.76rem;font-weight:600;color:var(--txt)}
+
+/* COLOR SWATCHES */
+.color-row{display:flex;gap:.55rem;flex-wrap:wrap;margin-top:.4rem}
+.swatch{width:34px;height:34px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:all .2s;flex-shrink:0}
+.swatch.sel{border-color:#fff;transform:scale(1.18);box-shadow:0 0 0 2px var(--or)}
+
+/* INFO BOX */
+.info-box{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.25);border-radius:8px;padding:.85rem;font-size:.8rem;color:#93c5fd;margin-bottom:1rem;line-height:1.5}
+
+/* DOWNLOAD */
+.dl-zone{text-align:center;padding:1.8rem;border:2px solid #166534;background:rgba(22,101,52,.08);border-radius:12px;margin-bottom:1rem}
+.dl-zone .dl-ico{font-size:3.5rem;margin-bottom:.5rem}
+.dl-zone h3{font-family:'Playfair Display',serif;font-size:1.3rem;color:#4ade80;margin-bottom:.4rem}
+.dl-zone p{color:var(--muted);font-size:.82rem;margin-bottom:1.2rem}
+
+/* STEPS INSTRUCTIONS */
+.how-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.8rem;margin-top:.5rem}
+.how-card{background:var(--g);border:1px solid var(--gm);border-radius:9px;padding:1rem}
+.how-num{font-size:1.6rem;margin-bottom:.4rem}
+.how-titre{font-weight:700;color:var(--or);margin-bottom:.3rem;font-size:.88rem}
+.how-desc{font-size:.78rem;color:var(--muted);line-height:1.5}
+
+/* WIZARD NAV */
+.wnav{display:flex;justify-content:space-between;align-items:center;margin-top:1.4rem;padding-top:1rem;border-top:1px solid var(--gm)}
+
+/* SPORT SELECTED BADGE */
+.sel-badge{display:inline-flex;align-items:center;gap:.4rem;background:rgba(212,160,23,.12);border:1px solid rgba(212,160,23,.3);color:var(--or);border-radius:20px;padding:.25rem .8rem;font-size:.8rem;font-weight:700;margin-top:.5rem}
+
+/* TAG PRESETS */
+.tag-belote{background:rgba(185,28,28,.18);color:#fca5a5;border-color:rgba(185,28,28,.4)}
+.tag-foot{background:rgba(22,101,52,.18);color:#86efac;border-color:rgba(22,101,52,.4)}
+.tag-petanque{background:rgba(59,130,246,.18);color:#93c5fd;border-color:rgba(59,130,246,.4)}
+.tag-custom{background:rgba(212,160,23,.15);color:var(--or);border-color:rgba(212,160,23,.35)}
+
+/* Custom badge on cards */
+.card-new-badge{position:absolute;top:.5rem;right:.5rem;background:var(--or);color:var(--noir);font-size:.62rem;font-weight:800;padding:.1rem .45rem;border-radius:20px;text-transform:uppercase;letter-spacing:.05em}
+
+/* DELETE BTN (custom cards only) */
+.del-btn{position:absolute;top:.5rem;right:.5rem;background:rgba(127,29,29,.7);color:#fca5a5;border:none;border-radius:5px;padding:.2rem .5rem;font-size:.72rem;cursor:pointer;opacity:0;transition:opacity .2s;z-index:5}
+.tcard:hover .del-btn{opacity:1}
+
+footer{text-align:center;padding:1.2rem;color:var(--muted);font-size:.72rem;border-top:1px solid var(--gm);margin-top:2rem}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🏆 Gestionnaire de <span>Tournois</span></h1>
+  <p>US Seignelay — Créez et gérez vos tournois</p>
+</header>
+
+<main>
+
+  <!-- MES TOURNOIS -->
+  <div class="stitle">📋 Mes tournois</div>
+  <div class="grid" id="main-grid">
+
+    <!-- Tournois fixes -->
+    <div class="tcard" onclick="aller('tournoi-belote.html')">
+      <div class="tcard-banner" style="background:linear-gradient(135deg,#7f1d1d,#1c1917)">🃏</div>
+      <div class="tcard-body">
+        <div class="tcard-tag tag-belote">Belote</div>
+        <div class="tcard-nom">Tournoi de Belote</div>
+        <div class="tcard-desc">Gestion des parties, scores et classement automatique</div>
+      </div>
+      <div class="tcard-foot">
+        <button class="btn btn-open btn-sm" onclick="event.stopPropagation();aller('tournoi-belote.html')">🔗 Ouvrir</button>
+        <span style="font-size:.72rem;color:var(--muted);margin-left:auto">tournoi-belote.html</span>
+      </div>
+    </div>
+
+    <div class="tcard" onclick="aller('tournoi-foot-2.html')">
+      <div class="tcard-banner" style="background:linear-gradient(135deg,#0d3318,#111811)">⚽</div>
+      <div class="tcard-body">
+        <div class="tcard-tag tag-foot">Football</div>
+        <div class="tcard-nom">Tournoi de Football</div>
+        <div class="tcard-desc">Poules, phase éliminatoire et planning des matchs</div>
+      </div>
+      <div class="tcard-foot">
+        <button class="btn btn-open btn-sm" onclick="event.stopPropagation();aller('tournoi-foot-2.html')">🔗 Ouvrir</button>
+        <span style="font-size:.72rem;color:var(--muted);margin-left:auto">tournoi-foot-2.html</span>
+      </div>
+    </div>
+
+    <div class="tcard" onclick="aller('tournoi-petanque.html')">
+      <div class="tcard-banner" style="background:linear-gradient(135deg,#1e3a5f,#111820)">🎯</div>
+      <div class="tcard-body">
+        <div class="tcard-tag tag-petanque">Pétanque</div>
+        <div class="tcard-nom">Tournoi de Pétanque</div>
+        <div class="tcard-desc">Système suisse et classement automatique par rondes</div>
+      </div>
+      <div class="tcard-foot">
+        <button class="btn btn-open btn-sm" onclick="event.stopPropagation();aller('tournoi-petanque.html')">🔗 Ouvrir</button>
+        <span style="font-size:.72rem;color:var(--muted);margin-left:auto">tournoi-petanque.html</span>
+      </div>
+    </div>
+
+    <!-- Tournois créés -->
+    <div id="custom-cards-zone"></div>
+
+    <!-- Bouton créer -->
+    <div class="add-card" onclick="ouvrirCreateur()">
+      <div class="add-card-ico">➕</div>
+      <div class="add-card-txt">Créer un nouveau tournoi</div>
+      <div class="add-card-sub">Personnalisez et téléchargez en 3 étapes</div>
+    </div>
+
+  </div>
+
+  <!-- COMMENT ÇA MARCHE -->
+  <div class="stitle">📖 Comment utiliser cette page</div>
+  <div class="how-grid">
+    <div class="how-card">
+      <div class="how-num">🖱️</div>
+      <div class="how-titre">Ouvrir un tournoi</div>
+      <div class="how-desc">Cliquez sur une carte pour ouvrir la page de gestion de ce tournoi. Chaque sport a sa propre page dédiée.</div>
+    </div>
+    <div class="how-card">
+      <div class="how-num">✨</div>
+      <div class="how-titre">Créer un tournoi</div>
+      <div class="how-desc">Cliquez sur "➕ Créer un nouveau tournoi", remplissez le formulaire et téléchargez votre page HTML personnalisée.</div>
+    </div>
+    <div class="how-card">
+      <div class="how-num">📂</div>
+      <div class="how-titre">Placer le fichier</div>
+      <div class="how-desc">Mettez le fichier .html téléchargé dans le <strong style="color:var(--txt)">même dossier</strong> que cette page. Il sera prêt à l'emploi !</div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ============================================================ -->
+<!-- MODAL CRÉATEUR                                               -->
+<!-- ============================================================ -->
+<div class="modal-overlay" id="modal">
+  <div class="modal-box">
+    <div class="modal-titre">
+      ✨ Créer un nouveau tournoi
+      <button class="modal-close" onclick="fermer()">✕</button>
+    </div>
+
+    <!-- Indicateurs d'étapes -->
+    <div class="steps">
+      <div class="step-ind active" id="si1">1 · Sport</div>
+      <div class="step-ind" id="si2">2 · Détails</div>
+      <div class="step-ind" id="si3">3 · Télécharger</div>
+    </div>
+
+    <!-- ═══ ÉTAPE 1 ═══ -->
+    <div class="wstep active" id="w1">
+      <div style="font-size:.86rem;color:var(--muted);margin-bottom:1rem">Quel type de sport souhaitez-vous gérer ?</div>
+      <div class="sport-grid">
+        <button class="sport-btn" data-id="football" onclick="selSport(this,'football','⚽','Football','#1a5c2a','#0d3318')"><span class="se">⚽</span><span class="sn">Football</span></button>
+        <button class="sport-btn" data-id="petanque" onclick="selSport(this,'petanque','🎯','Pétanque','#1e3a5f','#111820')"><span class="se">🎯</span><span class="sn">Pétanque</span></button>
+        <button class="sport-btn" data-id="belote" onclick="selSport(this,'belote','🃏','Belote','#7f1d1d','#1c1917')"><span class="se">🃏</span><span class="sn">Belote</span></button>
+        <button class="sport-btn" data-id="basket" onclick="selSport(this,'basket','🏀','Basket','#c2410c','#431407')"><span class="se">🏀</span><span class="sn">Basket</span></button>
+        <button class="sport-btn" data-id="volley" onclick="selSport(this,'volley','🏐','Volley','#1d4ed8','#1e3a5f')"><span class="se">🏐</span><span class="sn">Volley</span></button>
+        <button class="sport-btn" data-id="tennis" onclick="selSport(this,'tennis','🎾','Tennis','#15803d','#052e16')"><span class="se">🎾</span><span class="sn">Tennis</span></button>
+        <button class="sport-btn" data-id="pingpong" onclick="selSport(this,'pingpong','🏓','Ping-pong','#7c3aed','#2e1065')"><span class="se">🏓</span><span class="sn">Ping-pong</span></button>
+        <button class="sport-btn" data-id="flechettes" onclick="selSport(this,'flechettes','🎯','Fléchettes','#b45309','#451a03')"><span class="se">🎯</span><span class="sn">Fléchettes</span></button>
+        <button class="sport-btn" data-id="echecs" onclick="selSport(this,'echecs','♟️','Échecs','#374151','#111827')"><span class="se">♟️</span><span class="sn">Échecs</span></button>
+        <button class="sport-btn" data-id="custom" onclick="selSport(this,'custom','🏆','Autre','#0891b2','#164e63')"><span class="se">🏆</span><span class="sn">Autre…</span></button>
+      </div>
+
+      <!-- Zone sport personnalisé -->
+      <div id="custom-zone" style="display:none;margin-top:.8rem">
+        <div class="frow">
+          <div class="fgroup">
+            <label>Nom du sport <span class="required">*</span></label>
+            <input type="text" id="c-sport-nom" placeholder="Ex : Fléchettes" oninput="majCustomSport()">
+          </div>
+          <div class="fgroup">
+            <label>Emoji (1 seul)</label>
+            <input type="text" id="c-sport-emoji" placeholder="🏆" maxlength="2" oninput="majCustomSport()" style="font-size:1.3rem">
+          </div>
+        </div>
+      </div>
+
+      <div id="sport-badge" style="display:none" class="sel-badge">✅ <span id="sport-badge-txt"></span> sélectionné</div>
+
+      <div class="wnav">
+        <button class="btn btn-ghost" onclick="fermer()">Annuler</button>
+        <button class="btn btn-gold" id="btn-to-2" onclick="allerEtape(2)" disabled>Suivant →</button>
+      </div>
+    </div>
+
+    <!-- ═══ ÉTAPE 2 ═══ -->
+    <div class="wstep" id="w2">
+      <div class="info-box">ℹ️ Ces informations seront intégrées dans votre page. Vous pourrez les modifier manuellement dans le fichier HTML à tout moment.</div>
+
+      <div class="fgroup">
+        <label>Nom du tournoi <span class="required">*</span></label>
+        <input type="text" id="t-nom" placeholder="Ex : Tournoi d'été 2025" oninput="majFichier()">
+      </div>
+
+      <div class="frow">
+        <div class="fgroup">
+          <label>Nom du club</label>
+          <input type="text" id="t-club" value="US Seignelay" placeholder="Ex : US Seignelay">
+        </div>
+        <div class="fgroup">
+          <label>Mot de passe organisateur <span class="required">*</span></label>
+          <input type="password" id="t-pwd" placeholder="Choisissez un mot de passe">
+          <div class="hint">🔒 Protège l'accès aux fonctions organisateur</div>
+        </div>
+      </div>
+
+      <div class="fgroup">
+        <label>Couleur principale</label>
+        <div class="color-row" id="color-row">
+          <div class="swatch sel" style="background:#1a5c2a" data-c1="#1a5c2a" data-c2="#0d3318" onclick="selCouleur(this)"></div>
+          <div class="swatch" style="background:#b91c1c" data-c1="#b91c1c" data-c2="#7f1d1d" onclick="selCouleur(this)"></div>
+          <div class="swatch" style="background:#1d4ed8" data-c1="#1d4ed8" data-c2="#1e3a5f" onclick="selCouleur(this)"></div>
+          <div class="swatch" style="background:#c2410c" data-c1="#c2410c" data-c2="#431407" onclick="selCouleur(this)"></div>
+          <div class="swatch" style="background:#7c3aed" data-c1="#7c3aed" data-c2="#2e1065" onclick="selCouleur(this)"></div>
+          <div class="swatch" style="background:#0891b2" data-c1="#0891b2" data-c2="#164e63" onclick="selCouleur(this)"></div>
+          <div class="swatch" style="background:#d97706" data-c1="#d97706" data-c2="#92400e" onclick="selCouleur(this)"></div>
+          <div class="swatch" style="background:#db2777" data-c1="#db2777" data-c2="#831843" onclick="selCouleur(this)"></div>
+          <div class="swatch" style="background:#059669" data-c1="#059669" data-c2="#064e3b" onclick="selCouleur(this)"></div>
+          <div class="swatch" style="background:#374151" data-c1="#374151" data-c2="#111827" onclick="selCouleur(this)"></div>
+        </div>
+      </div>
+
+      <div class="fgroup">
+        <label>Nom du fichier (sans .html) <span class="required">*</span></label>
+        <input type="text" id="t-fichier" placeholder="Ex : tournoi-ete-2025">
+        <div class="hint">⚠️ Utilisez uniquement des lettres minuscules, chiffres et tirets. Ex : <code style="color:var(--or)">tournoi-basket</code></div>
+      </div>
+
+      <div class="wnav">
+        <button class="btn btn-ghost" onclick="allerEtape(1)">← Retour</button>
+        <button class="btn btn-gold" onclick="generer()">🔧 Générer la page →</button>
+      </div>
+    </div>
+
+    <!-- ═══ ÉTAPE 3 ═══ -->
+    <div class="wstep" id="w3">
+      <div class="dl-zone">
+        <div class="dl-ico">✅</div>
+        <h3>Votre page est prête !</h3>
+        <p id="dl-desc">Votre tournoi personnalisé a été généré.</p>
+        <button class="btn btn-gold" onclick="telecharger()" style="font-size:.95rem;padding:.7rem 2rem">⬇️ Télécharger le fichier HTML</button>
+      </div>
+
+      <div style="background:rgba(0,0,0,.3);border:1px solid var(--gm);border-radius:9px;padding:1rem">
+        <div style="font-weight:700;color:var(--or);margin-bottom:.6rem;font-size:.88rem">📂 Que faire avec ce fichier ?</div>
+        <div style="font-size:.8rem;color:var(--muted);line-height:1.8">
+          <div>1. ⬇️ Téléchargez le fichier HTML ci-dessus</div>
+          <div>2. 📁 Placez-le dans le <strong style="color:var(--txt)">même dossier</strong> que vos autres pages (index.html, tournoi-belote.html…)</div>
+          <div>3. 🌐 Ouvrez-le dans votre navigateur pour gérer votre tournoi</div>
+          <div>4. 🔐 Connectez-vous avec votre mot de passe pour accéder aux fonctions organisateur</div>
+        </div>
+      </div>
+
+      <div class="wnav" style="justify-content:center;gap:.8rem">
+        <button class="btn btn-ghost" onclick="fermer()">Fermer</button>
+        <button class="btn btn-gold" onclick="reset()">➕ Créer un autre tournoi</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>US Seignelay — Gestionnaire de Tournois</footer>
+
+<script>
+// ────────────────────────────────────────────
+// ÉTAT
+// ────────────────────────────────────────────
+var sport = {id:'',nom:'',emoji:'',c1:'#1a5c2a',c2:'#0d3318'};
+var couleur1 = '#1a5c2a', couleur2 = '#0d3318';
+var contenu = '';
+var customList = JSON.parse(localStorage.getItem('uss_custom_tournois') || '[]');
+
+// ────────────────────────────────────────────
+// NAVIGATION
+// ────────────────────────────────────────────
+function aller(url){ window.location.href = url; }
+function ouvrirCreateur(){ document.getElementById('modal').classList.add('open'); }
+function fermer(){ document.getElementById('modal').classList.remove('open'); }
+
+// ────────────────────────────────────────────
+// ÉTAPES DU WIZARD
+// ────────────────────────────────────────────
+function allerEtape(n){
+  for(var i=1;i<=3;i++){
+    var ind = document.getElementById('si'+i);
+    var w   = document.getElementById('w'+i);
+    ind.className = 'step-ind' + (i<n?' done':i===n?' active':'');
+    w.className   = 'wstep'    + (i===n?' active':'');
+  }
+}
+
+// ────────────────────────────────────────────
+// SPORT
+// ────────────────────────────────────────────
+function selSport(btn, id, emoji, nom, c1, c2){
+  sport = {id:id, nom:nom, emoji:emoji, c1:c1, c2:c2};
+  document.querySelectorAll('.sport-btn').forEach(function(b){ b.classList.remove('sel'); });
+  btn.classList.add('sel');
+
+  var cz = document.getElementById('custom-zone');
+  cz.style.display = (id==='custom') ? 'block' : 'none';
+
+  if(id !== 'custom'){
+    afficherBadge(emoji + ' ' + nom);
+    document.getElementById('btn-to-2').disabled = false;
+    // Pré-sélectionner la couleur correspondante
+    majSwatchSel(c1);
+    couleur1 = c1; couleur2 = c2;
+    // Pré-remplir le nom du fichier
+    var f = document.getElementById('t-fichier');
+    if(!f.value || f.value.startsWith('tournoi-')) f.value = 'tournoi-' + id;
+  }
+}
+
+function majCustomSport(){
+  var n = document.getElementById('c-sport-nom').value.trim();
+  var e = document.getElementById('c-sport-emoji').value.trim() || '🏆';
+  if(n){
+    sport.nom   = n;
+    sport.emoji = e;
+    afficherBadge(e + ' ' + n);
+    document.getElementById('btn-to-2').disabled = false;
+  } else {
+    document.getElementById('sport-badge').style.display = 'none';
+    document.getElementById('btn-to-2').disabled = true;
+  }
+}
+
+function afficherBadge(txt){
+  var b = document.getElementById('sport-badge');
+  document.getElementById('sport-badge-txt').textContent = txt;
+  b.style.display = 'inline-flex';
+}
+
+// ────────────────────────────────────────────
+// COULEURS
+// ────────────────────────────────────────────
+function selCouleur(el){
+  couleur1 = el.dataset.c1;
+  couleur2 = el.dataset.c2;
+  majSwatchSel(couleur1);
+}
+
+function majSwatchSel(c1){
+  document.querySelectorAll('.swatch').forEach(function(s){ s.classList.remove('sel'); });
+  var match = document.querySelector('.swatch[data-c1="'+c1+'"]');
+  if(match) match.classList.add('sel');
+}
+
+// ────────────────────────────────────────────
+// AUTO-REMPLISSAGE NOM FICHIER
+// ────────────────────────────────────────────
+function majFichier(){
+  var nom = document.getElementById('t-nom').value.trim();
+  var f   = document.getElementById('t-fichier');
+  if(!f.dataset.manual){
+    f.value = 'tournoi-' + normaliser(nom).substring(0,30);
+  }
+}
+
+function normaliser(s){
+  return s.toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z0-9]+/g,'-')
+    .replace(/^-|-$/g,'');
+}
+
+document.getElementById('t-fichier') && document.getElementById('t-fichier').addEventListener('input', function(){
+  this.dataset.manual = 'true';
+});
+
+// ────────────────────────────────────────────
+// GÉNÉRATION
+// ────────────────────────────────────────────
+function generer(){
+  var nom     = document.getElementById('t-nom').value.trim();
+  var club    = document.getElementById('t-club').value.trim() || 'Mon Club';
+  var pwd     = document.getElementById('t-pwd').value.trim();
+  var fichier = document.getElementById('t-fichier').value.trim();
+
+  if(!nom)     { alert('⚠️ Entrez un nom pour le tournoi.'); return; }
+  if(!pwd)     { alert('⚠️ Choisissez un mot de passe organisateur.'); return; }
+  if(!fichier) { alert('⚠️ Entrez un nom de fichier.'); return; }
+
+  // Nettoyer le nom de fichier
+  fichier = fichier.replace(/[^a-z0-9\-]/gi,'-').replace(/\.html$/i,'');
+
+  var e      = sport.emoji || '🏆';
+  var sNom   = sport.nom   || 'Sport';
+  var c1     = couleur1;
+  var c2     = couleur2;
+
+  contenu = buildHTML(nom, club, sNom, e, c1, c2, pwd, fichier);
+
+  document.getElementById('dl-desc').textContent = '"' + nom + '" · ' + e + ' ' + sNom + ' · fichier : ' + fichier + '.html';
+
+  // Sauvegarder dans la liste custom
+  var entry = {id: Date.now(), nom:nom, sport:sNom, emoji:e, club:club, fichier:fichier, c1:c1, c2:c2};
+  customList.push(entry);
+  localStorage.setItem('uss_custom_tournois', JSON.stringify(customList));
+  rendreCustomCards();
+
+  allerEtape(3);
+}
+
+function telecharger(){
+  var fichier = document.getElementById('t-fichier').value.trim().replace(/[^a-z0-9\-]/gi,'-') || 'tournoi-custom';
+  var blob = new Blob([contenu],{type:'text/html;charset=utf-8'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = fichier + '.html';
+  a.click();
+}
+
+function reset(){
+  sport = {id:'',nom:'',emoji:'',c1:'#1a5c2a',c2:'#0d3318'};
+  couleur1 = '#1a5c2a'; couleur2 = '#0d3318';
+  document.querySelectorAll('.sport-btn').forEach(function(b){ b.classList.remove('sel'); });
+  document.getElementById('sport-badge').style.display = 'none';
+  document.getElementById('btn-to-2').disabled = true;
+  document.getElementById('custom-zone').style.display = 'none';
+  document.getElementById('t-nom').value = '';
+  document.getElementById('t-pwd').value = '';
+  document.getElementById('t-fichier').value = '';
+  delete document.getElementById('t-fichier').dataset.manual;
+  allerEtape(1);
+}
+
+// ────────────────────────────────────────────
+// CARTES CUSTOM (localStorage)
+// ────────────────────────────────────────────
+function rendreCustomCards(){
+  var z = document.getElementById('custom-cards-zone');
+  z.innerHTML = customList.map(function(t){
+    return '<div class="tcard" onclick="aller(\''+t.fichier+'.html\')">'
+      + '<button class="del-btn" onclick="event.stopPropagation();supprimerCustom('+t.id+')">✕ Supprimer</button>'
+      + '<div class="tcard-banner" style="background:linear-gradient(135deg,'+t.c2+',#0e0e18)">'+t.emoji+'</div>'
+      + '<div class="tcard-body">'
+      + '<div class="tcard-tag tag-custom">'+t.sport+'</div>'
+      + '<div class="tcard-nom">'+t.nom+'</div>'
+      + '<div class="tcard-desc">'+t.club+' · Créé avec le gestionnaire</div>'
+      + '</div>'
+      + '<div class="tcard-foot">'
+      + '<button class="btn btn-open btn-sm" onclick="event.stopPropagation();aller(\''+t.fichier+'.html\')">🔗 Ouvrir</button>'
+      + '<span style="font-size:.72rem;color:var(--muted);margin-left:auto">'+t.fichier+'.html</span>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function supprimerCustom(id){
+  if(!confirm('Retirer ce tournoi de la liste ? (le fichier .html reste dans votre dossier)')) return;
+  customList = customList.filter(function(t){ return t.id !== id; });
+  localStorage.setItem('uss_custom_tournois', JSON.stringify(customList));
+  rendreCustomCards();
+}
+
+rendreCustomCards();
+
+// ────────────────────────────────────────────
+// GÉNÉRATEUR HTML
+// ────────────────────────────────────────────
+function buildHTML(nom, club, sport, emoji, c1, c2, pwd, fichier){
+
+  // JS du tournoi généré, sans template literals pour éviter les conflits
+  var js = [
+    "var PWD_KEY='" + fichier + "_pwd';",
+    "var DATA_KEY='" + fichier + "_data';",
+    "var PWD_DEF='" + pwd.replace(/'/g,"\\'") + "';",
+    "var orga=false;",
+    "var data={equipes:[],matchs:[]};",
+    "",
+    "function getPwd(){return localStorage.getItem(PWD_KEY)||PWD_DEF;}",
+    "function sauver(){localStorage.setItem(DATA_KEY,JSON.stringify(data));}",
+    "function charger(){var d=localStorage.getItem(DATA_KEY);if(d)data=JSON.parse(d);}",
+    "",
+    "function ouvrirLogin(){document.getElementById('modal-pwd').classList.add('open');setTimeout(function(){document.getElementById('pwd-inp').focus();},80);}",
+    "function fermerModal(){document.getElementById('modal-pwd').classList.remove('open');document.getElementById('pwd-err').textContent='';document.getElementById('pwd-inp').value='';}",
+    "",
+    "function checkPwd(){",
+    "  var v=document.getElementById('pwd-inp').value;",
+    "  if(v===getPwd()){orga=true;fermerModal();appliquerOrga();}",
+    "  else{document.getElementById('pwd-err').textContent='❌ Mot de passe incorrect';}",
+    "}",
+    "",
+    "function verrouiller(){orga=false;appliquerOrga();}",
+    "",
+    "function appliquerOrga(){",
+    "  document.getElementById('btn-orga').style.display=orga?'none':'block';",
+    "  document.getElementById('btn-lock').style.display=orga?'block':'none';",
+    "  var tabs=['tab-equipes','tab-config'];",
+    "  tabs.forEach(function(id){",
+    "    var t=document.getElementById(id);",
+    "    if(orga)t.classList.add('visible');else t.classList.remove('visible');",
+    "  });",
+    "  document.getElementById('zone-ajout-eq').style.display=orga?'block':'none';",
+    "  document.getElementById('card-config').style.display=orga?'block':'none';",
+    "  document.getElementById('config-lock').style.display=orga?'none':'block';",
+    "  document.getElementById('info-matchs').style.display=orga?'none':'block';",
+    "  rendreMatchs();",
+    "  rendreEquipes();",
+    "}",
+    "",
+    "function goTab(id,btn){",
+    "  document.querySelectorAll('.section').forEach(function(s){s.classList.remove('active');});",
+    "  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});",
+    "  document.getElementById('sec-'+id).classList.add('active');",
+    "  btn.classList.add('active');",
+    "}",
+    "",
+    "function ajouterEquipe(){",
+    "  var inp=document.getElementById('eq-inp');",
+    "  var n=inp.value.trim();",
+    "  if(!n)return;",
+    "  if(data.equipes.some(function(e){return e.nom.toLowerCase()===n.toLowerCase();})){",
+    "    alert('Cette équipe existe déjà !');return;",
+    "  }",
+    "  data.equipes.push({id:Date.now()+Math.random(),nom:n});",
+    "  inp.value='';",
+    "  sauver();rendreEquipes();rendreClassement();",
+    "  document.getElementById('badge-eq').textContent=data.equipes.length;",
+    "}",
+    "",
+    "function suppEquipe(id){",
+    "  if(!confirm('Supprimer cette équipe ?'))return;",
+    "  data.equipes=data.equipes.filter(function(e){return e.id!==id;});",
+    "  data.matchs=data.matchs.filter(function(m){return m.e1!==id&&m.e2!==id;});",
+    "  sauver();rendreEquipes();rendreMatchs();rendreClassement();",
+    "  document.getElementById('badge-eq').textContent=data.equipes.length;",
+    "}",
+    "",
+    "function rendreEquipes(){",
+    "  var z=document.getElementById('equipes-liste');",
+    "  if(!data.equipes.length){",
+    "    z.innerHTML='<div class=\"empty\"><div class=\"eico\">👥</div>Aucune équipe enregistrée</div>';return;",
+    "  }",
+    "  var html='<ul class=\"eq-ul\">';",
+    "  data.equipes.forEach(function(e,i){",
+    "    html+='<li class=\"eq-li\">';",
+    "    html+='<div class=\"eq-num\">'+(i+1)+'</div>';",
+    "    html+='<div class=\"eq-nom\">'+e.nom+'</div>';",
+    "    if(orga) html+='<button class=\"btn btn-danger btn-sm\" onclick=\"suppEquipe('+e.id+')\">✕</button>';",
+    "    html+='</li>';",
+    "  });",
+    "  html+='</ul>';",
+    "  z.innerHTML=html;",
+    "}",
+    "",
+    "function genererMatchs(){",
+    "  if(data.equipes.length<2){alert('Il faut au moins 2 équipes !');return;}",
+    "  if(data.matchs.length&&!confirm('Régénérer tous les matchs ? Les scores seront perdus.'))return;",
+    "  data.matchs=[];",
+    "  var eq=data.equipes;",
+    "  for(var i=0;i<eq.length-1;i++){",
+    "    for(var j=i+1;j<eq.length;j++){",
+    "      data.matchs.push({id:Date.now()+Math.random(),e1:eq[i].id,e2:eq[j].id,s1:null,s2:null,joue:false});",
+    "    }",
+    "  }",
+    "  sauver();rendreMatchs();",
+    "  alert('✅ '+data.matchs.length+' matchs générés !');",
+    "}",
+    "",
+    "function nomEq(id){var e=data.equipes.find(function(x){return x.id===id;});return e?e.nom:'?';}",
+    "",
+    "function saisirScore(mId,field,val){",
+    "  var m=data.matchs.find(function(x){return x.id===mId;});",
+    "  if(!m)return;",
+    "  var n=parseInt(val,10);",
+    "  m[field]=isNaN(n)?null:n;",
+    "  m.joue=m.s1!==null&&m.s2!==null;",
+    "  sauver();rendreClassement();",
+    "}",
+    "",
+    "function rendreMatchs(){",
+    "  var z=document.getElementById('matchs-liste');",
+    "  if(!data.matchs.length){",
+    "    z.innerHTML='<div class=\"empty\"><div class=\"eico\">⚔️</div>Aucun match généré.<br><small>Ajoutez des équipes et cliquez sur \"Générer les matchs\" dans l\\'onglet Config.</small></div>';return;",
+    "  }",
+    "  var html='';",
+    "  data.matchs.forEach(function(m,i){",
+    "    html+='<div class=\"m-card'+(m.joue?' joue':'')+'\">';",
+    "    html+='<div class=\"m-head\">Match '+(i+1)+'</div>';",
+    "    html+='<div class=\"m-body\">';",
+    "    html+='<div class=\"m-eq\">'+nomEq(m.e1)+'</div>';",
+    "    html+='<div style=\"display:flex;align-items:center;gap:.4rem\">';",
+    "    if(orga){",
+    "      html+='<input type=\"number\" class=\"s-inp\" min=\"0\" value=\"'+(m.s1!==null?m.s1:'')+'\" oninput=\"saisirScore('+m.id+',\\'s1\\',this.value)\">';",
+    "    } else {",
+    "      html+='<span class=\"s-lbl\">'+(m.joue&&m.s1!==null?m.s1:'—')+'</span>';",
+    "    }",
+    "    html+='<span class=\"vs\">VS</span>';",
+    "    if(orga){",
+    "      html+='<input type=\"number\" class=\"s-inp\" min=\"0\" value=\"'+(m.s2!==null?m.s2:'')+'\" oninput=\"saisirScore('+m.id+',\\'s2\\',this.value)\">';",
+    "    } else {",
+    "      html+='<span class=\"s-lbl\">'+(m.joue&&m.s2!==null?m.s2:'—')+'</span>';",
+    "    }",
+    "    html+='</div>';",
+    "    html+='<div class=\"m-eq right\">'+nomEq(m.e2)+'</div>';",
+    "    html+='</div>';",
+    "    html+='</div>';",
+    "  });",
+    "  z.innerHTML=html;",
+    "}",
+    "",
+    "function rendreClassement(){",
+    "  var z=document.getElementById('class-liste');",
+    "  if(!data.equipes.length){",
+    "    z.innerHTML='<div class=\"empty\"><div class=\"eico\">🏆</div>Le classement apparaîtra après la saisie des résultats</div>';return;",
+    "  }",
+    "  var stats={};",
+    "  data.equipes.forEach(function(e){stats[e.id]={nom:e.nom,pts:0,j:0,v:0,n:0,d:0,bp:0,bc:0};});",
+    "  data.matchs.filter(function(m){return m.joue;}).forEach(function(m){",
+    "    var s=stats[m.e1],t=stats[m.e2];",
+    "    if(!s||!t)return;",
+    "    s.j++;t.j++;s.bp+=m.s1;s.bc+=m.s2;t.bp+=m.s2;t.bc+=m.s1;",
+    "    if(m.s1>m.s2){s.pts+=3;s.v++;t.d++;}",
+    "    else if(m.s1<m.s2){t.pts+=3;t.v++;s.d++;}",
+    "    else{s.pts+=1;t.pts+=1;s.n++;t.n++;}",
+    "  });",
+    "  var cl=Object.values(stats).sort(function(a,b){",
+    "    return b.pts-a.pts||(b.bp-b.bc)-(a.bp-a.bc)||b.bp-a.bp;",
+    "  });",
+    "  var html='<div class=\"cl-row header\">';",
+    "  html+='<div>#</div><div>Équipe</div><div>Pts</div><div>J</div><div>V</div><div>N</div><div>D</div>';",
+    "  html+='</div>';",
+    "  cl.forEach(function(e,i){",
+    "    var medal=(i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1);",
+    "    html+='<div class=\"cl-row'+(i<3?' top'+i:'')+'\">';",
+    "    html+='<div class=\"cl-rang\">'+medal+'</div>';",
+    "    html+='<div style=\"font-weight:600\">'+e.nom+'</div>';",
+    "    html+='<div class=\"cl-pts\">'+e.pts+'</div>';",
+    "    html+='<div class=\"cl-stat\">'+e.j+'</div>';",
+    "    html+='<div class=\"cl-stat\">'+e.v+'</div>';",
+    "    html+='<div class=\"cl-stat\">'+e.n+'</div>';",
+    "    html+='<div class=\"cl-stat\">'+e.d+'</div>';",
+    "    html+='</div>';",
+    "  });",
+    "  z.innerHTML=html;",
+    "}",
+    "",
+    "function changerMdp(){",
+    "  var v=document.getElementById('new-pwd').value.trim();",
+    "  if(!v){alert('Entrez un mot de passe.');return;}",
+    "  localStorage.setItem(PWD_KEY,v);",
+    "  document.getElementById('new-pwd').value='';",
+    "  alert('✅ Mot de passe modifié !');",
+    "}",
+    "",
+    "function resetTout(){",
+    "  if(!confirm('⚠️ Tout effacer ? Équipes, matchs et scores seront perdus.'))return;",
+    "  data={equipes:[],matchs:[]};",
+    "  sauver();rendreEquipes();rendreMatchs();rendreClassement();",
+    "  document.getElementById('badge-eq').textContent=0;",
+    "}",
+    "",
+    "// INIT",
+    "charger();",
+    "rendreEquipes();",
+    "rendreMatchs();",
+    "rendreClassement();",
+    "document.getElementById('badge-eq').textContent=data.equipes.length;"
+  ].join('\n');
+
+  var css = [
+    ":root{--c1:"+c1+";--c2:"+c2+";--or:#d4a017;--or-f:#b8860b;",
+    "--noir:#080810;--gf:#0e0e18;--g:#16162a;--gm:#242440;",
+    "--txt:#ddddf5;--muted:#6e6e9a;--vp:#86efac;--rouge:#dc2626;}",
+    "*{box-sizing:border-box;margin:0;padding:0}",
+    "body{font-family:'Source Sans 3',sans-serif;background:var(--gf);color:var(--txt);min-height:100vh}",
+    "header{background:linear-gradient(135deg,var(--noir),var(--c2) 60%,var(--gf));padding:1.8rem 2rem;text-align:center;border-bottom:3px solid var(--or);position:relative;overflow:hidden}",
+    "header::before{content:'"+emoji+" "+emoji+" "+emoji+"';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:10rem;opacity:.04;pointer-events:none;white-space:nowrap}",
+    "header h1{font-family:'Playfair Display',serif;font-size:clamp(1.6rem,5vw,2.8rem);font-weight:900;color:#f0f0ff;text-shadow:2px 2px 8px rgba(0,0,0,.6)}",
+    "header h1 span{color:var(--or)}",
+    "header p{color:var(--vp);font-size:.85rem;margin-top:.3rem;letter-spacing:.1em;text-transform:uppercase}",
+    "#btn-orga{position:absolute;top:1rem;left:1rem;z-index:10;border-radius:6px;padding:.4rem .9rem;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;border:1px solid rgba(212,160,23,.4);background:rgba(212,160,23,.15);color:var(--muted);transition:all .2s}",
+    "#btn-orga:hover{background:rgba(212,160,23,.3);color:var(--or)}",
+    "#btn-lock{position:absolute;top:1rem;left:1rem;z-index:10;display:none;border-radius:6px;padding:.4rem .9rem;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;border:1px solid var(--c1);background:rgba(0,0,0,.5);color:var(--vp);transition:all .2s}",
+    "#btn-lock:hover{background:var(--c2)}",
+    "#btn-accueil{position:absolute;top:1rem;right:1rem;z-index:10;background:rgba(0,0,0,.3);border:1px solid rgba(134,239,172,.3);color:#86efac;border-radius:6px;padding:.4rem .9rem;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem}",
+    "#btn-accueil:hover{background:rgba(0,0,0,.6)}",
+    ".tabs{display:flex;gap:2px;background:var(--noir);border-bottom:2px solid var(--or);overflow-x:auto}",
+    ".tab{flex:1;min-width:90px;padding:.75rem .5rem;background:var(--g);color:var(--muted);border:none;font-family:inherit;font-size:.78rem;font-weight:600;letter-spacing:.03em;text-transform:uppercase;cursor:pointer;transition:all .2s;display:none;align-items:center;justify-content:center;gap:.3rem}",
+    ".tab.visible{display:flex}.tab:hover{background:var(--gm);color:var(--txt)}",
+    ".tab.active{background:var(--c2);color:#f0f0ff;border-bottom:3px solid var(--or)}",
+    ".tab .badge{background:var(--or);color:var(--noir);border-radius:10px;padding:1px 7px;font-size:.68rem}",
+    "main{max-width:900px;margin:0 auto;padding:1.2rem}",
+    ".section{display:none}.section.active{display:block;animation:fi .2s}",
+    "@keyframes fi{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}",
+    ".card{background:var(--g);border:1px solid var(--gm);border-radius:9px;padding:1.2rem;margin-bottom:1.2rem}",
+    ".card h2{font-family:'Playfair Display',serif;font-size:1.15rem;color:var(--or);margin-bottom:.9rem;display:flex;align-items:center;gap:.45rem;flex-wrap:wrap}",
+    "input[type='text'],input[type='number'],input[type='password']{background:var(--gf);border:1px solid var(--gm);color:var(--txt);padding:.5rem .75rem;border-radius:5px;font-family:inherit;font-size:.87rem;width:100%;transition:border-color .2s}",
+    "input:focus{outline:none;border-color:var(--or)}",
+    "label{display:block;color:var(--muted);font-size:.74rem;margin-bottom:.25rem;text-transform:uppercase;letter-spacing:.04em}",
+    ".btn{padding:.45rem 1rem;border:none;border-radius:5px;font-family:inherit;font-size:.83rem;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:.3rem}",
+    ".btn-primary{background:var(--c1);color:#fff}.btn-primary:hover{background:var(--c2)}",
+    ".btn-gold{background:var(--or);color:var(--noir)}.btn-gold:hover{background:var(--or-f)}",
+    ".btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--gm)}.btn-ghost:hover{border-color:var(--or);color:var(--or)}",
+    ".btn-sm{padding:.28rem .65rem;font-size:.73rem}",
+    ".btn-danger{background:rgba(127,29,29,.25);color:#fca5a5;border:1px solid #7f1d1d}.btn-danger:hover{background:rgba(127,29,29,.55)}",
+    ".flex{display:flex}.gap-1{gap:.5rem}.wrap{flex-wrap:wrap}.mt-1{margin-top:.5rem}.mt-2{margin-top:1rem}",
+    ".eq-ul{list-style:none;display:flex;flex-direction:column;gap:.3rem}",
+    ".eq-li{display:flex;align-items:center;background:var(--gf);border:1px solid var(--gm);border-radius:5px;padding:.45rem .8rem;gap:.6rem;transition:border-color .2s}",
+    ".eq-li:hover{border-color:rgba(212,160,23,.4)}",
+    ".eq-num{width:24px;height:24px;background:var(--c2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:var(--or);flex-shrink:0}",
+    ".eq-nom{flex:1;font-weight:600;font-size:.88rem}",
+    ".m-card{background:var(--gf);border:1px solid var(--gm);border-radius:7px;overflow:hidden;margin-bottom:.5rem;transition:border-color .2s}",
+    ".m-card:hover{border-color:rgba(212,160,23,.35)}.m-card.joue{border-color:rgba(22,101,52,.6)}",
+    ".m-head{background:var(--g);padding:.25rem .7rem;font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);border-bottom:1px solid var(--gm)}",
+    ".m-body{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:.5rem;padding:.55rem .8rem}",
+    ".m-eq{font-weight:700;font-size:.88rem}.m-eq.right{text-align:right}",
+    ".s-inp{width:52px;text-align:center;font-size:.95rem;font-weight:700;padding:.22rem}",
+    ".s-lbl{min-width:36px;text-align:center;font-weight:700;font-size:.95rem;color:var(--or)}",
+    ".vs{color:var(--or);font-weight:900;font-size:.7rem}",
+    ".cl-row{display:grid;grid-template-columns:36px 1fr repeat(5,44px);gap:.25rem;align-items:center;padding:.4rem .7rem;font-size:.82rem;border-radius:5px;margin-bottom:.25rem}",
+    ".cl-row.header{color:var(--muted);font-size:.7rem;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--gm);border-radius:0;margin-bottom:.4rem;background:transparent}",
+    ".cl-row:not(.header){background:var(--gf);border:1px solid var(--gm)}",
+    ".cl-row:not(.header):hover{border-color:rgba(212,160,23,.3)}",
+    ".cl-row.top0{border-color:rgba(212,160,23,.5);background:rgba(212,160,23,.06)}",
+    ".cl-row.top1{border-color:rgba(148,163,184,.3)}",
+    ".cl-row.top2{border-color:rgba(180,83,9,.3)}",
+    ".cl-rang{text-align:center}.cl-pts{font-weight:800;color:var(--or);text-align:center}.cl-stat{text-align:center;color:var(--muted)}",
+    ".empty{text-align:center;padding:2rem;color:var(--muted)}.eico{font-size:2.5rem;margin-bottom:.5rem}",
+    ".modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:1000;align-items:center;justify-content:center}",
+    ".modal-overlay.open{display:flex}",
+    ".modal-box{background:var(--g);border:1px solid var(--or);border-radius:10px;padding:1.6rem;width:min(340px,92vw);text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.7)}",
+    ".modal-titre2{font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--or);margin-bottom:.8rem}",
+    ".modal-error{color:#fca5a5;font-size:.78rem;min-height:.9rem;margin-bottom:.5rem}",
+    ".info-banner{background:rgba(212,160,23,.07);border:1px solid rgba(212,160,23,.2);border-radius:7px;padding:.75rem .9rem;font-size:.8rem;color:var(--or);margin-bottom:1rem;line-height:1.5}",
+    "footer{text-align:center;padding:.9rem;color:var(--muted);font-size:.72rem;border-top:1px solid var(--gm);margin-top:1.5rem}"
+  ].join('\n');
+
+  var html = '<!DOCTYPE html>\n'
+    + '<html lang="fr">\n'
+    + '<head>\n'
+    + '<meta charset="UTF-8">\n'
+    + '<meta name="viewport" content="width=device-width, initial-scale=1.0">\n'
+    + '<title>' + nom + ' — ' + club + '</title>\n'
+    + '<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">\n'
+    + '<style>\n' + css + '\n</style>\n'
+    + '</head>\n'
+    + '<body>\n'
+    + '<header>\n'
+    + '  <button id="btn-orga" onclick="ouvrirLogin()">🔐 Organisateur</button>\n'
+    + '  <button id="btn-lock" onclick="verrouiller()">🔒 Verrouiller</button>\n'
+    + '  <a href="index.html" id="btn-accueil">🏠 Accueil</a>\n'
+    + '  <h1>' + emoji + ' Tournoi <span>' + nom + '</span></h1>\n'
+    + '  <p>' + club + '</p>\n'
+    + '</header>\n'
+    + '\n'
+    + '<nav class="tabs">\n'
+    + '  <button class="tab visible active" id="tab-classement" onclick="goTab(\'classement\',this)">🏆 Classement</button>\n'
+    + '  <button class="tab visible" id="tab-matchs" onclick="goTab(\'matchs\',this)">⚔️ Matchs</button>\n'
+    + '  <button class="tab" id="tab-equipes" onclick="goTab(\'equipes\',this)">👥 Équipes <span class="badge" id="badge-eq">0</span></button>\n'
+    + '  <button class="tab" id="tab-config" onclick="goTab(\'config\',this)">⚙️ Config</button>\n'
+    + '</nav>\n'
+    + '\n'
+    + '<!-- MODALE MOT DE PASSE -->\n'
+    + '<div class="modal-overlay" id="modal-pwd">\n'
+    + '  <div class="modal-box">\n'
+    + '    <div style="font-size:2rem;margin-bottom:.3rem">🔐</div>\n'
+    + '    <div class="modal-titre2">Accès organisateur</div>\n'
+    + '    <div style="margin-bottom:.6rem"><input type="password" id="pwd-inp" placeholder="Mot de passe…" onkeydown="if(event.key===\'Enter\')checkPwd()"></div>\n'
+    + '    <div class="modal-error" id="pwd-err"></div>\n'
+    + '    <div class="flex gap-1" style="justify-content:center">\n'
+    + '      <button class="btn btn-gold" onclick="checkPwd()">🔓 Entrer</button>\n'
+    + '      <button class="btn btn-ghost btn-sm" onclick="fermerModal()">Annuler</button>\n'
+    + '    </div>\n'
+    + '  </div>\n'
+    + '</div>\n'
+    + '\n'
+    + '<main>\n'
+    + '\n'
+    + '  <!-- CLASSEMENT -->\n'
+    + '  <div class="section active" id="sec-classement">\n'
+    + '    <div class="card">\n'
+    + '      <h2>🏆 Classement général</h2>\n'
+    + '      <div id="class-liste"></div>\n'
+    + '    </div>\n'
+    + '  </div>\n'
+    + '\n'
+    + '  <!-- MATCHS -->\n'
+    + '  <div class="section" id="sec-matchs">\n'
+    + '    <div class="card">\n'
+    + '      <h2>⚔️ Matchs</h2>\n'
+    + '      <div class="info-banner" id="info-matchs">Connectez-vous en tant qu\'organisateur pour saisir les scores.</div>\n'
+    + '      <div id="matchs-liste"></div>\n'
+    + '    </div>\n'
+    + '  </div>\n'
+    + '\n'
+    + '  <!-- ÉQUIPES -->\n'
+    + '  <div class="section" id="sec-equipes">\n'
+    + '    <div class="card">\n'
+    + '      <h2>👥 Équipes inscrites</h2>\n'
+    + '      <div id="equipes-liste"></div>\n'
+    + '    </div>\n'
+    + '    <div class="card" id="zone-ajout-eq" style="display:none">\n'
+    + '      <h2>➕ Ajouter une équipe</h2>\n'
+    + '      <div class="flex gap-1 wrap">\n'
+    + '        <input type="text" id="eq-inp" placeholder="Nom de l\'équipe…" style="flex:1;min-width:180px" onkeydown="if(event.key===\'Enter\')ajouterEquipe()">\n'
+    + '        <button class="btn btn-primary" onclick="ajouterEquipe()">➕ Ajouter</button>\n'
+    + '      </div>\n'
+    + '    </div>\n'
+    + '  </div>\n'
+    + '\n'
+    + '  <!-- CONFIG -->\n'
+    + '  <div class="section" id="sec-config">\n'
+    + '    <div class="card" id="card-config" style="display:none">\n'
+    + '      <h2>⚙️ Configuration du tournoi</h2>\n'
+    + '      <div class="info-banner">📋 Ajoutez toutes les équipes, puis cliquez sur "Générer les matchs". Tous les matchs aller seront créés automatiquement (tournoi round-robin).</div>\n'
+    + '      <div class="flex gap-1 wrap">\n'
+    + '        <button class="btn btn-gold" onclick="genererMatchs()">🗓️ Générer les matchs</button>\n'
+    + '        <button class="btn btn-danger" onclick="resetTout()">🗑️ Tout réinitialiser</button>\n'
+    + '      </div>\n'
+    + '      <div style="margin-top:1.2rem;padding-top:1rem;border-top:1px solid var(--gm)">\n'
+    + '        <label>Changer le mot de passe organisateur</label>\n'
+    + '        <div class="flex gap-1 mt-1">\n'
+    + '          <input type="password" id="new-pwd" placeholder="Nouveau mot de passe…" style="flex:1">\n'
+    + '          <button class="btn btn-ghost btn-sm" onclick="changerMdp()">💾 Changer</button>\n'
+    + '        </div>\n'
+    + '      </div>\n'
+    + '    </div>\n'
+    + '    <div class="empty" id="config-lock" style="margin-top:2rem">\n'
+    + '      <div class="eico">🔐</div>\n'
+    + '      <div>Connectez-vous en tant qu\'organisateur pour accéder à la configuration</div>\n'
+    + '    </div>\n'
+    + '  </div>\n'
+    + '\n'
+    + '</main>\n'
+    + '<footer>' + club + ' · ' + emoji + ' ' + nom + '</footer>\n'
+    + '\n'
+    + '<script>\n'
+    + js + '\n'
+    + '<' + '/script>\n'
+    + '</body>\n'
+    + '</html>';
+
+  return html;
+}
+</script>
+</body>
+</html>
