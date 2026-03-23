@@ -634,57 +634,6 @@ document.getElementById('modal-event').addEventListener('click', e => { if (e.ta
 document.getElementById('modal-recup').addEventListener('click', e => { if (e.target === e.currentTarget) fermerRecup(); });
 document.getElementById('modal-modifier').addEventListener('click', e => { if (e.target === e.currentTarget) fermerModifier(); });
 document.getElementById('modal-login').addEventListener('click', e => { if (e.target === e.currentTarget) fermerLogin(); });
-
-  //MODAL TOURNOIS 
-<div id="Gestionnaire de tournois" class="modal-overlay">
-  <div class="modal-login">
-    <div class="icon">🏆</div>
-    <h3>Accès Tournois</h3>
-    <p>Mot de passe requis</p>
-
-    <div class="pwd-wrap">
-      <input type="password" id="tournois-pwd" placeholder="Mot de passe">
-    </div>
-
-    <div class="modal-error" id="tournois-error"></div>
-
-    <div style="display:flex;gap:0.5rem;justify-content:center;margin-top:0.5rem">
-      <button class="btn-login" onclick="verifierTournois()">Entrer</button>
-      <button class="btn-cancel" onclick="fermerTournoisLogin()">Annuler</button>
-    </div>
-  </div>
-</div>
-
-<script>
-function ouvrirTournoisLogin() {
-  document.getElementById("tournois-overlay").classList.add("open");
-  document.getElementById("tournois-pwd").value = "";
-  document.getElementById("tournois-error").textContent = "";
-}
-
-function fermerTournoisLogin() {
-  document.getElementById("tournois-overlay").classList.remove("open");
-}
-
-function verifierTournois() {
-  const pwd = document.getElementById("tournois-pwd").value;
-
-  if (pwd === "Usse89") {
-    window.location.href = "gestionnaire.html";
-  } else {
-    document.getElementById("tournois-error").textContent = "Mot de passe incorrect ❌";
-  }
-}
-
-// touche Entrée
-document.addEventListener("keydown", function(e) {
-  if (e.key === "Enter") {
-    const overlay = document.getElementById("tournois-overlay");
-    if (overlay.classList.contains("open")) {
-      verifierTournois();
-    }
-  }
-});
 </script>
 </body>
 </html>
