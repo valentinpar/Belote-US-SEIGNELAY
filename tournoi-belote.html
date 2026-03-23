@@ -384,7 +384,7 @@
       À chaque manche, les équipes s'affrontent selon leur classement :<br>
       <strong style="color:var(--texte-clair)">1er vs 2e · 3e vs 4e · 5e vs 6e · …</strong><br><br>
       Après saisie des scores → valider la manche → classement mis à jour → manche suivante.<br>
-      <strong style="color:var(--or)">⚠️ Le nombre d'équipes doit être pair.</strong>
+      <strong style="color:var(--or)">💡 Nombre impair d'équipes accepté</strong> : une équipe sera exemptée (bye) par manche, sans points attribués. L'exemption tourne pour que chaque équipe en bénéficie équitablement.
     </p>
   </div>
 </section>
@@ -612,7 +612,6 @@ function renderEquipes() {
 function demarrerTournoi() {
   const alertDiv = document.getElementById('alert-setup');
   if (equipes.length < 2) { flash(alertDiv, 'warning', '⚠️ Ajoutez au moins 2 équipes.'); return; }
-  if (equipes.length % 2 !== 0) { flash(alertDiv, 'warning', '⚠️ Le nombre d\'équipes doit être pair (' + equipes.length + ' actuellement).'); return; }
   cfg.manches = parseInt(document.getElementById('cfg-manches').value);
   cfg.ptsV = parseInt(document.getElementById('cfg-ptsv').value);
   cfg.ptsN = parseInt(document.getElementById('cfg-ptsn').value);
@@ -623,7 +622,8 @@ function demarrerTournoi() {
   genererManche();
   sauvegarder();
   document.getElementById('badge-manche').textContent = '1';
-  flash(alertDiv, 'success', '✅ Tournoi démarré ! ' + equipes.length + ' équipes · ' + cfg.manches + ' manches.');
+  const byeMsg = equipes.length % 2 !== 0 ? ' · 1 équipe exemptée par manche' : '';
+  flash(alertDiv, 'success', '✅ Tournoi démarré ! ' + equipes.length + ' équipes · ' + cfg.manches + ' manches.' + byeMsg);
   goTab('manche', document.getElementById('tab-manche'));
 }
 
@@ -649,9 +649,36 @@ function getClassement() {
 function genererManche() {
   const cl = getClassement();
   const matchs = [];
-  for (let i = 0; i < cl.length; i += 2) {
-    matchs.push({ id: 'm_' + tournoi.mancheActuelle + '_' + i, eq1: cl[i], eq2: cl[i + 1], rang1: i + 1, rang2: i + 2, score1: '', score2: '', joue: false });
+  let liste = [...cl];
+  let byeEquipe = null;
+
+  if (liste.length % 2 !== 0) {
+    // Trouver l'équipe qui a eu le moins de byes (ou jamais eu de bye)
+    // Parmi les dernières du classement, on choisit celle qui n'a pas encore eu de bye
+    // On garde trace dans tournoi.byes = { id: nbByes }
+    if (!tournoi.byes) tournoi.byes = {};
+    // Candidats : équipes par ordre inverse de classement
+    let candidat = null;
+    for (let i = liste.length - 1; i >= 0; i--) {
+      const nbByes = tournoi.byes[liste[i].id] || 0;
+      if (!candidat || nbByes < (tournoi.byes[candidat.id] || 0)) {
+        candidat = liste[i];
+      }
+    }
+    byeEquipe = candidat;
+    tournoi.byes[byeEquipe.id] = (tournoi.byes[byeEquipe.id] || 0) + 1;
+    liste = liste.filter(e => e.id !== byeEquipe.id);
   }
+
+  for (let i = 0; i < liste.length; i += 2) {
+    matchs.push({ id: 'm_' + tournoi.mancheActuelle + '_' + i, eq1: liste[i], eq2: liste[i + 1], rang1: i + 1, rang2: i + 2, score1: '', score2: '', joue: false });
+  }
+
+  // Ajouter le bye en dernier
+  if (byeEquipe) {
+    matchs.push({ id: 'bye_' + tournoi.mancheActuelle, eq1: byeEquipe, eq2: null, rang1: cl.indexOf(byeEquipe) + 1, rang2: null, score1: '', score2: '', joue: true, bye: true });
+  }
+
   tournoi.manches.push({ num: tournoi.mancheActuelle, matchs, valide: false });
 }
 
@@ -663,8 +690,9 @@ function renderManche() {
   if (!tournoi) { div.innerHTML = '<div class="empty-state"><div class="icon">🃏</div>Démarrez le tournoi dans la configuration</div>'; return; }
   if (tournoi.termine) { renderFin(div); return; }
   const manche = tournoi.manches[tournoi.mancheActuelle - 1];
-  const joues = manche.matchs.filter(m => m.joue).length;
-  const total = manche.matchs.length;
+  const vraisMatchs = manche.matchs.filter(m => !m.bye);
+  const joues = vraisMatchs.filter(m => m.joue).length;
+  const total = vraisMatchs.length;
   const pct = total ? joues / total * 100 : 0;
   const ok = joues === total;
 
@@ -679,6 +707,20 @@ function renderManche() {
   <div class="matchs-manche">`;
 
   manche.matchs.forEach(m => {
+    if (m.bye) {
+      // Carte spéciale exemption
+      html += `<div class="match-card joue" id="mc-${m.id}" style="border-color:rgba(217,119,6,0.5);background:rgba(217,119,6,0.04)">
+        <div class="match-label" style="color:var(--or)">⭐ Exemption — pas de match cette manche</div>
+        <div class="match-body" style="justify-content:center;padding:1rem 1.2rem">
+          <div class="match-eq" style="align-items:center;text-align:center;flex:1">
+            <div class="match-eq-nom" style="color:var(--or)">${m.eq1.nom}</div>
+            <div class="match-eq-joueurs">${m.eq1.joueurs || ''}</div>
+            <div style="margin-top:0.4rem;font-size:0.78rem;color:#78716c">Exempt · aucun point attribué</div>
+          </div>
+        </div>
+      </div>`;
+      return;
+    }
     const s1 = +m.score1, s2 = +m.score2;
     const e1w = m.joue && s1 > s2, e2w = m.joue && s2 > s1, nul = m.joue && s1 === s2;
     html += `<div class="match-card ${m.joue ? 'joue' : ''}" id="mc-${m.id}">
@@ -747,8 +789,8 @@ function sauverScore(id, eq, val) {
       noms[1].textContent = (s2 > s1 ? '✓ ' : '') + m.eq2.nom;
     }
   }
-  const joues = manche.matchs.filter(x => x.joue).length;
-  const total = manche.matchs.length;
+  const joues = manche.matchs.filter(x => !x.bye && x.joue).length;
+  const total = manche.matchs.filter(x => !x.bye).length;
   const fill = document.getElementById('prog');
   if (fill) fill.style.width = (joues / total * 100) + '%';
   const sub = document.getElementById('manche-sub');
@@ -767,6 +809,7 @@ function validerManche() {
   const manche = tournoi.manches[tournoi.mancheActuelle - 1];
   if (!manche.matchs.every(m => m.joue)) return;
   manche.matchs.forEach(m => {
+    if (m.bye) return; // L'équipe exemptée ne gagne ni ne perd rien
     const s1 = +m.score1, s2 = +m.score2;
     const st1 = tournoi.stats[m.eq1.id], st2 = tournoi.stats[m.eq2.id];
     st1.j++; st2.j++;
@@ -848,6 +891,14 @@ function renderHistorique() {
   validees.forEach(manche => {
     html += `<div class="histo-manche"><div class="histo-titre">Manche ${manche.num}</div>`;
     manche.matchs.forEach(m => {
+      if (m.bye) {
+        html += `<div class="histo-match" style="border-left:2px solid rgba(217,119,6,0.4);padding-left:0.6rem">
+          <span style="color:var(--or)">⭐ ${m.eq1.nom}</span>
+          <span class="histo-score" style="color:#78716c">exempt</span>
+          <span style="color:#78716c">—</span>
+        </div>`;
+        return;
+      }
       const s1 = +m.score1, s2 = +m.score2;
       html += `<div class="histo-match">
         <span class="${s1>s2?'histo-win':'histo-lose'}">${m.rang1}. ${m.eq1.nom}</span>
