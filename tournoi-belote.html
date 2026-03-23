@@ -986,7 +986,7 @@ function parseReglement(txt) {
 function ouvrirEditionReglement() {
   const editor = document.getElementById('regl-editor');
   const ta     = document.getElementById('regl-textarea');
-  editor.style.display = '';
+  editor.style.display = 'block';
   ta.value = reglementTexte || '';
   ta.focus();
   document.getElementById('regl-saved-hint').textContent = '';
