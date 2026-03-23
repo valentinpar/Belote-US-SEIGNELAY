@@ -192,6 +192,15 @@
   footer { text-align: center; padding: 1.4rem; color: #57534e; font-size: 0.78rem; border-top: 1px solid var(--gris); margin-top: 1.5rem; }
   .link-btn { background: none; border: none; color: var(--or); font-size: 0.78rem; cursor: pointer; text-decoration: underline; font-family: 'Source Sans 3', sans-serif; padding: 0; margin-top: 0.6rem; display: inline-block; }
   .link-btn:hover { color: #b45309; }
+
+  /* RÈGLEMENT */
+  .regl-display { background: var(--gris-fonce); border: 1px solid var(--gris-moyen); border-radius: 6px; padding: 1.2rem 1.4rem; min-height: 120px; color: var(--texte-clair); font-size: 0.93rem; line-height: 1.75; white-space: pre-wrap; word-break: break-word; }
+  .regl-display.empty { color: #57534e; font-style: italic; }
+  .regl-editor { display: none; margin-top: 1rem; }
+  .regl-editor textarea { width: 100%; min-height: 280px; background: var(--gris-fonce); border: 1px solid var(--or); color: var(--texte-clair); border-radius: 6px; padding: 1rem; font-family: 'Source Sans 3', sans-serif; font-size: 0.92rem; line-height: 1.7; resize: vertical; }
+  .regl-editor textarea:focus { outline: none; border-color: var(--rouge); }
+  .regl-toolbar { display: flex; align-items: center; gap: 0.6rem; margin-top: 0.7rem; flex-wrap: wrap; }
+  .regl-hint { color: #78716c; font-size: 0.78rem; }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <!-- Firebase -->
@@ -223,6 +232,7 @@
   <button class="tab visible" id="tab-classement" onclick="goTab('classement',this)" class="tab visible active">📊 Classement</button>
   <button class="tab visible" id="tab-historique" onclick="goTab('historique',this)">📜 Historique</button>
   <button class="tab visible" id="tab-qr" onclick="goTab('qr',this)">📱 QR Code</button>
+  <button class="tab visible" id="tab-reglement" onclick="goTab('reglement',this)">📋 Règlement</button>
   <button class="tab visible" id="tab-events-public" onclick="window.location.href='index.html'" style="color:#86efac">📅 Événements</button>
 </nav>
 
@@ -402,6 +412,33 @@
 
 
 
+<!-- RÈGLEMENT -->
+<section id="sec-reglement" class="section">
+  <div class="card">
+    <h2>📋 Règlement du tournoi</h2>
+
+    <!-- Affichage public -->
+    <div id="regl-display" class="regl-display empty">Aucun règlement n'a encore été défini par l'organisateur.</div>
+
+    <!-- Éditeur (visible uniquement en mode orga) -->
+    <div id="regl-editor" class="regl-editor">
+      <label style="margin-top:1rem;display:block">✏️ Modifier le règlement</label>
+      <p style="color:#a8a29e;font-size:0.82rem;margin-bottom:0.5rem">Rédigez librement le règlement. Les sauts de ligne sont conservés.</p>
+      <textarea id="regl-textarea" placeholder="Ex: Le tournoi se déroule en 4 manches...&#10;&#10;1. Chaque manche oppose les équipes classées consécutivement.&#10;2. En cas d'égalité, le nombre de points détermine le vainqueur.&#10;3. ..."></textarea>
+      <div class="regl-toolbar">
+        <button class="btn btn-gold" onclick="sauverReglement()">💾 Enregistrer le règlement</button>
+        <button class="btn btn-ghost btn-sm" onclick="annulerEditionReglement()">✕ Annuler</button>
+        <span class="regl-hint" id="regl-saved-hint"></span>
+      </div>
+    </div>
+
+    <!-- Bouton édition (visible uniquement en mode orga) -->
+    <div id="regl-btn-edit-wrap" style="margin-top:1rem;display:none">
+      <button class="btn btn-primary btn-sm" onclick="ouvrirEditionReglement()">✏️ Modifier le règlement</button>
+    </div>
+  </div>
+</section>
+
 <!-- QR CODE -->
 <section id="sec-qr" class="section">
   <div class="card" style="text-align:center">
@@ -425,8 +462,7 @@
 let equipes = [];
 let cfg = { manches: 4, ptsV: 3, ptsN: 1, ptsD: 0 };
 let tournoi = null;
-// Charger le mdp depuis localStorage (défaut : 1234)
-let mdp = localStorage.getItem('belote_mdp') || '1234';
+let mdp = '1234'; // Chargé depuis Firebase au démarrage
 let debloque = false;
 
 // ══════════════════════════════════════════
@@ -456,6 +492,8 @@ function checkPwd() {
     // Swap boutons header
     document.getElementById('btn-orga').style.display = 'none';
     document.getElementById('btn-lock').style.display = 'block';
+    // Afficher bouton édition règlement
+    document.getElementById('regl-btn-edit-wrap').style.display = '';
     // Aller sur équipes
     goTab('equipes', document.getElementById('tab-equipes'));
   } else {
@@ -477,6 +515,9 @@ function verrouiller() {
   // Swap boutons header
   document.getElementById('btn-lock').style.display = 'none';
   document.getElementById('btn-orga').style.display = 'block';
+  // Cacher bouton édition règlement et fermer l'éditeur
+  document.getElementById('regl-btn-edit-wrap').style.display = 'none';
+  document.getElementById('regl-editor').style.display = 'none';
   // Aller sur classement
   goTab('classement', document.getElementById('tab-classement'));
 }
@@ -488,7 +529,6 @@ function changerMdp() {
   if (!v1) { flash(alertDiv, 'warning', '⚠️ Entrez un nouveau mot de passe.'); return; }
   if (v1 !== v2) { flash(alertDiv, 'warning', '⚠️ Les mots de passe ne correspondent pas.'); return; }
   mdp = v1;
-  localStorage.setItem('belote_mdp', mdp);
   sauvegarderFirebase();
   document.getElementById('new-pwd').value = '';
   document.getElementById('new-pwd2').value = '';
@@ -512,6 +552,7 @@ function goTab(name, btn) {
   if (name === 'historique') renderHistorique();
   if (name === 'manche') renderManche();
   if (name === 'qr') setTimeout(initQR, 50);
+  if (name === 'reglement') renderReglement();
 
 }
 
@@ -830,8 +871,8 @@ function flash(el, type, msg) {
 // ══════════════════════════════════════════
 //  RÉCUPÉRATION MOT DE PASSE
 // ══════════════════════════════════════════
-let questionSecrete = localStorage.getItem('belote_question') || '';
-let reponseSecrete = localStorage.getItem('belote_reponse') || '';
+let questionSecrete = '';
+let reponseSecrete = '';
 
 function sauverQuestion() {
   const q = document.getElementById('cfg-question').value.trim();
@@ -841,8 +882,7 @@ function sauverQuestion() {
   if (!r) { flash(alertDiv, 'warning', '⚠️ Entrez une réponse secrète.'); return; }
   questionSecrete = q;
   reponseSecrete = r.toLowerCase();
-  localStorage.setItem('belote_question', questionSecrete);
-  localStorage.setItem('belote_reponse', reponseSecrete);
+  sauvegarderFirebase();
   flash(alertDiv, 'success', '✅ Question secrète enregistrée et sauvegardée !');
 }
 
@@ -890,7 +930,6 @@ function sauverNouveauMdp() {
   if (!v1) { err.textContent = '⚠️ Entrez un mot de passe.'; return; }
   if (v1 !== v2) { err.textContent = '⚠️ Les mots de passe ne correspondent pas.'; return; }
   mdp = v1;
-  localStorage.setItem('belote_mdp', mdp);
   sauvegarderFirebase();
   fermerRecup();
   // Connecter automatiquement
@@ -913,9 +952,61 @@ function sauverNouveauMdp() {
   }, 200);
 }
 
+let reglementTexte = '';
+
 // ══════════════════════════════════════════
-//  FIREBASE — SYNCHRONISATION TEMPS RÉEL
+//  RÈGLEMENT
 // ══════════════════════════════════════════
+function renderReglement() {
+  const disp = document.getElementById('regl-display');
+  const ta   = document.getElementById('regl-textarea');
+  if (!reglementTexte || !reglementTexte.trim()) {
+    disp.textContent = 'Aucun règlement n\'a encore été défini par l\'organisateur.';
+    disp.classList.add('empty');
+  } else {
+    disp.innerHTML = parseReglement(reglementTexte);
+    disp.classList.remove('empty');
+  }
+  if (ta) ta.value = reglementTexte || '';
+  // Afficher / masquer bouton édition selon mode orga
+  const wrap = document.getElementById('regl-btn-edit-wrap');
+  if (wrap) wrap.style.display = debloque ? '' : 'none';
+}
+
+function parseReglement(txt) {
+  return txt
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/^---$/gm,'<hr style="border:none;border-top:1px solid var(--gris-moyen);margin:1rem 0;">')
+    .replace(/^### (.+)$/gm,'<h3 style="color:var(--or);font-family:\'Playfair Display\',serif;margin:0.8rem 0 0.3rem">$1</h3>')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/^- (.+)$/gm,'• $1')
+    .replace(/\n/g,'<br>');
+}
+
+function ouvrirEditionReglement() {
+  const editor = document.getElementById('regl-editor');
+  const ta     = document.getElementById('regl-textarea');
+  editor.style.display = '';
+  ta.value = reglementTexte || '';
+  ta.focus();
+  document.getElementById('regl-saved-hint').textContent = '';
+}
+
+function annulerEditionReglement() {
+  document.getElementById('regl-editor').style.display = 'none';
+}
+
+function sauverReglement() {
+  const val = document.getElementById('regl-textarea').value;
+  reglementTexte = val;
+  renderReglement();
+  document.getElementById('regl-editor').style.display = 'none';
+  sauvegarderFirebase();
+  const hint = document.getElementById('regl-saved-hint');
+  hint.textContent = '✅ Enregistré !';
+  setTimeout(() => hint.textContent = '', 3000);
+}
+
 const firebaseConfig = {
   apiKey: "AIzaSyDnjxRbAzDJPMUcvoNsB5hoHQnMTP7lZb4",
   authDomain: "belote-us-seignelay.firebaseapp.com",
@@ -939,6 +1030,7 @@ function appliquerDonnees(data) {
   if (data.mdp)     mdp     = data.mdp;
   if (data.questionSecrete !== undefined) questionSecrete = data.questionSecrete;
   if (data.reponseSecrete  !== undefined) reponseSecrete  = data.reponseSecrete;
+  if (data.reglement !== undefined) reglementTexte = data.reglement;
 }
 
 function rafraichirUI() {
@@ -950,6 +1042,7 @@ function rafraichirUI() {
   if (name === 'classement') renderClassement();
   if (name === 'historique') renderHistorique();
   if (name === 'manche')     renderManche();
+  if (name === 'reglement')  renderReglement();
 }
 
 function initFirebase() {
@@ -971,15 +1064,12 @@ function initFirebase() {
   } catch(e) {
     console.warn("Firebase erreur:", e.message);
     afficherBandeauFirebase();
-    chargerLocal();
     rafraichirUI();
   }
 }
 
-function sauvegarderLocal() {
-  localStorage.setItem('belote_equipes', JSON.stringify(equipes));
-  localStorage.setItem('belote_cfg',     JSON.stringify(cfg));
-  localStorage.setItem('belote_tournoi', JSON.stringify(tournoi));
+function sauvegarder() {
+  sauvegarderFirebase();
 }
 
 function sauvegarderFirebase() {
@@ -991,29 +1081,14 @@ function sauvegarderFirebase() {
     tournoi: tournoi,
     mdp: mdp,
     questionSecrete: questionSecrete,
-    reponseSecrete: reponseSecrete
+    reponseSecrete: reponseSecrete,
+    reglement: reglementTexte
   }).then(() => {
     setTimeout(() => { _enTrainDeSauver = false; }, 1000);
   }).catch(e => {
     _enTrainDeSauver = false;
     console.error("Erreur Firebase save:", e);
   });
-}
-
-function sauvegarder() {
-  sauvegarderLocal();
-  sauvegarderFirebase();
-}
-
-function chargerLocal() {
-  try {
-    const eq = localStorage.getItem('belote_equipes');
-    const c  = localStorage.getItem('belote_cfg');
-    const t  = localStorage.getItem('belote_tournoi');
-    if (eq) equipes = JSON.parse(eq);
-    if (c)  cfg     = JSON.parse(c);
-    if (t)  tournoi = JSON.parse(t);
-  } catch(e) {}
 }
 
 function afficherBandeauFirebase() {
@@ -1031,6 +1106,7 @@ if (localStorage.getItem('belote_session') === '1') {
   document.getElementById('tab-manche').classList.add('visible');
   document.getElementById('btn-orga').style.display = 'none';
   document.getElementById('btn-lock').style.display = 'block';
+  document.getElementById('regl-btn-edit-wrap').style.display = '';
 }
 
 // Init
@@ -1039,6 +1115,7 @@ if (tournoi) {
   document.getElementById('badge-manche').textContent = tournoi.mancheActuelle;
   renderClassement();
 }
+renderReglement();
 
 // QR Code
 let qrGenerated = false;
