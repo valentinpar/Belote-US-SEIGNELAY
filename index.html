@@ -84,6 +84,7 @@
   .badge-belote { background: rgba(185,28,28,0.3); color: #fca5a5; border: 1px solid rgba(185,28,28,0.5); }
   .badge-foot   { background: rgba(26,92,42,0.5); color: var(--vert-pale); border: 1px solid rgba(45,138,69,0.5); }
   .badge-petanque { background: rgba(139,105,20,0.3); color: #e8d088; border: 1px solid rgba(139,105,20,0.5); }
+  .badge-loto   { background: rgba(124,45,18,0.4); color: #fdba74; border: 1px solid rgba(194,65,12,0.5); }
   .badge-autre  { background: rgba(212,160,23,0.2); color: var(--or); border: 1px solid rgba(212,160,23,0.4); }
   .event-card-titre { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; color: var(--texte-clair); }
   .event-card-body { padding: 1rem 1.2rem; flex: 1; display: flex; flex-direction: column; gap: 0.5rem; }
@@ -99,6 +100,8 @@
   .btn-voir.foot:hover { background: #0d3318; }
   .btn-voir.petanque { background: #8B6914; }
   .btn-voir.petanque:hover { background: #5C4610; }
+  .btn-voir.loto { background: #c2410c; }
+  .btn-voir.loto:hover { background: #7c2d12; }
 
   /* EMPTY */
   .empty-state { text-align: center; padding: 3rem; color: var(--texte-muted); }
@@ -319,6 +322,7 @@
           <option value="belote">🃏 Tournoi de belote</option>
           <option value="foot">⚽ Football</option>
           <option value="petanque">🎱 Pétanque</option>
+          <option value="loto">🎰 Loto</option>
           <option value="autre">📌 Autre</option>
         </select>
       </div>
@@ -503,9 +507,9 @@ function renderEvents() {
     container.innerHTML = '<div class="empty-state"><div class="icon">📅</div><p>Aucun événement programmé pour le moment</p></div>';
     return;
   }
-  const typeLabel = { belote: '🃏 Tournoi de belote', foot: '⚽ Football', petanque: '🎱 Pétanque', autre: '📌 Événement' };
-  const typeBadge = { belote: 'badge-belote', foot: 'badge-foot', petanque: 'badge-petanque', autre: 'badge-autre' };
-  const typeBtnClass = { belote: 'belote', foot: 'foot', petanque: 'petanque', autre: '' };
+  const typeLabel = { belote: '🃏 Tournoi de belote', foot: '⚽ Football', petanque: '🎱 Pétanque', loto: '🎰 Loto', autre: '📌 Événement' };
+  const typeBadge = { belote: 'badge-belote', foot: 'badge-foot', petanque: 'badge-petanque', loto: 'badge-loto', autre: 'badge-autre' };
+  const typeBtnClass = { belote: 'belote', foot: 'foot', petanque: 'petanque', loto: 'loto', autre: '' };
   container.innerHTML = '<div class="events-grid\">' + allEvents.map(e => {
     if (e._custom) {
       return `<div class="event-card" onclick="window.location.href='${e._fichier}.html'">
@@ -544,8 +548,8 @@ function renderEvents() {
 function ouvrirEvent(id) {
   const e = events.find(x => x.id === id);
   if (!e) return;
-  const typeLabel = { belote: '🃏 Tournoi de belote', foot: '⚽ Football', petanque: '🎱 Pétanque', autre: '📌 Événement' };
-  const typeBadge = { belote: 'badge-belote', foot: 'badge-foot', petanque: 'badge-petanque', autre: 'badge-autre' };
+  const typeLabel = { belote: '🃏 Tournoi de belote', foot: '⚽ Football', petanque: '🎱 Pétanque', loto: '🎰 Loto', autre: '📌 Événement' };
+  const typeBadge = { belote: 'badge-belote', foot: 'badge-foot', petanque: 'badge-petanque', loto: 'badge-loto', autre: 'badge-autre' };
   document.getElementById('modal-badge').textContent = typeLabel[e.type] || '📌 Événement';
   document.getElementById('modal-badge').className = 'event-type-badge ' + (typeBadge[e.type] || 'badge-autre');
   document.getElementById('modal-titre').textContent = e.titre;

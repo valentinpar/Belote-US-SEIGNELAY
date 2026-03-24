@@ -138,6 +138,7 @@ footer{text-align:center;padding:1.2rem;color:var(--muted);font-size:.72rem;bord
 <body>
 
 <header>
+  <a href="index.html" style="position:absolute;top:1rem;left:1rem;display:inline-flex;align-items:center;gap:.4rem;background:rgba(212,160,23,.12);border:1px solid rgba(212,160,23,.3);color:var(--or);border-radius:8px;padding:.4rem .9rem;font-size:.8rem;font-weight:700;font-family:'Source Sans 3',sans-serif;text-decoration:none;transition:all .2s" onmouseover="this.style.background='rgba(212,160,23,.28)'" onmouseout="this.style.background='rgba(212,160,23,.12)'">🏠 Accueil</a>
   <h1>🏆 Gestionnaire de <span>Tournois</span></h1>
   <p>US Seignelay — Créez et gérez vos tournois</p>
 </header>
@@ -252,6 +253,7 @@ footer{text-align:center;padding:1.2rem;color:var(--muted);font-size:.72rem;bord
         <button class="sport-btn" data-id="pingpong" onclick="selSport(this,'pingpong','🏓','Ping-pong','#7c3aed','#2e1065')"><span class="se">🏓</span><span class="sn">Ping-pong</span></button>
         <button class="sport-btn" data-id="flechettes" onclick="selSport(this,'flechettes','🎯','Fléchettes','#b45309','#451a03')"><span class="se">🎯</span><span class="sn">Fléchettes</span></button>
         <button class="sport-btn" data-id="echecs" onclick="selSport(this,'echecs','♟️','Échecs','#374151','#111827')"><span class="se">♟️</span><span class="sn">Échecs</span></button>
+        <button class="sport-btn" data-id="loto" onclick="selSport(this,'loto','🎰','Loto','#7c2d12','#3b0d07')"><span class="se">🎰</span><span class="sn">Loto</span></button>
         <button class="sport-btn" data-id="custom" onclick="selSport(this,'custom','🏆','Autre','#0891b2','#164e63')"><span class="se">🏆</span><span class="sn">Autre…</span></button>
       </div>
 
@@ -312,6 +314,22 @@ footer{text-align:center;padding:1.2rem;color:var(--muted);font-size:.72rem;bord
           <div class="swatch" style="background:#059669" data-c1="#059669" data-c2="#064e3b" onclick="selCouleur(this)"></div>
           <div class="swatch" style="background:#374151" data-c1="#374151" data-c2="#111827" onclick="selCouleur(this)"></div>
         </div>
+      </div>
+
+      <div class="frow">
+        <div class="fgroup">
+          <label>Date de l'événement</label>
+          <input type="text" id="t-date" placeholder="Ex : 15 avril 2025">
+        </div>
+        <div class="fgroup">
+          <label>Lieu</label>
+          <input type="text" id="t-lieu" placeholder="Ex : Salle des fêtes">
+        </div>
+      </div>
+
+      <div class="fgroup">
+        <label>Description</label>
+        <textarea id="t-desc" placeholder="Informations complémentaires…" style="background:var(--gf);border:1px solid var(--gm);color:var(--txt);padding:.55rem .8rem;border-radius:6px;font-family:inherit;font-size:.88rem;width:100%;resize:vertical;min-height:70px;transition:border-color .2s" onfocus="this.style.borderColor='var(--or)'" onblur="this.style.borderColor='var(--gm)'"></textarea>
       </div>
 
       <div class="fgroup">
@@ -472,6 +490,9 @@ function generer(){
   var club    = document.getElementById('t-club').value.trim() || 'Mon Club';
   var pwd     = document.getElementById('t-pwd').value.trim();
   var fichier = document.getElementById('t-fichier').value.trim();
+  var date    = document.getElementById('t-date').value.trim();
+  var lieu    = document.getElementById('t-lieu').value.trim();
+  var desc    = document.getElementById('t-desc').value.trim();
 
   if(!nom)     { alert('⚠️ Entrez un nom pour le tournoi.'); return; }
   if(!pwd)     { alert('⚠️ Choisissez un mot de passe organisateur.'); return; }
@@ -490,7 +511,7 @@ function generer(){
   document.getElementById('dl-desc').textContent = '"' + nom + '" · ' + e + ' ' + sNom + ' · fichier : ' + fichier + '.html';
 
   // Sauvegarder dans la liste custom
-  var entry = {id: Date.now(), nom:nom, sport:sNom, emoji:e, club:club, fichier:fichier, c1:c1, c2:c2};
+  var entry = {id: Date.now(), nom:nom, sport:sNom, emoji:e, club:club, fichier:fichier, c1:c1, c2:c2, date:date, lieu:lieu, desc:desc};
   customList.push(entry);
   localStorage.setItem('uss_custom_tournois', JSON.stringify(customList));
   rendreCustomCards();
@@ -517,6 +538,9 @@ function reset(){
   document.getElementById('t-nom').value = '';
   document.getElementById('t-pwd').value = '';
   document.getElementById('t-fichier').value = '';
+  document.getElementById('t-date').value = '';
+  document.getElementById('t-lieu').value = '';
+  document.getElementById('t-desc').value = '';
   delete document.getElementById('t-fichier').dataset.manual;
   allerEtape(1);
 }
