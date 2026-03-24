@@ -176,7 +176,7 @@
 <body>
 
 <header>
-  <a href="gestionnaire.html" title="Gestionnaire de tournois" style="position:absolute;top:0.8rem;left:0.8rem;z-index:10;display:inline-flex;align-items:center;gap:0.45rem;background:rgba(212,160,23,0.12);border:1px solid rgba(212,160,23,0.3);color:var(--or);border-radius:8px;padding:0.38rem 0.85rem;font-size:0.78rem;font-weight:700;font-family:'Source Sans 3',sans-serif;text-decoration:none;transition:all 0.2s" onmouseover="this.style.background='rgba(212,160,23,0.28)';this.style.borderColor='var(--or)'" onmouseout="this.style.background='rgba(212,160,23,0.12)';this.style.borderColor='rgba(212,160,23,0.3)'">🏆 Tournois</a>
+  <a id="btn-tournois" href="gestionnaire.html" title="Gestionnaire de tournois" style="position:absolute;top:0.8rem;left:0.8rem;z-index:10;display:none;align-items:center;gap:0.45rem;background:rgba(212,160,23,0.12);border:1px solid rgba(212,160,23,0.3);color:var(--or);border-radius:8px;padding:0.38rem 0.85rem;font-size:0.78rem;font-weight:700;font-family:'Source Sans 3',sans-serif;text-decoration:none;transition:all 0.2s" onmouseover="this.style.background='rgba(212,160,23,0.28)';this.style.borderColor='var(--or)'" onmouseout="this.style.background='rgba(212,160,23,0.12)';this.style.borderColor='rgba(212,160,23,0.3)'">🏆 Tournois</a>
   <div style="position:absolute;top:0.8rem;right:0.8rem;display:flex;align-items:center;gap:0.5rem;z-index:10">
     <button id="btn-deconnexion" onclick="deconnecter()" style="display:none;background:rgba(127,29,29,0.8);border:1px solid #b91c1c;color:#fca5a5;border-radius:6px;padding:0.35rem 0.8rem;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:'Source Sans 3',sans-serif">🔒 Déconnexion</button>
     <button class="admin-btn" id="btn-admin" onclick="ouvrirLogin()" title="Administration">
@@ -375,6 +375,7 @@ if (localStorage.getItem('uss_admin') === '1') {
   document.getElementById('pwd-panel').classList.add('open');
   document.getElementById('btn-admin').style.opacity = '0.4';
   document.getElementById('btn-deconnexion').style.display = 'block';
+  document.getElementById('btn-tournois').style.display = 'inline-flex';
 }
 
 function sauvegarder() {
@@ -479,6 +480,7 @@ function checkPwd() {
     document.getElementById('pwd-panel').classList.add('open');
     document.getElementById('btn-admin').style.opacity = '0.4';
     document.getElementById('btn-deconnexion').style.display = 'block';
+    document.getElementById('btn-tournois').style.display = 'inline-flex';
     renderEvents();
   } else {
     const err = document.getElementById('pwd-error');
@@ -526,6 +528,7 @@ function deconnecter() {
   document.getElementById('pwd-panel').classList.remove('open');
   document.getElementById('btn-admin').style.opacity = '1';
   document.getElementById('btn-deconnexion').style.display = 'none';
+  document.getElementById('btn-tournois').style.display = 'none';
   renderEvents();
 }
 
@@ -607,6 +610,7 @@ function sauverNouveauMdp() {
   document.getElementById('pwd-panel').classList.add('open');
   document.getElementById('btn-admin').style.opacity = '0.4';
   document.getElementById('btn-deconnexion').style.display = 'block';
+  document.getElementById('btn-tournois').style.display = 'inline-flex';
   renderEvents();
 }
 
