@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎂 Quiz · Les 60 ans de Régis</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold: #C9A84C;
+      --gold-bright: #EEC93A;
+      --gold-dim: #7A6225;
+      --navy: #0B1120;
+      --navy-mid: #16213E;
+      --navy-light: #1F3163;
+      --champagne: #F2E1C1;
+      --text: #EDE8DC;
+      --text-dim: #8A8070;
+      --green: #27AE60;
+      --red: #E74C3C;
+      --radius: 18px;
+    }
+
+    html, body { height: 100%; font-family: 'DM Sans', sans-serif; background: var(--navy); color: var(--text); overflow-x: hidden; }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 60% 40% at 20% 60%, rgba(201,168,76,0.07) 0%, transparent 70%),
+        radial-gradient(ellipse 80% 50% at 80% 20%, rgba(31,49,99,0.6) 0%, transparent 70%);
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ─── VIEWS ─── */
+    .view { display: none; min-height: 100vh; position: relative; z-index: 1; }
+    .view.active { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px 16px; }
+
+    /* ─── CARD ─── */
+    .card {
+      background: linear-gradient(145deg, rgba(22,33,62,0.95), rgba(11,17,32,0.98));
+      border: 1px solid rgba(201,168,76,0.2);
+      border-radius: var(--radius);
+      padding: 40px 36px;
+      width: 100%; max-width: 520px;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05);
+      position: relative; overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold-bright), transparent);
+    }
+    .card-wide { max-width: 960px; }
+
+    /* ─── TYPOGRAPHY ─── */
+    h1.brand {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.8rem, 5vw, 2.8rem);
+      color: var(--gold); text-align: center; line-height: 1.15;
+      margin-bottom: 6px;
+    }
+    h1.brand em { color: var(--champagne); font-style: italic; }
+    .subtitle {
+      text-align: center; color: var(--text-dim); font-size: 0.78rem;
+      letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 28px;
+    }
+    .divider {
+      display: flex; align-items: center; gap: 10px;
+      color: var(--gold-dim); font-size: 0.75rem; letter-spacing: 0.1em;
+      text-transform: uppercase; margin: 20px 0;
+    }
+    .divider::before, .divider::after {
+      content: ''; flex: 1; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(201,168,76,0.3));
+    }
+    .divider::after { background: linear-gradient(90deg, rgba(201,168,76,0.3), transparent); }
+
+    /* ─── BUTTONS ─── */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 13px 26px; border-radius: 12px;
+      font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 600;
+      cursor: pointer; border: none; transition: all 0.2s ease;
+      text-decoration: none; width: 100%;
+    }
+    .btn-gold {
+      background: linear-gradient(135deg, #B8943A 0%, var(--gold-bright) 60%, #C8A040 100%);
+      color: #0B1120; box-shadow: 0 4px 24px rgba(201,168,76,0.35);
+    }
+    .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(201,168,76,0.5); }
+    .btn-ghost {
+      background: rgba(255,255,255,0.04);
+      color: var(--text-dim); border: 1px solid rgba(255,255,255,0.1);
+    }
+    .btn-ghost:hover { background: rgba(255,255,255,0.08); color: var(--text); border-color: rgba(255,255,255,0.2); }
+    .btn-danger { background: rgba(231,76,60,0.12); color: #e87070; border: 1px solid rgba(231,76,60,0.25); }
+    .btn-danger:hover { background: rgba(231,76,60,0.2); }
+    .btn-sm { padding: 7px 14px; font-size: 0.8rem; width: auto; border-radius: 9px; }
+
+    /* ─── FORM ─── */
+    .form-group { margin-bottom: 18px; }
+    label {
+      display: block; font-size: 0.72rem; text-transform: uppercase;
+      letter-spacing: 0.12em; color: var(--gold); margin-bottom: 7px; font-weight: 600;
+    }
+    input[type="text"], input[type="password"], input[type="number"], textarea, select {
+      width: 100%; background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1); border-radius: 10px;
+      padding: 11px 14px; color: var(--text);
+      font-family: 'DM Sans', sans-serif; font-size: 0.95rem; outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input:focus, textarea:focus, select:focus {
+      border-color: rgba(201,168,76,0.6);
+      box-shadow: 0 0 0 3px rgba(201,168,76,0.12);
+    }
+    textarea { resize: vertical; min-height: 70px; }
+    select option { background: #16213E; }
+
+    /* ─── PROGRESS ─── */
+    .progress-wrap { margin-bottom: 22px; }
+    .progress-info { display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-dim); margin-bottom: 7px; }
+    .progress-bar { height: 5px; background: rgba(255,255,255,0.08); border-radius: 99px; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, var(--gold-dim), var(--gold-bright)); border-radius: 99px; transition: width 0.5s ease; }
+
+    /* ─── QUESTION ─── */
+    .q-number { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--gold); margin-bottom: 8px; font-weight: 600; }
+    .q-text { font-family: 'Playfair Display', serif; font-size: clamp(1.05rem, 3vw, 1.4rem); line-height: 1.45; color: var(--champagne); margin-bottom: 24px; }
+
+    /* ─── OPTIONS ─── */
+    .options { display: flex; flex-direction: column; gap: 10px; }
+    .option-btn {
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px; padding: 13px 16px; text-align: left; cursor: pointer;
+      font-family: 'DM Sans', sans-serif; font-size: 0.93rem; color: var(--text);
+      transition: all 0.2s ease; display: flex; align-items: center; gap: 12px;
+    }
+    .option-btn:hover:not(:disabled) { border-color: rgba(201,168,76,0.5); background: rgba(201,168,76,0.08); transform: translateX(3px); }
+    .option-btn.correct { background: rgba(39,174,96,0.18); border-color: rgba(39,174,96,0.6); color: #7de8a5; }
+    .option-btn.wrong { background: rgba(231,76,60,0.15); border-color: rgba(231,76,60,0.5); color: #f09090; }
+    .option-btn:disabled { cursor: default; transform: none !important; }
+    .option-letter {
+      width: 26px; height: 26px; border-radius: 50%;
+      background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 700; flex-shrink: 0;
+    }
+    .option-btn.correct .option-letter { background: rgba(39,174,96,0.3); }
+    .option-btn.wrong .option-letter { background: rgba(231,76,60,0.3); }
+
+    /* ─── FEEDBACK ─── */
+    .feedback { text-align: center; margin-top: 10px; font-size: 0.88rem; min-height: 22px; font-weight: 500; }
+    .explanation {
+      background: rgba(255,255,255,0.04); border-left: 3px solid var(--gold);
+      padding: 11px 14px; border-radius: 0 10px 10px 0;
+      font-size: 0.85rem; color: var(--text-dim); margin-top: 14px; display: none;
+    }
+    .explanation.show { display: block; }
+
+    /* ─── LEADERBOARD ─── */
+    .leaderboard { display: flex; flex-direction: column; gap: 9px; }
+    .lb-row {
+      display: flex; align-items: center; gap: 14px;
+      background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 12px; padding: 11px 14px; transition: all 0.3s;
+    }
+    .lb-row.r1 { background: rgba(201,168,76,0.1); border-color: rgba(201,168,76,0.35); }
+    .lb-row.r2 { background: rgba(192,192,192,0.07); border-color: rgba(192,192,192,0.25); }
+    .lb-row.r3 { background: rgba(205,127,50,0.07); border-color: rgba(205,127,50,0.25); }
+    .lb-rank { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; width: 30px; text-align: center; color: var(--text-dim); flex-shrink: 0; }
+    .lb-row.r1 .lb-rank { color: var(--gold-bright); }
+    .lb-row.r2 .lb-rank { color: #C8C8C8; }
+    .lb-row.r3 .lb-rank { color: #CD7F32; }
+    .lb-name { flex: 1; font-weight: 500; font-size: 0.93rem; }
+    .lb-score { font-weight: 700; color: var(--gold); font-size: 0.9rem; }
+    .lb-pct { font-size: 0.75rem; color: var(--text-dim); min-width: 34px; text-align: right; }
+
+    /* ─── BIG SCORE ─── */
+    .big-score { font-family: 'Playfair Display', serif; font-size: 5rem; color: var(--gold); text-align: center; line-height: 1; }
+    .big-score small { font-size: 2rem; color: var(--text-dim); }
+
+    /* ─── NAV ─── */
+    .nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      padding: 11px 20px; display: flex; align-items: center; justify-content: space-between;
+      background: rgba(11,17,32,0.92); backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(201,168,76,0.1);
+    }
+    .nav-brand { font-family: 'Playfair Display', serif; font-size: 0.95rem; color: var(--gold); }
+    .nav-actions { display: flex; gap: 8px; }
+    .nav-btn {
+      padding: 5px 12px; border-radius: 8px;
+      background: transparent; border: 1px solid rgba(255,255,255,0.12);
+      color: var(--text-dim); font-size: 0.78rem; cursor: pointer;
+      font-family: 'DM Sans', sans-serif; transition: all 0.2s; font-weight: 500;
+    }
+    .nav-btn:hover { color: var(--text); border-color: rgba(201,168,76,0.4); }
+    .nav-btn.gold { border-color: rgba(201,168,76,0.4); color: var(--gold); background: rgba(201,168,76,0.08); }
+    .has-nav { padding-top: 80px !important; justify-content: flex-start !important; }
+
+    /* ─── ALERTS ─── */
+    .alert { padding: 11px 14px; border-radius: 10px; font-size: 0.88rem; margin-bottom: 14px; }
+    .alert-error { background: rgba(231,76,60,0.12); border: 1px solid rgba(231,76,60,0.3); color: #f09090; }
+    .alert-success { background: rgba(39,174,96,0.12); border: 1px solid rgba(39,174,96,0.3); color: #7de8a5; }
+    .alert-info { background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.3); color: var(--gold); }
+
+    /* ─── ADMIN ─── */
+    .tabs { display: flex; gap: 3px; margin-bottom: 24px; background: rgba(0,0,0,0.3); border-radius: 13px; padding: 4px; }
+    .tab {
+      flex: 1; padding: 9px 6px; border: none; border-radius: 10px;
+      background: transparent; color: var(--text-dim); font-family: 'DM Sans', sans-serif;
+      font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: center;
+    }
+    .tab.active { background: var(--navy-light); color: var(--text); box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+    .admin-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+    .admin-table th {
+      text-align: left; padding: 9px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      color: var(--gold); font-weight: 600; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.1em;
+    }
+    .admin-table td { padding: 9px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); vertical-align: middle; }
+    .admin-table tr:hover td { background: rgba(255,255,255,0.02); }
+    .stat { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 18px; text-align: center; }
+    .stat-val { font-family: 'Playfair Display', serif; font-size: 2.2rem; color: var(--gold); line-height: 1; }
+    .stat-lbl { font-size: 0.72rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 4px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+    .tag { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 0.72rem; font-weight: 600; }
+    .tag-green { background: rgba(39,174,96,0.18); color: #7de8a5; }
+    .tag-gold { background: rgba(201,168,76,0.15); color: var(--gold); }
+    .tag-gray { background: rgba(255,255,255,0.08); color: var(--text-dim); }
+    .scrollable { max-height: 480px; overflow-y: auto; }
+    .scrollable::-webkit-scrollbar { width: 5px; }
+    .scrollable::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.25); border-radius: 99px; }
+
+    /* ─── MISC ─── */
+    .emoji-xl { font-size: 2.8rem; text-align: center; margin-bottom: 10px; }
+    #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes scaleIn { from { opacity: 0; transform: scale(0.93); } to { opacity: 1; transform: scale(1); } }
+    @keyframes pulse { 0%,100% { box-shadow: 0 4px 24px rgba(201,168,76,0.35); } 50% { box-shadow: 0 4px 40px rgba(201,168,76,0.65); } }
+    .ani-up { animation: fadeUp 0.4s ease forwards; }
+    .ani-scale { animation: scaleIn 0.35s ease forwards; }
+    .pulse { animation: pulse 2.2s ease-in-out infinite; }
+
+    @media (max-width: 600px) {
+      .card { padding: 28px 18px; }
+      .tabs { font-size: 0.72rem; }
+      .admin-table { font-size: 0.75rem; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="confetti-canvas"></canvas>
+
+<!-- NAV -->
+<nav class="nav" id="main-nav" style="display:none;">
+  <span class="nav-brand">🎂 Quiz Régis</span>
+  <div class="nav-actions">
+    <button class="nav-btn" onclick="showView('leaderboard')">🏆 Classement</button>
+    <button class="nav-btn gold" id="nav-score">⭐ 0 pts</button>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════ HOME ═══ -->
+<div id="view-home" class="view active">
+  <div class="card ani-up" style="text-align:center;">
+    <div class="emoji-xl">🎂</div>
+    <h1 class="brand">Les <em>60 ans</em><br>de Régis</h1>
+    <p class="subtitle">Quiz des proches</p>
+
+    <div class="divider">Scannez pour participer</div>
+    <div style="display:flex;justify-content:center;margin-bottom:16px;">
+      <div id="qr-home" style="background:#fff;padding:14px;border-radius:12px;display:inline-block;"></div>
+    </div>
+    <p style="font-size:0.82rem;color:var(--text-dim);margin-bottom:22px;">Scannez le QR code ou cliquez ci-dessous !</p>
+
+    <button class="btn btn-gold pulse" onclick="tryParticipate()">🎉 Je participe !</button>
+    <div style="margin-top:10px;">
+      <button class="btn btn-ghost" onclick="showView('leaderboard')">🏆 Voir le classement</button>
+    </div>
+    <div style="margin-top:22px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.06);">
+      <button class="btn btn-ghost btn-sm" onclick="showView('admin-login')" style="width:auto;opacity:0.4;font-size:0.72rem;">⚙️ Admin</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════ REGISTER ═══ -->
+<div id="view-register" class="view">
+  <div class="card ani-up">
+    <div class="emoji-xl">👤</div>
+    <h1 class="brand" style="font-size:1.7rem;">Qui êtes-vous ?</h1>
+    <p class="subtitle">Entrez vos informations</p>
+    <div id="reg-err" class="alert alert-error" style="display:none;"></div>
+    <div class="form-group">
+      <label>Prénom</label>
+      <input type="text" id="reg-prenom" placeholder="ex: Marie" autocomplete="given-name">
+    </div>
+    <div class="form-group">
+      <label>Nom</label>
+      <input type="text" id="reg-nom" placeholder="ex: Dupont" autocomplete="family-name">
+    </div>
+    <button class="btn btn-gold" onclick="registerPlayer()">▶ Commencer le quiz</button>
+    <div style="margin-top:10px;">
+      <button class="btn btn-ghost" onclick="showView('home')">← Retour</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════ QUIZ ═══ -->
+<div id="view-quiz" class="view has-nav">
+  <div class="card ani-up" style="margin: 16px auto;">
+    <div class="progress-wrap">
+      <div class="progress-info"><span id="q-prog-txt">Question 1/10</span><span id="q-score-txt">Score: 0</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="q-prog-fill" style="width:0%"></div></div>
+    </div>
+    <div class="q-number" id="q-num">Question 1</div>
+    <div class="q-text" id="q-text">Chargement...</div>
+    <div class="options" id="q-options"></div>
+    <div class="explanation" id="q-expl"></div>
+    <div class="feedback" id="q-feedback"></div>
+    <div id="q-next-wrap" style="margin-top:18px;display:none;">
+      <button class="btn btn-gold" onclick="nextQuestion()">Question suivante →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════ INTERMISSION ═══ -->
+<div id="view-intermission" class="view has-nav">
+  <div class="card ani-scale" style="margin: 16px auto;">
+    <div class="emoji-xl">🏆</div>
+    <h1 class="brand" style="font-size:1.7rem;">Classement</h1>
+    <p class="subtitle" id="inter-sub">Après 5 questions</p>
+    <div class="leaderboard" id="inter-lb"></div>
+    <div style="margin-top:22px;">
+      <button class="btn btn-gold" onclick="continueQuiz()">Continuer le quiz →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════ RESULTS ═══ -->
+<div id="view-results" class="view has-nav">
+  <div class="card ani-scale" style="text-align:center; margin: 16px auto;">
+    <div class="emoji-xl" id="res-emoji">🎉</div>
+    <h1 class="brand" style="font-size:1.7rem;">Bravo <em id="res-name"></em></h1>
+    <p class="subtitle">Quiz terminé !</p>
+    <div class="big-score" id="res-score">0<small>/0</small></div>
+    <p style="color:var(--text-dim);margin:6px 0 20px;font-size:0.88rem;" id="res-pct"></p>
+    <div class="alert alert-info" id="res-msg"></div>
+    <button class="btn btn-gold" onclick="showView('leaderboard')">🏆 Voir le classement</button>
+    <div style="margin-top:10px;">
+      <button class="btn btn-ghost" onclick="showView('home')">← Accueil</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════ LEADERBOARD ═══ -->
+<div id="view-leaderboard" class="view has-nav">
+  <div class="card ani-up" style="max-width:600px; margin: 16px auto;">
+    <div class="emoji-xl">🏆</div>
+    <h1 class="brand" style="font-size:1.7rem;">Classement général</h1>
+    <p class="subtitle">🎂 60 ans de Régis</p>
+    <div class="leaderboard scrollable" id="full-lb"></div>
+    <div style="margin-top:20px;">
+      <button class="btn btn-ghost" onclick="goBack()">← Retour</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════ ADMIN LOGIN ═══ -->
+<div id="view-admin-login" class="view">
+  <div class="card ani-up">
+    <div class="emoji-xl">🔐</div>
+    <h1 class="brand" style="font-size:1.7rem;">Panel Admin</h1>
+    <p class="subtitle">Accès réservé</p>
+    <div id="adm-login-err" class="alert alert-error" style="display:none;"></div>
+    <div class="form-group">
+      <label>Mot de passe</label>
+      <input type="password" id="adm-pwd" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')adminLogin()">
+    </div>
+    <button class="btn btn-gold" onclick="adminLogin()">🔓 Connexion</button>
+    <div style="margin-top:10px;">
+      <button class="btn btn-ghost" onclick="showView('home')">← Retour</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════ ADMIN PANEL ═══ -->
+<div id="view-admin" class="view" style="align-items:flex-start;padding:20px 16px 40px;">
+  <div class="card card-wide ani-up" style="margin:0 auto;width:100%;">
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;flex-wrap:wrap;gap:12px;">
+      <div>
+        <h1 class="brand" style="font-size:1.4rem;text-align:left;">⚙️ Panel Admin</h1>
+        <p style="color:var(--text-dim);font-size:0.76rem;margin-top:2px;">Quiz 60 ans de Régis</p>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-sm btn-ghost" onclick="refreshAdmin()">🔄 Actualiser</button>
+        <button class="btn btn-sm btn-ghost" onclick="showView('home')">← Accueil</button>
+        <button class="btn btn-sm btn-danger" onclick="adminLogout()">Déco.</button>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid-2" id="adm-stats" style="margin-bottom:22px;"></div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" id="tab-q" onclick="adminTab('q')">❓ Questions</button>
+      <button class="tab" id="tab-p" onclick="adminTab('p')">👥 Participants</button>
+      <button class="tab" id="tab-c" onclick="adminTab('c')">⚙️ Config</button>
+      <button class="tab" id="tab-qr" onclick="adminTab('qr')">📱 QR Code</button>
+    </div>
+
+    <!-- QUESTIONS TAB -->
+    <div id="tab-body-q">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+        <span style="color:var(--text-dim);font-size:0.82rem;" id="q-count-lbl">0 questions</span>
+        <button class="btn btn-sm btn-gold" onclick="openQForm()">+ Ajouter une question</button>
+      </div>
+      <div class="scrollable" id="q-list"></div>
+
+      <!-- Question form -->
+      <div id="q-form" style="display:none;margin-top:24px;padding-top:22px;border-top:1px solid rgba(255,255,255,0.08);">
+        <h3 id="qf-title" style="font-family:'Playfair Display',serif;color:var(--gold);margin-bottom:16px;">Nouvelle question</h3>
+        <input type="hidden" id="qf-id">
+        <div class="form-group">
+          <label>Question *</label>
+          <textarea id="qf-q" placeholder="Quel est le plat préféré de Régis ?"></textarea>
+        </div>
+        <div class="form-group">
+          <label>✅ Bonne réponse (A) *</label>
+          <input type="text" id="qf-a" placeholder="La réponse correcte">
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label>❌ Réponse B *</label>
+            <input type="text" id="qf-b" placeholder="Mauvaise réponse">
+          </div>
+          <div class="form-group">
+            <label>❌ Réponse C *</label>
+            <input type="text" id="qf-c" placeholder="Mauvaise réponse">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>❌ Réponse D *</label>
+          <input type="text" id="qf-d" placeholder="Mauvaise réponse">
+        </div>
+        <div class="form-group">
+          <label>💡 Anecdote / Explication (optionnel)</label>
+          <input type="text" id="qf-expl" placeholder="Ex: Régis cuisine ce plat chaque dimanche...">
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn btn-gold btn-sm" onclick="saveQuestion()">💾 Enregistrer</button>
+          <button class="btn btn-ghost btn-sm" onclick="closeQForm()">Annuler</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PARTICIPANTS TAB -->
+    <div id="tab-body-p" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+        <span style="color:var(--text-dim);font-size:0.82rem;" id="p-count-lbl">0 participants</span>
+        <button class="btn btn-sm btn-danger" onclick="confirmReset()">🗑 Réinitialiser tous les scores</button>
+      </div>
+      <div class="scrollable">
+        <table class="admin-table">
+          <thead><tr><th>#</th><th>Prénom Nom</th><th>Score</th><th>Progression</th><th>Statut</th><th></th></tr></thead>
+          <tbody id="p-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CONFIG TAB -->
+    <div id="tab-body-c" style="display:none;">
+      <div class="form-group">
+        <label>Titre du quiz</label>
+        <input type="text" id="cfg-title" placeholder="Les 60 ans de Régis">
+      </div>
+      <div class="form-group">
+        <label>Afficher le classement toutes les X questions</label>
+        <input type="number" id="cfg-interval" placeholder="5" min="1" max="50">
+      </div>
+      <div class="form-group">
+        <label>Statut du quiz</label>
+        <select id="cfg-status">
+          <option value="open">✅ Ouvert — les joueurs peuvent participer</option>
+          <option value="closed">🔒 Fermé — inscriptions désactivées</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Nouveau mot de passe admin (laisser vide = inchangé)</label>
+        <input type="password" id="cfg-pwd" placeholder="••••••••">
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <button class="btn btn-gold btn-sm" onclick="saveConfig()">💾 Sauvegarder</button>
+        <span id="cfg-ok" style="display:none;color:#7de8a5;font-size:0.85rem;">✅ Sauvegardé !</span>
+      </div>
+    </div>
+
+    <!-- QR TAB -->
+    <div id="tab-body-qr" style="display:none;text-align:center;">
+      <p style="color:var(--text-dim);margin-bottom:16px;font-size:0.85rem;max-width:420px;margin-inline:auto;">
+        Partagez ce QR code lors de l'événement. Les invités scannent pour participer directement.
+      </p>
+      <div class="form-group" style="text-align:left;max-width:420px;margin:0 auto 16px;">
+        <label>URL personnalisée (optionnel — laissez vide pour l'URL actuelle)</label>
+        <input type="text" id="cfg-url" placeholder="https://votre-lien.com/quiz">
+        <button class="btn btn-gold btn-sm" style="margin-top:8px;" onclick="updateQR()">🔄 Mettre à jour le QR</button>
+      </div>
+      <div style="display:flex;justify-content:center;margin:20px 0;">
+        <div id="qr-admin" style="background:#fff;padding:14px;border-radius:12px;display:inline-block;"></div>
+      </div>
+      <button class="btn btn-ghost btn-sm" style="max-width:200px;margin:0 auto;" onclick="dlQR()">⬇ Télécharger le QR</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ────────────────────────────────────────────────
+// STORAGE
+// ────────────────────────────────────────────────
+async function sGet(k, sh=true) {
+  try { const r = await window.storage.get(k, sh); return r ? JSON.parse(r.value) : null; } catch { return null; }
+}
+async function sSet(k, v, sh=true) {
+  try { await window.storage.set(k, JSON.stringify(v), sh); } catch(e) { console.error(e); }
+}
+async function sDel(k, sh=true) {
+  try { await window.storage.delete(k, sh); } catch {}
+}
+
+// ────────────────────────────────────────────────
+// DEFAULTS
+// ────────────────────────────────────────────────
+const DEF_CONFIG = {
+  title: "Les 60 ans de Régis",
+  adminPassword: "Regis60",
+  showLeaderboardEvery: 5,
+  status: "open",
+  quizUrl: ""
+};
+
+const DEF_QUESTIONS = [
+  { id:"q01", q:"Dans quelle ville est né Régis ?", a:"Bordeaux", b:"Paris", c:"Marseille", d:"Lyon", expl:"À vous de compléter avec la vraie ville !" },
+  { id:"q02", q:"Quel est le plat préféré de Régis ?", a:"Cassoulet", b:"Sushi", c:"Pizza", d:"Raclette", expl:"" },
+  { id:"q03", q:"Quel sport Régis pratique-t-il (ou a-t-il pratiqué) le plus longtemps ?", a:"Football", b:"Tennis", c:"Natation", d:"Cyclisme", expl:"" },
+  { id:"q04", q:"Quelle est la boisson préférée de Régis ?", a:"Bordeaux rouge", b:"Pastis", c:"Bière pression", d:"Coca-Cola", expl:"" },
+  { id:"q05", q:"Combien d'enfants a Régis ?", a:"2", b:"1", c:"3", d:"4", expl:"" },
+  { id:"q06", q:"Quelle est la destination de vacances préférée de Régis ?", a:"L'Espagne", b:"Les Maldives", c:"La Réunion", d:"La Corse", expl:"" },
+  { id:"q07", q:"Quelle est la couleur préférée de Régis ?", a:"Bleu marine", b:"Rouge vif", c:"Vert sapin", d:"Noir", expl:"" },
+  { id:"q08", q:"En quelle année est né Régis ?", a:"1965", b:"1962", c:"1968", d:"1960", expl:"Il fête ses 60 ans cette année !" },
+  { id:"q09", q:"Quel est le passe-temps favori de Régis le week-end ?", a:"Jardinage", b:"Peinture", c:"Randonnée", d:"Jeux vidéo", expl:"" },
+  { id:"q10", q:"Quelle chanson représente le mieux Régis ?", a:"My Way — Frank Sinatra", b:"Bohemian Rhapsody — Queen", c:"La Vie en Rose — Piaf", d:"Born to Run — Springsteen", expl:"" },
+];
+
+// ────────────────────────────────────────────────
+// STATE
+// ────────────────────────────────────────────────
+let S = {
+  config: null,
+  questions: [],
+  currentView: 'home',
+  prevView: 'home',
+  player: null,
+  sessionQ: [],   // shuffled questions for this session
+  adminIn: false,
+};
+
+// ────────────────────────────────────────────────
+// BOOT
+// ────────────────────────────────────────────────
+window.addEventListener('load', async () => {
+  S.config = (await sGet('quiz-config')) || DEF_CONFIG;
+  S.questions = (await sGet('quiz-questions')) || [];
+  if (!S.questions.length) {
+    S.questions = DEF_QUESTIONS;
+    await sSet('quiz-questions', S.questions);
+  }
+  generateQR('qr-home', getURL());
+
+  const pid = sessionStorage.getItem('quiz-pid');
+  if (pid) {
+    const pls = (await sGet('quiz-players')) || {};
+    if (pls[pid]) { S.player = pls[pid]; updateNavScore(); }
+  }
+  showView('home');
+});
+
+function getURL() { return S.config.quizUrl || window.location.href.split('#')[0]; }
+
+// ────────────────────────────────────────────────
+// VIEWS
+// ────────────────────────────────────────────────
+function showView(name, keepPrev=false) {
+  if (!keepPrev) S.prevView = S.currentView;
+  S.currentView = name;
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  const el = document.getElementById('view-' + name);
+  if (el) el.classList.add('active');
+  const navViews = ['quiz','intermission','results','leaderboard'];
+  document.getElementById('main-nav').style.display = navViews.includes(name) ? 'flex' : 'none';
+  window.scrollTo(0,0);
+  if (name === 'leaderboard') renderLB();
+  if (name === 'admin') refreshAdmin();
+}
+
+function goBack() { showView(S.prevView || 'home', true); }
+
+function tryParticipate() {
+  if (S.config.status === 'closed') {
+    alert('Le quiz est actuellement fermé. Revenez plus tard !');
+    return;
+  }
+  if (!S.questions.length) {
+    alert("Aucune question disponible pour le moment. L'admin doit en ajouter !");
+    return;
+  }
+  showView('register');
+}
+
+function updateNavScore() {
+  if (S.player) document.getElementById('nav-score').textContent = `⭐ ${S.player.score} pts`;
+}
+
+// ────────────────────────────────────────────────
+// QR CODE
+// ────────────────────────────────────────────────
+const _qr = {};
+function generateQR(id, url) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = '';
+  _qr[id] = new QRCode(el, { text: url || 'https://quiz', width:180, height:180, colorDark:'#0B1120', colorLight:'#FFFFFF' });
+}
+async function updateQR() {
+  const url = document.getElementById('cfg-url').value.trim();
+  S.config.quizUrl = url;
+  await sSet('quiz-config', S.config);
+  const u = getURL();
+  generateQR('qr-admin', u);
+  generateQR('qr-home', u);
+}
+function dlQR() {
+  const img = document.querySelector('#qr-admin canvas') || document.querySelector('#qr-admin img');
+  if (!img) return;
+  const a = document.createElement('a');
+  a.download = 'qr-quiz-regis.png';
+  a.href = img.tagName === 'CANVAS' ? img.toDataURL() : img.src;
+  a.click();
+}
+
+// ────────────────────────────────────────────────
+// REGISTER
+// ────────────────────────────────────────────────
+async function registerPlayer() {
+  const prenom = document.getElementById('reg-prenom').value.trim();
+  const nom    = document.getElementById('reg-nom').value.trim();
+  const err    = document.getElementById('reg-err');
+  err.style.display = 'none';
+
+  if (!prenom || !nom) { err.textContent = 'Merci de remplir prénom et nom.'; err.style.display='block'; return; }
+  if (S.config.status === 'closed') { err.textContent = 'Le quiz est fermé.'; err.style.display='block'; return; }
+
+  const pls = (await sGet('quiz-players')) || {};
+  const key = (prenom+nom).toLowerCase().replace(/\s/g,'');
+  const dup = Object.values(pls).find(p => (p.prenom+p.nom).toLowerCase().replace(/\s/g,'') === key);
+
+  if (dup) {
+    S.player = dup;
+    sessionStorage.setItem('quiz-pid', dup.id);
+    updateNavScore();
+    if (dup.completed) { buildSessionQ(); showResults(dup); }
+    else { buildSessionQ(); showView('quiz'); renderQ(); }
+    return;
+  }
+
+  const id = 'p' + Date.now() + Math.random().toString(36).slice(2,6);
+  const p  = { id, nom, prenom, score:0, currentQ:0, answers:{}, completed:false, startedAt:Date.now() };
+  pls[id]  = p;
+  await sSet('quiz-players', pls);
+  S.player = p;
+  sessionStorage.setItem('quiz-pid', id);
+  updateNavScore();
+  buildSessionQ();
+  showView('quiz');
+  renderQ();
+}
+
+function buildSessionQ() {
+  // Shuffle questions for this session
+  S.sessionQ = [...S.questions].sort(() => Math.random() - 0.5);
+}
+
+// ────────────────────────────────────────────────
+// QUIZ
+// ────────────────────────────────────────────────
+function renderQ() {
+  const p  = S.player;
+  const qs = S.sessionQ;
+  const qi = p.currentQ;
+  if (qi >= qs.length) { finishQuiz(); return; }
+
+  const q     = qs[qi];
+  const total = qs.length;
+
+  document.getElementById('q-prog-txt').textContent  = `Question ${qi+1} / ${total}`;
+  document.getElementById('q-score-txt').textContent = `Score : ${p.score}`;
+  document.getElementById('q-prog-fill').style.width = `${(qi / total) * 100}%`;
+  document.getElementById('q-num').textContent       = `Question ${qi+1}`;
+  document.getElementById('q-text').textContent      = q.q;
+  document.getElementById('q-next-wrap').style.display = 'none';
+  document.getElementById('q-feedback').textContent  = '';
+  const ex = document.getElementById('q-expl');
+  ex.textContent = ''; ex.classList.remove('show');
+
+  // Shuffle answers (keep track of which is correct)
+  const answers = [
+    { text: q.a, ok: true },
+    { text: q.b, ok: false },
+    { text: q.c, ok: false },
+    { text: q.d, ok: false },
+  ].sort(() => Math.random() - 0.5);
+
+  const letters = ['A','B','C','D'];
+  const container = document.getElementById('q-options');
+  container.innerHTML = '';
+
+  answers.forEach((ans, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `<span class="option-letter">${letters[i]}</span>${ans.text}`;
+    btn.onclick = () => onAnswer(ans.ok, answers, q.expl);
+    container.appendChild(btn);
+  });
+}
+
+async function onAnswer(ok, answers, expl) {
+  const btns = document.querySelectorAll('.option-btn');
+  btns.forEach(b => b.disabled = true);
+  answers.forEach((ans, i) => { if (ans.ok) btns[i].classList.add('correct'); });
+
+  const clicked = [...btns].find(b => b.matches(':focus') || false) || [...btns].find((b,i) => !answers[i].ok && b === document.activeElement);
+
+  // Mark wrong button (the one that was clicked, if wrong)
+  // We need a different approach — capture the clicked element in the closure
+  // This is called from the specific btn.onclick, so we need the btn reference
+  // Actually we need to refactor slightly:
+  // The btn reference is available in the parent scope. Let me handle this differently.
+
+  const fb = document.getElementById('q-feedback');
+  if (ok) {
+    fb.textContent = '✅ Bonne réponse ! +10 points';
+    fb.style.color = '#7de8a5';
+    S.player.score += 10;
+    updateNavScore();
+  } else {
+    fb.textContent = '❌ Mauvaise réponse !';
+    fb.style.color = '#f09090';
+  }
+
+  if (expl) { const e = document.getElementById('q-expl'); e.textContent = '💡 ' + expl; e.classList.add('show'); }
+
+  S.player.currentQ++;
+  const qId = S.sessionQ[S.player.currentQ - 1].id;
+  S.player.answers[qId] = ok;
+
+  const pls = (await sGet('quiz-players')) || {};
+  pls[S.player.id] = S.player;
+  await sSet('quiz-players', pls);
+
+  document.getElementById('q-next-wrap').style.display = 'block';
+}
+
+// Patch: refactor answer handler to properly mark clicked button
+(function(){
+  const origRenderQ = window.renderQ;
+  // We'll override option button creation to pass the button element
+  window.renderQ = function() {
+    const p  = S.player;
+    const qs = S.sessionQ;
+    const qi = p.currentQ;
+    if (qi >= qs.length) { finishQuiz(); return; }
+
+    const q     = qs[qi];
+    const total = qs.length;
+
+    document.getElementById('q-prog-txt').textContent  = `Question ${qi+1} / ${total}`;
+    document.getElementById('q-score-txt').textContent = `Score : ${p.score}`;
+    document.getElementById('q-prog-fill').style.width = `${(qi / total) * 100}%`;
+    document.getElementById('q-num').textContent       = `Question ${qi+1}`;
+    document.getElementById('q-text').textContent      = q.q;
+    document.getElementById('q-next-wrap').style.display = 'none';
+    document.getElementById('q-feedback').textContent  = '';
+    const ex = document.getElementById('q-expl');
+    ex.textContent = ''; ex.classList.remove('show');
+
+    const answers = [
+      { text: q.a, ok: true },
+      { text: q.b, ok: false },
+      { text: q.c, ok: false },
+      { text: q.d, ok: false },
+    ].sort(() => Math.random() - 0.5);
+
+    const letters = ['A','B','C','D'];
+    const container = document.getElementById('q-options');
+    container.innerHTML = '';
+
+    answers.forEach((ans, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'option-btn';
+      btn.innerHTML = `<span class="option-letter">${letters[i]}</span>${ans.text}`;
+      btn.onclick = () => handleAnswer(btn, ans.ok, answers, q.expl);
+      container.appendChild(btn);
+    });
+  };
+})();
+
+async function handleAnswer(clickedBtn, ok, answers, expl) {
+  const allBtns = document.querySelectorAll('.option-btn');
+  allBtns.forEach(b => b.disabled = true);
+
+  // Mark all correct answers green
+  const btnsArr = [...allBtns];
+  answers.forEach((ans, i) => { if (ans.ok) btnsArr[i].classList.add('correct'); });
+
+  // Mark clicked button if wrong
+  if (!ok) clickedBtn.classList.add('wrong');
+
+  const fb = document.getElementById('q-feedback');
+  if (ok) {
+    fb.textContent = '✅ Bonne réponse ! +10 points';
+    fb.style.color = '#7de8a5';
+    S.player.score += 10;
+    updateNavScore();
+  } else {
+    fb.textContent = '❌ Mauvaise réponse !';
+    fb.style.color = '#f09090';
+  }
+
+  if (expl) { const e = document.getElementById('q-expl'); e.textContent = '💡 ' + expl; e.classList.add('show'); }
+
+  S.player.currentQ++;
+  const qId = S.sessionQ[S.player.currentQ - 1].id;
+  S.player.answers[qId] = ok;
+
+  const pls = (await sGet('quiz-players')) || {};
+  pls[S.player.id] = S.player;
+  await sSet('quiz-players', pls);
+
+  document.getElementById('q-next-wrap').style.display = 'block';
+}
+
+async function nextQuestion() {
+  const qi    = S.player.currentQ;
+  const total = S.sessionQ.length;
+  const intv  = parseInt(S.config.showLeaderboardEvery) || 5;
+
+  if (qi >= total) { finishQuiz(); return; }
+
+  if (qi > 0 && qi < total && qi % intv === 0) {
+    document.getElementById('inter-sub').textContent = `Après ${qi} question${qi>1?'s':''} sur ${total}`;
+    const sorted = await buildSorted();
+    renderLBData(sorted, 'inter-lb', 8);
+    showView('intermission');
+  } else {
+    showView('quiz', true);
+    renderQ();
+  }
+}
+
+function continueQuiz() {
+  showView('quiz', true);
+  renderQ();
+}
+
+async function finishQuiz() {
+  S.player.completed   = true;
+  S.player.completedAt = Date.now();
+  const pls = (await sGet('quiz-players')) || {};
+  pls[S.player.id] = S.player;
+  await sSet('quiz-players', pls);
+  showResults(S.player);
+  launchConfetti();
+}
+
+function showResults(p) {
+  const total   = (S.sessionQ.length || S.questions.length) * 10;
+  const pct     = total > 0 ? Math.round((p.score / total) * 100) : 0;
+  const msgs    = [
+    [100, '🏆', "Parfait ! Vous êtes le·la champion·ne absolu·e !"],
+    [80,  '🥇', "Excellent ! Vous connaissez très bien Régis !"],
+    [60,  '🥈', "Bien joué ! Vous connaissez Régis plutôt bien."],
+    [40,  '🥉', "Pas mal ! Il reste encore des choses à découvrir."],
+    [0,   '😅', "Hmm... Passez plus de temps avec Régis ! 😄"],
+  ];
+  const [,emoji,msg] = msgs.find(([t]) => pct >= t);
+
+  document.getElementById('res-emoji').textContent  = emoji;
+  document.getElementById('res-name').textContent   = p.prenom;
+  document.getElementById('res-score').innerHTML    = `${p.score}<small>/${total}</small>`;
+  document.getElementById('res-pct').textContent    = `${pct}% de bonnes réponses`;
+  document.getElementById('res-msg').textContent    = msg;
+  showView('results');
+}
+
+// ────────────────────────────────────────────────
+// LEADERBOARD
+// ────────────────────────────────────────────────
+async function buildSorted() {
+  const pls = (await sGet('quiz-players')) || {};
+  return Object.values(pls).sort((a,b) => b.score - a.score || (a.completedAt||Infinity) - (b.completedAt||Infinity));
+}
+
+function renderLBData(sorted, elId, limit=50) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  if (!sorted.length) {
+    el.innerHTML = '<p style="text-align:center;color:var(--text-dim);padding:24px 0;">Aucun participant pour l\'instant...</p>';
+    return;
+  }
+  const medals   = ['🥇','🥈','🥉'];
+  const rowCls   = ['r1','r2','r3'];
+  const maxScore = (S.questions.length * 10) || 100;
+
+  el.innerHTML = sorted.slice(0, limit).map((p, i) => {
+    const isCurrent = S.player && p.id === S.player.id;
+    const pct = Math.round((p.score / maxScore) * 100);
+    return `
+      <div class="lb-row ${rowCls[i]||''}" ${isCurrent ? 'style="outline:2px solid var(--gold);outline-offset:2px;"' : ''}>
+        <span class="lb-rank">${medals[i] || (i+1)}</span>
+        <span class="lb-name">${p.prenom} ${p.nom}
+          ${isCurrent ? '<span class="tag tag-gold" style="margin-left:6px;">Vous</span>' : ''}
+          ${!p.completed ? '<span class="tag tag-gray" style="margin-left:4px;">⏳</span>' : ''}
+        </span>
+        <span class="lb-score">${p.score} pts</span>
+        <span class="lb-pct">${pct}%</span>
+      </div>
+    `;
+  }).join('');
+}
+
+async function renderLB() {
+  const sorted = await buildSorted();
+  renderLBData(sorted, 'full-lb');
+}
+
+// ────────────────────────────────────────────────
+// ADMIN LOGIN
+// ────────────────────────────────────────────────
+function adminLogin() {
+  const pwd = document.getElementById('adm-pwd').value;
+  const err = document.getElementById('adm-login-err');
+  if (pwd === S.config.adminPassword) {
+    S.adminIn = true;
+    document.getElementById('adm-pwd').value = '';
+    err.style.display = 'none';
+    showView('admin');
+  } else {
+    err.textContent = 'Mot de passe incorrect.';
+    err.style.display = 'block';
+  }
+}
+function adminLogout() { S.adminIn = false; showView('home'); }
+
+// ────────────────────────────────────────────────
+// ADMIN PANEL
+// ────────────────────────────────────────────────
+let activeTab = 'q';
+
+function adminTab(t) {
+  ['q','p','c','qr'].forEach(x => {
+    document.getElementById('tab-' + x).classList.toggle('active', x === t);
+    document.getElementById('tab-body-' + x).style.display = x === t ? 'block' : 'none';
+  });
+  activeTab = t;
+  if (t === 'p') loadParticipants();
+  if (t === 'c') loadCfg();
+  if (t === 'qr') { document.getElementById('cfg-url').value = S.config.quizUrl||''; setTimeout(()=>generateQR('qr-admin', getURL()),80); }
+}
+
+async function refreshAdmin() {
+  S.config    = (await sGet('quiz-config')) || DEF_CONFIG;
+  S.questions = (await sGet('quiz-questions')) || [];
+  const pls   = (await sGet('quiz-players')) || {};
+  const pList = Object.values(pls);
+  const done  = pList.filter(p => p.completed).length;
+  const avg   = pList.length ? Math.round(pList.reduce((s,p) => s+p.score, 0) / pList.length) : 0;
+
+  document.getElementById('adm-stats').innerHTML = `
+    <div class="stat"><div class="stat-val">${pList.length}</div><div class="stat-lbl">Participants</div></div>
+    <div class="stat"><div class="stat-val">${done}</div><div class="stat-lbl">Terminés</div></div>
+    <div class="stat"><div class="stat-val">${S.questions.length}</div><div class="stat-lbl">Questions</div></div>
+    <div class="stat"><div class="stat-val">${avg}</div><div class="stat-lbl">Score moyen</div></div>
+  `;
+  loadQuestions();
+  if (activeTab === 'p') loadParticipants();
+}
+
+function loadQuestions() {
+  const qs = S.questions;
+  document.getElementById('q-count-lbl').textContent = `${qs.length} question${qs.length>1?'s':''}`;
+  const el = document.getElementById('q-list');
+  if (!qs.length) {
+    el.innerHTML = '<p style="color:var(--text-dim);text-align:center;padding:20px 0;">Aucune question. Ajoutez-en une !</p>';
+    return;
+  }
+  el.innerHTML = `
+    <table class="admin-table">
+      <thead><tr><th>#</th><th>Question</th><th>Bonne réponse</th><th>Actions</th></tr></thead>
+      <tbody>
+        ${qs.map((q,i) => `
+          <tr>
+            <td style="color:var(--text-dim);">${i+1}</td>
+            <td>${q.q}</td>
+            <td><span class="tag tag-green">${q.a}</span></td>
+            <td>
+              <div style="display:flex;gap:6px;">
+                <button class="btn btn-sm btn-ghost" onclick="editQ('${q.id}')">✏️</button>
+                <button class="btn btn-sm btn-danger" onclick="delQ('${q.id}')">🗑</button>
+              </div>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+async function loadParticipants() {
+  const pls    = (await sGet('quiz-players')) || {};
+  const sorted = Object.values(pls).sort((a,b) => b.score - a.score);
+  const max    = S.questions.length * 10;
+  document.getElementById('p-count-lbl').textContent = `${sorted.length} participant${sorted.length>1?'s':''}`;
+
+  const tbody = document.getElementById('p-tbody');
+  if (!sorted.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-dim);padding:20px;">Aucun participant</td></tr>';
+    return;
+  }
+  tbody.innerHTML = sorted.map((p,i) => {
+    const done   = Object.keys(p.answers).length;
+    const total  = S.questions.length;
+    const fillW  = total > 0 ? Math.min(100, (done/total)*100) : 0;
+    return `
+      <tr>
+        <td>${i+1}</td>
+        <td>${p.prenom} ${p.nom}</td>
+        <td><strong style="color:var(--gold);">${p.score}</strong><span style="color:var(--text-dim);">/${max}</span></td>
+        <td>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="flex:1;background:rgba(255,255,255,0.08);border-radius:99px;height:5px;min-width:60px;">
+              <div style="background:var(--gold);height:100%;border-radius:99px;width:${fillW}%;"></div>
+            </div>
+            <span style="color:var(--text-dim);font-size:0.72rem;">${done}/${total}</span>
+          </div>
+        </td>
+        <td><span class="tag ${p.completed?'tag-green':'tag-gold'}">${p.completed?'✅ Fini':'⏳ En cours'}</span></td>
+        <td><button class="btn btn-sm btn-danger" onclick="delPlayer('${p.id}')">🗑</button></td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// Questions CRUD
+function openQForm() {
+  document.getElementById('qf-title').textContent = 'Nouvelle question';
+  document.getElementById('qf-id').value = '';
+  ['q','a','b','c','d','expl'].forEach(f => document.getElementById('qf-'+f).value = '');
+  document.getElementById('q-form').style.display = 'block';
+  document.getElementById('q-form').scrollIntoView({behavior:'smooth'});
+}
+function editQ(id) {
+  const q = S.questions.find(x => x.id === id);
+  if (!q) return;
+  document.getElementById('qf-title').textContent = 'Modifier la question';
+  document.getElementById('qf-id').value    = id;
+  document.getElementById('qf-q').value    = q.q;
+  document.getElementById('qf-a').value    = q.a;
+  document.getElementById('qf-b').value    = q.b;
+  document.getElementById('qf-c').value    = q.c;
+  document.getElementById('qf-d').value    = q.d;
+  document.getElementById('qf-expl').value = q.expl||'';
+  document.getElementById('q-form').style.display = 'block';
+  document.getElementById('q-form').scrollIntoView({behavior:'smooth'});
+}
+async function saveQuestion() {
+  const id = document.getElementById('qf-id').value;
+  const q  = {
+    id:   id || 'q' + Date.now(),
+    q:    document.getElementById('qf-q').value.trim(),
+    a:    document.getElementById('qf-a').value.trim(),
+    b:    document.getElementById('qf-b').value.trim(),
+    c:    document.getElementById('qf-c').value.trim(),
+    d:    document.getElementById('qf-d').value.trim(),
+    expl: document.getElementById('qf-expl').value.trim(),
+  };
+  if (!q.q||!q.a||!q.b||!q.c||!q.d) { alert('Remplissez tous les champs obligatoires (*)'); return; }
+  if (id) { const i = S.questions.findIndex(x=>x.id===id); if(i>=0) S.questions[i]=q; }
+  else S.questions.push(q);
+  await sSet('quiz-questions', S.questions);
+  closeQForm();
+  refreshAdmin();
+}
+async function delQ(id) {
+  if (!confirm('Supprimer cette question ?')) return;
+  S.questions = S.questions.filter(q => q.id !== id);
+  await sSet('quiz-questions', S.questions);
+  refreshAdmin();
+}
+function closeQForm() { document.getElementById('q-form').style.display = 'none'; }
+
+async function delPlayer(id) {
+  if (!confirm('Supprimer ce participant ?')) return;
+  const pls = (await sGet('quiz-players')) || {};
+  delete pls[id];
+  await sSet('quiz-players', pls);
+  loadParticipants();
+  refreshAdmin();
+}
+async function confirmReset() {
+  if (!confirm('⚠️ Réinitialiser TOUS les scores ? Action irréversible !')) return;
+  await sSet('quiz-players', {});
+  sessionStorage.removeItem('quiz-pid');
+  S.player = null;
+  loadParticipants();
+  refreshAdmin();
+}
+
+function loadCfg() {
+  document.getElementById('cfg-title').value    = S.config.title||'';
+  document.getElementById('cfg-interval').value = S.config.showLeaderboardEvery||5;
+  document.getElementById('cfg-status').value   = S.config.status||'open';
+  document.getElementById('cfg-url').value      = S.config.quizUrl||'';
+}
+async function saveConfig() {
+  const pwd = document.getElementById('cfg-pwd').value;
+  S.config.title                = document.getElementById('cfg-title').value.trim() || 'Les 60 ans de Régis';
+  S.config.showLeaderboardEvery = parseInt(document.getElementById('cfg-interval').value)||5;
+  S.config.status               = document.getElementById('cfg-status').value;
+  if (pwd) S.config.adminPassword = pwd;
+  await sSet('quiz-config', S.config);
+  document.getElementById('cfg-pwd').value = '';
+  const ok = document.getElementById('cfg-ok');
+  ok.style.display = 'inline'; setTimeout(()=>ok.style.display='none', 2500);
+}
+
+// ────────────────────────────────────────────────
+// CONFETTI
+// ────────────────────────────────────────────────
+function launchConfetti() {
+  const cv  = document.getElementById('confetti-canvas');
+  const ctx = cv.getContext('2d');
+  cv.width  = window.innerWidth;
+  cv.height = window.innerHeight;
+  const colors = ['#C9A84C','#EEC93A','#F2E1C1','#27AE60','#E74C3C','#9B59B6','#3498DB','#fff'];
+  const bits = Array.from({length:150}, () => ({
+    x: Math.random()*cv.width, y: -20 - Math.random()*200,
+    w: Math.random()*10+4, h: Math.random()*6+3,
+    c: colors[Math.floor(Math.random()*colors.length)],
+    vx:(Math.random()-0.5)*5, vy:Math.random()*5+2,
+    r: Math.random()*360, rv:(Math.random()-0.5)*12,
+  }));
+  let f = 0;
+  function draw() {
+    ctx.clearRect(0,0,cv.width,cv.height);
+    bits.forEach(b => {
+      ctx.save();
+      ctx.translate(b.x, b.y);
+      ctx.rotate(b.r * Math.PI/180);
+      ctx.fillStyle = b.c;
+      ctx.fillRect(-b.w/2, -b.h/2, b.w, b.h);
+      ctx.restore();
+      b.x+=b.vx; b.y+=b.vy; b.r+=b.rv;
+      if (b.y > cv.height) { b.y=-20; b.x=Math.random()*cv.width; }
+    });
+    f++;
+    if (f < 220) requestAnimationFrame(draw);
+    else ctx.clearRect(0,0,cv.width,cv.height);
+  }
+  draw();
+}
+</script>
+</body>
+</html>
