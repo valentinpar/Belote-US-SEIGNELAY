@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>qs — US Seignelay</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--c1:#1d4ed8;--c2:#1e3a5f;--or:#d4a017;--or-f:#b8860b;
+--noir:#080810;--gf:#0e0e18;--g:#16162a;--gm:#242440;
+--txt:#ddddf5;--muted:#6e6e9a;--vp:#86efac;--rouge:#dc2626;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Source Sans 3',sans-serif;background:var(--gf);color:var(--txt);min-height:100vh}
+header{background:linear-gradient(135deg,var(--noir),var(--c2) 60%,var(--gf));padding:1.8rem 2rem;text-align:center;border-bottom:3px solid var(--or);position:relative;overflow:hidden}
+header::before{content:'🏐 🏐 🏐';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:10rem;opacity:.04;pointer-events:none;white-space:nowrap}
+header h1{font-family:'Playfair Display',serif;font-size:clamp(1.6rem,5vw,2.8rem);font-weight:900;color:#f0f0ff;text-shadow:2px 2px 8px rgba(0,0,0,.6)}
+header h1 span{color:var(--or)}
+header p{color:var(--vp);font-size:.85rem;margin-top:.3rem;letter-spacing:.1em;text-transform:uppercase}
+#btn-orga{position:absolute;top:1rem;left:1rem;z-index:10;border-radius:6px;padding:.4rem .9rem;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;border:1px solid rgba(212,160,23,.4);background:rgba(212,160,23,.15);color:var(--muted);transition:all .2s}
+#btn-orga:hover{background:rgba(212,160,23,.3);color:var(--or)}
+#btn-lock{position:absolute;top:1rem;left:1rem;z-index:10;display:none;border-radius:6px;padding:.4rem .9rem;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;border:1px solid var(--c1);background:rgba(0,0,0,.5);color:var(--vp);transition:all .2s}
+#btn-lock:hover{background:var(--c2)}
+#btn-accueil{position:absolute;top:1rem;right:1rem;z-index:10;background:rgba(0,0,0,.3);border:1px solid rgba(134,239,172,.3);color:#86efac;border-radius:6px;padding:.4rem .9rem;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem}
+#btn-accueil:hover{background:rgba(0,0,0,.6)}
+.tabs{display:flex;gap:2px;background:var(--noir);border-bottom:2px solid var(--or);overflow-x:auto}
+.tab{flex:1;min-width:90px;padding:.75rem .5rem;background:var(--g);color:var(--muted);border:none;font-family:inherit;font-size:.78rem;font-weight:600;letter-spacing:.03em;text-transform:uppercase;cursor:pointer;transition:all .2s;display:none;align-items:center;justify-content:center;gap:.3rem}
+.tab.visible{display:flex}.tab:hover{background:var(--gm);color:var(--txt)}
+.tab.active{background:var(--c2);color:#f0f0ff;border-bottom:3px solid var(--or)}
+.tab .badge{background:var(--or);color:var(--noir);border-radius:10px;padding:1px 7px;font-size:.68rem}
+main{max-width:900px;margin:0 auto;padding:1.2rem}
+.section{display:none}.section.active{display:block;animation:fi .2s}
+@keyframes fi{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+.card{background:var(--g);border:1px solid var(--gm);border-radius:9px;padding:1.2rem;margin-bottom:1.2rem}
+.card h2{font-family:'Playfair Display',serif;font-size:1.15rem;color:var(--or);margin-bottom:.9rem;display:flex;align-items:center;gap:.45rem;flex-wrap:wrap}
+input[type='text'],input[type='number'],input[type='password']{background:var(--gf);border:1px solid var(--gm);color:var(--txt);padding:.5rem .75rem;border-radius:5px;font-family:inherit;font-size:.87rem;width:100%;transition:border-color .2s}
+input:focus{outline:none;border-color:var(--or)}
+label{display:block;color:var(--muted);font-size:.74rem;margin-bottom:.25rem;text-transform:uppercase;letter-spacing:.04em}
+.btn{padding:.45rem 1rem;border:none;border-radius:5px;font-family:inherit;font-size:.83rem;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:.3rem}
+.btn-primary{background:var(--c1);color:#fff}.btn-primary:hover{background:var(--c2)}
+.btn-gold{background:var(--or);color:var(--noir)}.btn-gold:hover{background:var(--or-f)}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--gm)}.btn-ghost:hover{border-color:var(--or);color:var(--or)}
+.btn-sm{padding:.28rem .65rem;font-size:.73rem}
+.btn-danger{background:rgba(127,29,29,.25);color:#fca5a5;border:1px solid #7f1d1d}.btn-danger:hover{background:rgba(127,29,29,.55)}
+.flex{display:flex}.gap-1{gap:.5rem}.wrap{flex-wrap:wrap}.mt-1{margin-top:.5rem}.mt-2{margin-top:1rem}
+.eq-ul{list-style:none;display:flex;flex-direction:column;gap:.3rem}
+.eq-li{display:flex;align-items:center;background:var(--gf);border:1px solid var(--gm);border-radius:5px;padding:.45rem .8rem;gap:.6rem;transition:border-color .2s}
+.eq-li:hover{border-color:rgba(212,160,23,.4)}
+.eq-num{width:24px;height:24px;background:var(--c2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;color:var(--or);flex-shrink:0}
+.eq-nom{flex:1;font-weight:600;font-size:.88rem}
+.m-card{background:var(--gf);border:1px solid var(--gm);border-radius:7px;overflow:hidden;margin-bottom:.5rem;transition:border-color .2s}
+.m-card:hover{border-color:rgba(212,160,23,.35)}.m-card.joue{border-color:rgba(22,101,52,.6)}
+.m-head{background:var(--g);padding:.25rem .7rem;font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);border-bottom:1px solid var(--gm)}
+.m-body{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:.5rem;padding:.55rem .8rem}
+.m-eq{font-weight:700;font-size:.88rem}.m-eq.right{text-align:right}
+.s-inp{width:52px;text-align:center;font-size:.95rem;font-weight:700;padding:.22rem}
+.s-lbl{min-width:36px;text-align:center;font-weight:700;font-size:.95rem;color:var(--or)}
+.vs{color:var(--or);font-weight:900;font-size:.7rem}
+.cl-row{display:grid;grid-template-columns:36px 1fr repeat(5,44px);gap:.25rem;align-items:center;padding:.4rem .7rem;font-size:.82rem;border-radius:5px;margin-bottom:.25rem}
+.cl-row.header{color:var(--muted);font-size:.7rem;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--gm);border-radius:0;margin-bottom:.4rem;background:transparent}
+.cl-row:not(.header){background:var(--gf);border:1px solid var(--gm)}
+.cl-row:not(.header):hover{border-color:rgba(212,160,23,.3)}
+.cl-row.top0{border-color:rgba(212,160,23,.5);background:rgba(212,160,23,.06)}
+.cl-row.top1{border-color:rgba(148,163,184,.3)}
+.cl-row.top2{border-color:rgba(180,83,9,.3)}
+.cl-rang{text-align:center}.cl-pts{font-weight:800;color:var(--or);text-align:center}.cl-stat{text-align:center;color:var(--muted)}
+.empty{text-align:center;padding:2rem;color:var(--muted)}.eico{font-size:2.5rem;margin-bottom:.5rem}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:1000;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal-box{background:var(--g);border:1px solid var(--or);border-radius:10px;padding:1.6rem;width:min(340px,92vw);text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.7)}
+.modal-titre2{font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--or);margin-bottom:.8rem}
+.modal-error{color:#fca5a5;font-size:.78rem;min-height:.9rem;margin-bottom:.5rem}
+.info-banner{background:rgba(212,160,23,.07);border:1px solid rgba(212,160,23,.2);border-radius:7px;padding:.75rem .9rem;font-size:.8rem;color:var(--or);margin-bottom:1rem;line-height:1.5}
+footer{text-align:center;padding:.9rem;color:var(--muted);font-size:.72rem;border-top:1px solid var(--gm);margin-top:1.5rem}
+</style>
+</head>
+<body>
+<header>
+  <button id="btn-orga" onclick="ouvrirLogin()">🔐 Organisateur</button>
+  <button id="btn-lock" onclick="verrouiller()">🔒 Verrouiller</button>
+  <a href="index.html" id="btn-accueil">🏠 Accueil</a>
+  <h1>🏐 Tournoi <span>qs</span></h1>
+  <p>US Seignelay</p>
+</header>
+
+<nav class="tabs">
+  <button class="tab visible active" id="tab-classement" onclick="goTab('classement',this)">🏆 Classement</button>
+  <button class="tab visible" id="tab-matchs" onclick="goTab('matchs',this)">⚔️ Matchs</button>
+  <button class="tab" id="tab-equipes" onclick="goTab('equipes',this)">👥 Équipes <span class="badge" id="badge-eq">0</span></button>
+  <button class="tab" id="tab-config" onclick="goTab('config',this)">⚙️ Config</button>
+</nav>
+
+<!-- MODALE MOT DE PASSE -->
+<div class="modal-overlay" id="modal-pwd">
+  <div class="modal-box">
+    <div style="font-size:2rem;margin-bottom:.3rem">🔐</div>
+    <div class="modal-titre2">Accès organisateur</div>
+    <div style="margin-bottom:.6rem"><input type="password" id="pwd-inp" placeholder="Mot de passe…" onkeydown="if(event.key==='Enter')checkPwd()"></div>
+    <div class="modal-error" id="pwd-err"></div>
+    <div class="flex gap-1" style="justify-content:center">
+      <button class="btn btn-gold" onclick="checkPwd()">🔓 Entrer</button>
+      <button class="btn btn-ghost btn-sm" onclick="fermerModal()">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<main>
+
+  <!-- CLASSEMENT -->
+  <div class="section active" id="sec-classement">
+    <div class="card">
+      <h2>🏆 Classement général</h2>
+      <div id="class-liste"></div>
+    </div>
+  </div>
+
+  <!-- MATCHS -->
+  <div class="section" id="sec-matchs">
+    <div class="card">
+      <h2>⚔️ Matchs</h2>
+      <div class="info-banner" id="info-matchs">Connectez-vous en tant qu'organisateur pour saisir les scores.</div>
+      <div id="matchs-liste"></div>
+    </div>
+  </div>
+
+  <!-- ÉQUIPES -->
+  <div class="section" id="sec-equipes">
+    <div class="card">
+      <h2>👥 Équipes inscrites</h2>
+      <div id="equipes-liste"></div>
+    </div>
+    <div class="card" id="zone-ajout-eq" style="display:none">
+      <h2>➕ Ajouter une équipe</h2>
+      <div class="flex gap-1 wrap">
+        <input type="text" id="eq-inp" placeholder="Nom de l'équipe…" style="flex:1;min-width:180px" onkeydown="if(event.key==='Enter')ajouterEquipe()">
+        <button class="btn btn-primary" onclick="ajouterEquipe()">➕ Ajouter</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONFIG -->
+  <div class="section" id="sec-config">
+    <div class="card" id="card-config" style="display:none">
+      <h2>⚙️ Configuration du tournoi</h2>
+      <div class="info-banner">📋 Ajoutez toutes les équipes, puis cliquez sur "Générer les matchs". Tous les matchs aller seront créés automatiquement (tournoi round-robin).</div>
+      <div class="flex gap-1 wrap">
+        <button class="btn btn-gold" onclick="genererMatchs()">🗓️ Générer les matchs</button>
+        <button class="btn btn-danger" onclick="resetTout()">🗑️ Tout réinitialiser</button>
+      </div>
+      <div style="margin-top:1.2rem;padding-top:1rem;border-top:1px solid var(--gm)">
+        <label>Changer le mot de passe organisateur</label>
+        <div class="flex gap-1 mt-1">
+          <input type="password" id="new-pwd" placeholder="Nouveau mot de passe…" style="flex:1">
+          <button class="btn btn-ghost btn-sm" onclick="changerMdp()">💾 Changer</button>
+        </div>
+      </div>
+    </div>
+    <div class="empty" id="config-lock" style="margin-top:2rem">
+      <div class="eico">🔐</div>
+      <div>Connectez-vous en tant qu'organisateur pour accéder à la configuration</div>
+    </div>
+  </div>
+
+</main>
+<footer>US Seignelay · 🏐 qs</footer>
+
+<script>
+var PWD_KEY='tournoi-qs_pwd';
+var DATA_KEY='tournoi-qs_data';
+var PWD_DEF='&é"\'';
+var orga=false;
+var data={equipes:[],matchs:[]};
+
+function getPwd(){return localStorage.getItem(PWD_KEY)||PWD_DEF;}
+function sauver(){localStorage.setItem(DATA_KEY,JSON.stringify(data));}
+function charger(){var d=localStorage.getItem(DATA_KEY);if(d)data=JSON.parse(d);}
+
+function ouvrirLogin(){document.getElementById('modal-pwd').classList.add('open');setTimeout(function(){document.getElementById('pwd-inp').focus();},80);}
+function fermerModal(){document.getElementById('modal-pwd').classList.remove('open');document.getElementById('pwd-err').textContent='';document.getElementById('pwd-inp').value='';}
+
+function checkPwd(){
+  var v=document.getElementById('pwd-inp').value;
+  if(v===getPwd()){orga=true;fermerModal();appliquerOrga();}
+  else{document.getElementById('pwd-err').textContent='❌ Mot de passe incorrect';}
+}
+
+function verrouiller(){orga=false;appliquerOrga();}
+
+function appliquerOrga(){
+  document.getElementById('btn-orga').style.display=orga?'none':'block';
+  document.getElementById('btn-lock').style.display=orga?'block':'none';
+  var tabs=['tab-equipes','tab-config'];
+  tabs.forEach(function(id){
+    var t=document.getElementById(id);
+    if(orga)t.classList.add('visible');else t.classList.remove('visible');
+  });
+  document.getElementById('zone-ajout-eq').style.display=orga?'block':'none';
+  document.getElementById('card-config').style.display=orga?'block':'none';
+  document.getElementById('config-lock').style.display=orga?'none':'block';
+  document.getElementById('info-matchs').style.display=orga?'none':'block';
+  rendreMatchs();
+  rendreEquipes();
+}
+
+function goTab(id,btn){
+  document.querySelectorAll('.section').forEach(function(s){s.classList.remove('active');});
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
+  document.getElementById('sec-'+id).classList.add('active');
+  btn.classList.add('active');
+}
+
+function ajouterEquipe(){
+  var inp=document.getElementById('eq-inp');
+  var n=inp.value.trim();
+  if(!n)return;
+  if(data.equipes.some(function(e){return e.nom.toLowerCase()===n.toLowerCase();})){
+    alert('Cette équipe existe déjà !');return;
+  }
+  data.equipes.push({id:Date.now()+Math.random(),nom:n});
+  inp.value='';
+  sauver();rendreEquipes();rendreClassement();
+  document.getElementById('badge-eq').textContent=data.equipes.length;
+}
+
+function suppEquipe(id){
+  if(!confirm('Supprimer cette équipe ?'))return;
+  data.equipes=data.equipes.filter(function(e){return e.id!==id;});
+  data.matchs=data.matchs.filter(function(m){return m.e1!==id&&m.e2!==id;});
+  sauver();rendreEquipes();rendreMatchs();rendreClassement();
+  document.getElementById('badge-eq').textContent=data.equipes.length;
+}
+
+function rendreEquipes(){
+  var z=document.getElementById('equipes-liste');
+  if(!data.equipes.length){
+    z.innerHTML='<div class="empty"><div class="eico">👥</div>Aucune équipe enregistrée</div>';return;
+  }
+  var html='<ul class="eq-ul">';
+  data.equipes.forEach(function(e,i){
+    html+='<li class="eq-li">';
+    html+='<div class="eq-num">'+(i+1)+'</div>';
+    html+='<div class="eq-nom">'+e.nom+'</div>';
+    if(orga) html+='<button class="btn btn-danger btn-sm" onclick="suppEquipe('+e.id+')">✕</button>';
+    html+='</li>';
+  });
+  html+='</ul>';
+  z.innerHTML=html;
+}
+
+function genererMatchs(){
+  if(data.equipes.length<2){alert('Il faut au moins 2 équipes !');return;}
+  if(data.matchs.length&&!confirm('Régénérer tous les matchs ? Les scores seront perdus.'))return;
+  data.matchs=[];
+  var eq=data.equipes;
+  for(var i=0;i<eq.length-1;i++){
+    for(var j=i+1;j<eq.length;j++){
+      data.matchs.push({id:Date.now()+Math.random(),e1:eq[i].id,e2:eq[j].id,s1:null,s2:null,joue:false});
+    }
+  }
+  sauver();rendreMatchs();
+  alert('✅ '+data.matchs.length+' matchs générés !');
+}
+
+function nomEq(id){var e=data.equipes.find(function(x){return x.id===id;});return e?e.nom:'?';}
+
+function saisirScore(mId,field,val){
+  var m=data.matchs.find(function(x){return x.id===mId;});
+  if(!m)return;
+  var n=parseInt(val,10);
+  m[field]=isNaN(n)?null:n;
+  m.joue=m.s1!==null&&m.s2!==null;
+  sauver();rendreClassement();
+}
+
+function rendreMatchs(){
+  var z=document.getElementById('matchs-liste');
+  if(!data.matchs.length){
+    z.innerHTML='<div class="empty"><div class="eico">⚔️</div>Aucun match généré.<br><small>Ajoutez des équipes et cliquez sur "Générer les matchs" dans l\'onglet Config.</small></div>';return;
+  }
+  var html='';
+  data.matchs.forEach(function(m,i){
+    html+='<div class="m-card'+(m.joue?' joue':'')+'">';
+    html+='<div class="m-head">Match '+(i+1)+'</div>';
+    html+='<div class="m-body">';
+    html+='<div class="m-eq">'+nomEq(m.e1)+'</div>';
+    html+='<div style="display:flex;align-items:center;gap:.4rem">';
+    if(orga){
+      html+='<input type="number" class="s-inp" min="0" value="'+(m.s1!==null?m.s1:'')+'" oninput="saisirScore('+m.id+',\'s1\',this.value)">';
+    } else {
+      html+='<span class="s-lbl">'+(m.joue&&m.s1!==null?m.s1:'—')+'</span>';
+    }
+    html+='<span class="vs">VS</span>';
+    if(orga){
+      html+='<input type="number" class="s-inp" min="0" value="'+(m.s2!==null?m.s2:'')+'" oninput="saisirScore('+m.id+',\'s2\',this.value)">';
+    } else {
+      html+='<span class="s-lbl">'+(m.joue&&m.s2!==null?m.s2:'—')+'</span>';
+    }
+    html+='</div>';
+    html+='<div class="m-eq right">'+nomEq(m.e2)+'</div>';
+    html+='</div>';
+    html+='</div>';
+  });
+  z.innerHTML=html;
+}
+
+function rendreClassement(){
+  var z=document.getElementById('class-liste');
+  if(!data.equipes.length){
+    z.innerHTML='<div class="empty"><div class="eico">🏆</div>Le classement apparaîtra après la saisie des résultats</div>';return;
+  }
+  var stats={};
+  data.equipes.forEach(function(e){stats[e.id]={nom:e.nom,pts:0,j:0,v:0,n:0,d:0,bp:0,bc:0};});
+  data.matchs.filter(function(m){return m.joue;}).forEach(function(m){
+    var s=stats[m.e1],t=stats[m.e2];
+    if(!s||!t)return;
+    s.j++;t.j++;s.bp+=m.s1;s.bc+=m.s2;t.bp+=m.s2;t.bc+=m.s1;
+    if(m.s1>m.s2){s.pts+=3;s.v++;t.d++;}
+    else if(m.s1<m.s2){t.pts+=3;t.v++;s.d++;}
+    else{s.pts+=1;t.pts+=1;s.n++;t.n++;}
+  });
+  var cl=Object.values(stats).sort(function(a,b){
+    return b.pts-a.pts||(b.bp-b.bc)-(a.bp-a.bc)||b.bp-a.bp;
+  });
+  var html='<div class="cl-row header">';
+  html+='<div>#</div><div>Équipe</div><div>Pts</div><div>J</div><div>V</div><div>N</div><div>D</div>';
+  html+='</div>';
+  cl.forEach(function(e,i){
+    var medal=(i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1);
+    html+='<div class="cl-row'+(i<3?' top'+i:'')+'">';
+    html+='<div class="cl-rang">'+medal+'</div>';
+    html+='<div style="font-weight:600">'+e.nom+'</div>';
+    html+='<div class="cl-pts">'+e.pts+'</div>';
+    html+='<div class="cl-stat">'+e.j+'</div>';
+    html+='<div class="cl-stat">'+e.v+'</div>';
+    html+='<div class="cl-stat">'+e.n+'</div>';
+    html+='<div class="cl-stat">'+e.d+'</div>';
+    html+='</div>';
+  });
+  z.innerHTML=html;
+}
+
+function changerMdp(){
+  var v=document.getElementById('new-pwd').value.trim();
+  if(!v){alert('Entrez un mot de passe.');return;}
+  localStorage.setItem(PWD_KEY,v);
+  document.getElementById('new-pwd').value='';
+  alert('✅ Mot de passe modifié !');
+}
+
+function resetTout(){
+  if(!confirm('⚠️ Tout effacer ? Équipes, matchs et scores seront perdus.'))return;
+  data={equipes:[],matchs:[]};
+  sauver();rendreEquipes();rendreMatchs();rendreClassement();
+  document.getElementById('badge-eq').textContent=0;
+}
+
+// INIT
+charger();
+rendreEquipes();
+rendreMatchs();
+rendreClassement();
+document.getElementById('badge-eq').textContent=data.equipes.length;
+</script>
+</body>
+</html>
