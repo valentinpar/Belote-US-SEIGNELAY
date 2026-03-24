@@ -331,14 +331,8 @@
   </div>
 
   <!-- LISTE ÉVÉNEMENTS -->
-  <div class="section-titre">⚽ Prochains événements</div>
+  <div class="section-titre">📅 Prochains événements</div>
   <div id="events-container"></div>
-
-  <!-- TOURNOIS CRÉÉS VIA LE GESTIONNAIRE -->
-  <div id="section-tournois-custom" style="display:none">
-    <div class="section-titre" style="margin-top:2rem">🏆 Tournois personnalisés</div>
-    <div class="events-grid" id="tournois-custom-grid"></div>
-  </div>
 </main>
 
 <footer>⚽ US Seignelay Football — Tous droits réservés</footer>
@@ -413,17 +407,63 @@ function delEvent(id) {
   sauvegarder();
 }
 
+function delCustomEvent(fichier) {
+  let list = JSON.parse(localStorage.getItem('uss_custom_tournois') || '[]');
+  list = list.filter(t => t.fichier !== fichier);
+  localStorage.setItem('uss_custom_tournois', JSON.stringify(list));
+  renderEvents();
+}
+
+function parseDate(str) {
+  if (!str) return Infinity;
+  const mois = {janvier:0,février:1,mars:2,avril:3,mai:4,juin:5,juillet:6,août:7,septembre:8,octobre:9,novembre:10,décembre:11};
+  const parts = str.trim().toLowerCase().split(/\s+/);
+  if (parts.length >= 3) {
+    const d = parseInt(parts[0]), m = mois[parts[1]], y = parseInt(parts[2]);
+    if (!isNaN(d) && m !== undefined && !isNaN(y)) return new Date(y, m, d).getTime();
+  }
+  return Infinity;
+}
+
 function renderEvents() {
   const container = document.getElementById('events-container');
-  if (!events.length) {
+
+  // Charger les tournois créés via le gestionnaire
+  const customList = JSON.parse(localStorage.getItem('uss_custom_tournois') || '[]');
+  const customEvents = customList.map(t => ({
+    id: 'custom_' + t.id, titre: t.nom, date: '', type: 'custom',
+    lieu: t.club || '', desc: '', _custom: true,
+    _fichier: t.fichier, _emoji: t.emoji || '🏆', _sport: t.sport || 'Tournoi',
+    _c1: t.c1 || '#1a5c2a', _c2: t.c2 || '#0d3318'
+  }));
+
+  // Fusionner événements Firebase + tournois locaux, triés par date
+  const allEvents = events.concat(customEvents).sort((a, b) => parseDate(a.date) - parseDate(b.date));
+
+  if (!allEvents.length) {
     container.innerHTML = '<div class="empty-state"><div class="icon">📅</div><p>Aucun événement programmé pour le moment</p></div>';
     return;
   }
   const typeLabel = { belote: '🃏 Tournoi de belote', foot: '⚽ Football', petanque: '🎱 Pétanque', autre: '📌 Événement' };
   const typeBadge = { belote: 'badge-belote', foot: 'badge-foot', petanque: 'badge-petanque', autre: 'badge-autre' };
   const typeBtnClass = { belote: 'belote', foot: 'foot', petanque: 'petanque', autre: '' };
-  container.innerHTML = '<div class="events-grid">' + events.map(e => `
-    <div class="event-card" onclick="ouvrirEvent('${e.id}')">
+  container.innerHTML = '<div class="events-grid\">' + allEvents.map(e => {
+    if (e._custom) {
+      return `<div class="event-card" onclick="window.location.href='${e._fichier}.html'">
+      <div class="event-card-banner" style="background:linear-gradient(135deg,${e._c2},${e._c1})">
+        <span class="event-type-badge badge-autre">${e._sport}</span>
+        <div class="event-card-titre">${e._emoji} ${e.titre}</div>
+      </div>
+      <div class="event-card-body">
+        <div class="event-meta">🏠 <strong>${e.lieu}</strong></div>
+        <div class="event-desc" style="font-size:0.8rem;margin-top:0.2rem">${e._fichier}.html</div>
+      </div>
+      <div class="event-card-footer">
+        ${connecte ? `<button class="btn-del" onclick="event.stopPropagation();delCustomEvent('${e._fichier}')">✕ Supprimer</button>` : ''}
+        <button class="btn-voir" onclick="event.stopPropagation();window.location.href='${e._fichier}.html'">Accéder →</button>
+      </div></div>`;
+    }
+    return `<div class="event-card" onclick="ouvrirEvent('${e.id}')">
       <div class="event-card-banner">
         <span class="event-type-badge ${typeBadge[e.type] || 'badge-autre'}">${typeLabel[e.type] || '📌 Événement'}</span>
         <div class="event-card-titre">${e.titre}</div>
@@ -436,8 +476,8 @@ function renderEvents() {
       <div class="event-card-footer">
         ${connecte ? `<button class="btn-edit" onclick="event.stopPropagation();ouvrirModifier('${e.id}')">✏️ Modifier</button><button class="btn-del" onclick="event.stopPropagation();delEvent('${e.id}')">✕ Supprimer</button>` : ''}
         <button class="btn-voir ${typeBtnClass[e.type] || ''}" onclick="event.stopPropagation();ouvrirEvent('${e.id}')">Voir →</button>
-      </div>
-    </div>`).join('') + '</div>';
+      </div></div>`;
+  }).join('') + '</div>';
 }
 
 function ouvrirEvent(id) {
@@ -645,35 +685,9 @@ document.getElementById('modal-recup').addEventListener('click', e => { if (e.ta
 document.getElementById('modal-modifier').addEventListener('click', e => { if (e.target === e.currentTarget) fermerModifier(); });
 document.getElementById('modal-login').addEventListener('click', e => { if (e.target === e.currentTarget) fermerLogin(); });
 
-// ─── TOURNOIS PERSONNALISÉS (créés depuis le gestionnaire) ───
-function renderTournoisCustom() {
-  var list = JSON.parse(localStorage.getItem('uss_custom_tournois') || '[]');
-  var section = document.getElementById('section-tournois-custom');
-  var grid    = document.getElementById('tournois-custom-grid');
-  if (!list.length) { section.style.display = 'none'; return; }
-  section.style.display = 'block';
-  grid.innerHTML = list.map(function(t) {
-    return '<div class="event-card" onclick="window.location.href=\'' + t.fichier + '.html\'">'
-      + '<div class="event-card-banner" style="background:linear-gradient(135deg,' + (t.c2||'#0d3318') + ',' + (t.c1||'#1a5c2a') + ')">'
-      + '<span class="event-type-badge badge-autre">' + (t.sport || 'Tournoi') + '</span>'
-      + '<div class="event-card-titre">' + (t.emoji || '🏆') + ' ' + t.nom + '</div>'
-      + '</div>'
-      + '<div class="event-card-body">'
-      + '<div class="event-meta">🏠 <strong>' + (t.club || 'US Seignelay') + '</strong></div>'
-      + '<div class="event-desc" style="font-size:0.8rem;margin-top:0.2rem">' + t.fichier + '.html</div>'
-      + '</div>'
-      + '<div class="event-card-footer">'
-      + '<button class="btn-voir" onclick="event.stopPropagation();window.location.href=\'' + t.fichier + '.html\'">Accéder →</button>'
-      + '</div>'
-      + '</div>';
-  }).join('');
-}
-
-renderTournoisCustom();
-
 // Mise à jour si le gestionnaire crée un tournoi dans un autre onglet
 window.addEventListener('storage', function(e) {
-  if (e.key === 'uss_custom_tournois') renderTournoisCustom();
+  if (e.key === 'uss_custom_tournois') renderEvents();
 });
 </script>
 </body>
