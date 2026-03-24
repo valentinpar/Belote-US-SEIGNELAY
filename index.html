@@ -333,6 +333,12 @@
   <!-- LISTE ÉVÉNEMENTS -->
   <div class="section-titre">⚽ Prochains événements</div>
   <div id="events-container"></div>
+
+  <!-- TOURNOIS CRÉÉS VIA LE GESTIONNAIRE -->
+  <div id="section-tournois-custom" style="display:none">
+    <div class="section-titre" style="margin-top:2rem">🏆 Tournois personnalisés</div>
+    <div class="events-grid" id="tournois-custom-grid"></div>
+  </div>
 </main>
 
 <footer>⚽ US Seignelay Football — Tous droits réservés</footer>
@@ -638,6 +644,37 @@ document.getElementById('modal-event').addEventListener('click', e => { if (e.ta
 document.getElementById('modal-recup').addEventListener('click', e => { if (e.target === e.currentTarget) fermerRecup(); });
 document.getElementById('modal-modifier').addEventListener('click', e => { if (e.target === e.currentTarget) fermerModifier(); });
 document.getElementById('modal-login').addEventListener('click', e => { if (e.target === e.currentTarget) fermerLogin(); });
+
+// ─── TOURNOIS PERSONNALISÉS (créés depuis le gestionnaire) ───
+function renderTournoisCustom() {
+  var list = JSON.parse(localStorage.getItem('uss_custom_tournois') || '[]');
+  var section = document.getElementById('section-tournois-custom');
+  var grid    = document.getElementById('tournois-custom-grid');
+  if (!list.length) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  grid.innerHTML = list.map(function(t) {
+    return '<div class="event-card" onclick="window.location.href=\'' + t.fichier + '.html\'">'
+      + '<div class="event-card-banner" style="background:linear-gradient(135deg,' + (t.c2||'#0d3318') + ',' + (t.c1||'#1a5c2a') + ')">'
+      + '<span class="event-type-badge badge-autre">' + (t.sport || 'Tournoi') + '</span>'
+      + '<div class="event-card-titre">' + (t.emoji || '🏆') + ' ' + t.nom + '</div>'
+      + '</div>'
+      + '<div class="event-card-body">'
+      + '<div class="event-meta">🏠 <strong>' + (t.club || 'US Seignelay') + '</strong></div>'
+      + '<div class="event-desc" style="font-size:0.8rem;margin-top:0.2rem">' + t.fichier + '.html</div>'
+      + '</div>'
+      + '<div class="event-card-footer">'
+      + '<button class="btn-voir" onclick="event.stopPropagation();window.location.href=\'' + t.fichier + '.html\'">Accéder →</button>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+renderTournoisCustom();
+
+// Mise à jour si le gestionnaire crée un tournoi dans un autre onglet
+window.addEventListener('storage', function(e) {
+  if (e.key === 'uss_custom_tournois') renderTournoisCustom();
+});
 </script>
 </body>
 </html>
