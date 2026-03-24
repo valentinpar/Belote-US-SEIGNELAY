@@ -13,1297 +13,1375 @@
   --navy:#080E1C;--navy-m:#10192E;--navy-l:#1A2A4A;
   --cream:#F0E6CC;--dim:#6A7490;--text:#E8E0D0;
   --r:#E8404A;--b:#3A7EF5;--y:#E8B420;--g:#2DB87A;
-  --r-d:rgba(232,64,74,.15);--b-d:rgba(58,126,245,.15);
-  --y-d:rgba(232,180,32,.15);--g-d:rgba(45,184,122,.15);
-  --rad:16px;
 }
 html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--text);overflow-x:hidden;-webkit-tap-highlight-color:transparent}
-
-/* background glow */
 body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
-  background:radial-gradient(ellipse 70% 50% at 15% 70%,rgba(212,168,67,.06) 0%,transparent 65%),
-             radial-gradient(ellipse 90% 60% at 85% 15%,rgba(26,42,74,.7) 0%,transparent 65%)}
+  background:radial-gradient(ellipse 70% 50% at 15% 70%,rgba(212,168,67,.06),transparent 65%),
+             radial-gradient(ellipse 90% 60% at 85% 15%,rgba(26,42,74,.7),transparent 65%)}
 
-/* VIEWS */
+/* ── VIEWS ── */
 .view{display:none;min-height:100vh;position:relative;z-index:1;flex-direction:column;align-items:center;justify-content:center;padding:20px 16px}
 .view.active{display:flex}
 
-/* CARD */
+/* ── CARD ── */
 .card{background:linear-gradient(150deg,rgba(16,25,46,.97),rgba(8,14,28,.98));
-  border:1px solid rgba(212,168,67,.18);border-radius:var(--rad);
-  padding:36px 32px;width:100%;max-width:480px;
+  border:1px solid rgba(212,168,67,.18);border-radius:16px;padding:36px 32px;
+  width:100%;max-width:480px;
   box-shadow:0 24px 72px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.04);position:relative;overflow:hidden}
 .card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
   background:linear-gradient(90deg,transparent,var(--gold-b),transparent)}
-.card-host{max-width:900px}
-.card-wide{max-width:760px}
+.card-lg{max-width:860px}
 
-/* TYPO */
-h1.brand{font-family:'Syne',sans-serif;font-size:clamp(1.7rem,4.5vw,2.5rem);color:var(--gold);line-height:1.1;font-weight:800}
+/* ── TYPO ── */
+h1.brand{font-family:'Syne',sans-serif;font-size:clamp(1.6rem,4vw,2.4rem);color:var(--gold);line-height:1.1;font-weight:800}
 h1.brand em{color:var(--cream);font-style:italic;font-family:'DM Sans',sans-serif;font-weight:300}
-.label{font-size:.7rem;text-transform:uppercase;letter-spacing:.14em;color:var(--gold);font-weight:700;margin-bottom:6px;display:block}
-.muted{color:var(--dim);font-size:.82rem}
+.lbl{font-size:.7rem;text-transform:uppercase;letter-spacing:.14em;color:var(--gold);font-weight:700;margin-bottom:6px;display:block}
+.dim{color:var(--dim);font-size:.82rem}
 
-/* BUTTONS */
+/* ── BUTTONS ── */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:13px 22px;border-radius:12px;
   font-family:'DM Sans',sans-serif;font-size:.93rem;font-weight:600;cursor:pointer;border:none;transition:all .2s ease;width:100%}
-.btn-gold{background:linear-gradient(135deg,#A87820,var(--gold-b),#B8880C);color:#08100A;
-  box-shadow:0 4px 20px rgba(212,168,67,.3)}
+.btn-gold{background:linear-gradient(135deg,#A87820,var(--gold-b),#B8880C);color:#08100A;box-shadow:0 4px 20px rgba(212,168,67,.3)}
 .btn-gold:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(212,168,67,.5)}
 .btn-ghost{background:rgba(255,255,255,.04);color:var(--dim);border:1px solid rgba(255,255,255,.1)}
 .btn-ghost:hover{background:rgba(255,255,255,.08);color:var(--text)}
 .btn-danger{background:rgba(232,64,74,.12);color:#f08080;border:1px solid rgba(232,64,74,.25)}
-.btn-red{background:linear-gradient(135deg,#a02020,#e84040);color:#fff;box-shadow:0 4px 18px rgba(232,64,74,.35)}
-.btn-blue{background:linear-gradient(135deg,#1040a8,#3a8ef5);color:#fff;box-shadow:0 4px 18px rgba(58,126,245,.35)}
 .btn-sm{padding:7px 14px;font-size:.78rem;width:auto;border-radius:9px}
 .btn:active{transform:scale(.97)!important}
-.btn:disabled{opacity:.45;cursor:not-allowed;transform:none!important;box-shadow:none!important}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important;box-shadow:none!important}
 
-/* FORM */
-.form-group{margin-bottom:16px}
-input,textarea,select{width:100%;background:rgba(255,255,255,.05);
-  border:1px solid rgba(255,255,255,.1);border-radius:10px;
-  padding:11px 13px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.93rem;outline:none;
-  transition:border-color .2s,box-shadow .2s}
+/* ── FORM ── */
+.fg{margin-bottom:16px}
+input,textarea,select{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+  border-radius:10px;padding:11px 13px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.93rem;outline:none;transition:all .2s}
 input:focus,textarea:focus,select:focus{border-color:rgba(212,168,67,.55);box-shadow:0 0 0 3px rgba(212,168,67,.1)}
 textarea{resize:vertical;min-height:66px}
 select option{background:#10192E}
 
-/* ANSWER BUTTONS — Kahoot style 2×2 */
-.answer-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;max-width:600px;margin-top:16px}
-.ans-btn{
-  padding:18px 14px;border-radius:14px;border:none;cursor:pointer;
-  font-family:'Syne',sans-serif;font-size:clamp(.95rem,3vw,1.2rem);font-weight:700;
-  display:flex;align-items:center;gap:10px;transition:all .18s ease;
-  min-height:76px;position:relative;overflow:hidden;
-}
-.ans-btn::before{content:'';position:absolute;inset:0;opacity:0;background:rgba(255,255,255,.15);transition:opacity .15s}
-.ans-btn:hover::before{opacity:1}
-.ans-btn:active{transform:scale(.96)}
-.ans-btn.disabled{cursor:default;opacity:.6}
-.ans-btn.correct{transform:scale(1.03);box-shadow:0 0 0 3px rgba(255,255,255,.5)}
-.ans-btn.wrong{opacity:.4;filter:grayscale(.4)}
-.ans-icon{width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+/* ── ANSWER GRID 2×2 ── */
+.ans-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;max-width:600px;margin-top:16px}
+.ans-btn{padding:18px 14px;border-radius:14px;border:none;cursor:pointer;
+  font-family:'Syne',sans-serif;font-size:clamp(.9rem,2.8vw,1.15rem);font-weight:700;
+  display:flex;align-items:center;gap:10px;transition:all .18s ease;min-height:72px;position:relative;overflow:hidden}
+.ans-btn::after{content:'';position:absolute;inset:0;background:rgba(255,255,255,.15);opacity:0;transition:opacity .12s}
+.ans-btn:hover:not(:disabled)::after{opacity:1}
+.ans-btn:active:not(:disabled){transform:scale(.95)}
+.ans-btn:disabled{cursor:default}
+.ans-icon{width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0}
+.ans-A{background:linear-gradient(135deg,#c02030,#e84040);color:#fff;box-shadow:0 4px 18px rgba(232,64,74,.35)}
+.ans-B{background:linear-gradient(135deg,#1848b8,#3a7ef5);color:#fff;box-shadow:0 4px 18px rgba(58,126,245,.35)}
+.ans-C{background:linear-gradient(135deg,#a87010,#e8b420);color:#fff;box-shadow:0 4px 18px rgba(232,180,32,.35)}
+.ans-D{background:linear-gradient(135deg,#0e8050,#2db87a);color:#fff;box-shadow:0 4px 18px rgba(45,184,122,.35)}
+.ans-btn.ok{transform:scale(1.03);box-shadow:0 0 0 3px rgba(255,255,255,.6)!important}
+.ans-btn.ko{opacity:.4;filter:grayscale(.5)}
 
-.ans-A{background:linear-gradient(135deg,#c02030,#e84040);color:#fff;box-shadow:0 4px 20px rgba(232,64,74,.4)}
-.ans-B{background:linear-gradient(135deg,#1848b8,#3a7ef5);color:#fff;box-shadow:0 4px 20px rgba(58,126,245,.4)}
-.ans-C{background:linear-gradient(135deg,#a87010,#e8b420);color:#fff;box-shadow:0 4px 20px rgba(232,180,32,.4)}
-.ans-D{background:linear-gradient(135deg,#0e8050,#2db87a);color:#fff;box-shadow:0 4px 20px rgba(45,184,122,.4)}
-
-/* TIMER */
-.timer-ring{display:flex;align-items:center;justify-content:center;width:80px;height:80px;position:relative}
+/* ── TIMER ── */
+.timer-ring{display:flex;align-items:center;justify-content:center;width:72px;height:72px;position:relative;flex-shrink:0}
 .timer-ring svg{position:absolute;inset:0;transform:rotate(-90deg)}
-.timer-ring .track{fill:none;stroke:rgba(255,255,255,.08);stroke-width:5}
-.timer-ring .fill{fill:none;stroke:var(--gold-b);stroke-width:5;stroke-linecap:round;transition:stroke-dashoffset .9s linear,stroke .5s}
-.timer-num{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;color:var(--cream);z-index:1}
+.tr-track{fill:none;stroke:rgba(255,255,255,.08);stroke-width:5}
+.tr-fill{fill:none;stroke:var(--gold-b);stroke-width:5;stroke-linecap:round;transition:stroke-dashoffset .85s linear,stroke .4s}
+.timer-num{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;color:var(--cream);z-index:1}
 
-/* PROGRESS DOTS */
-.q-dots{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;margin-bottom:12px}
-.q-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.12);transition:all .3s}
-.q-dot.done-ok{background:var(--g)}
-.q-dot.done-err{background:var(--r)}
-.q-dot.current{background:var(--gold);box-shadow:0 0 8px var(--gold)}
-
-/* LEADERBOARD */
-.lb{display:flex;flex-direction:column;gap:8px}
-.lb-row{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.03);
-  border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:10px 13px;transition:all .3s}
-.lb-row.me{outline:2px solid var(--gold);outline-offset:1px;background:rgba(212,168,67,.08)}
-.lb-row.top1{background:rgba(212,168,67,.1);border-color:rgba(212,168,67,.35)}
-.lb-row.top2{background:rgba(192,192,192,.07);border-color:rgba(192,192,192,.25)}
-.lb-row.top3{background:rgba(205,127,50,.07);border-color:rgba(205,127,50,.22)}
-.lb-rank{font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;width:28px;text-align:center;color:var(--dim);flex-shrink:0}
-.lb-row.top1 .lb-rank{color:var(--gold-b)}
-.lb-row.top2 .lb-rank{color:#C8C8C8}
-.lb-row.top3 .lb-rank{color:#CD7F32}
-.lb-name{flex:1;font-weight:500;font-size:.9rem}
-.lb-score{font-family:'Syne',sans-serif;font-weight:700;color:var(--gold);font-size:.92rem}
-.lb-delta{font-size:.72rem;color:var(--g);min-width:36px;text-align:right}
-
-/* HOST - live answer bars */
-.ans-bars{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
-.ans-bar-item{background:rgba(255,255,255,.04);border-radius:10px;padding:10px 12px;border:1px solid rgba(255,255,255,.07)}
-.ans-bar-label{font-size:.75rem;font-weight:700;margin-bottom:6px;display:flex;justify-content:space-between}
-.ans-bar-track{height:7px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden}
-.ans-bar-fill{height:100%;border-radius:99px;transition:width .4s ease}
-.bar-A .ans-bar-fill{background:var(--r)}
-.bar-B .ans-bar-fill{background:var(--b)}
-.bar-C .ans-bar-fill{background:var(--y)}
-.bar-D .ans-bar-fill{background:var(--g)}
-
-/* LOBBY PLAYERS */
-.player-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;min-height:40px}
+/* ── CHIPS / LOBBY ── */
+.chips{display:flex;flex-wrap:wrap;gap:8px;min-height:38px}
 .chip{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:99px;
-  padding:5px 13px;font-size:.8rem;font-weight:500;animation:chipIn .3s ease}
+  padding:5px 13px;font-size:.79rem;font-weight:500;animation:chipIn .3s ease}
 @keyframes chipIn{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
 
-/* BIG NUMBER */
-.big-num{font-family:'Syne',sans-serif;font-size:4.5rem;font-weight:800;color:var(--gold);line-height:1}
+/* ── LEADERBOARD ── */
+.lb{display:flex;flex-direction:column;gap:7px}
+.lb-row{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.07);border-radius:11px;padding:10px 13px}
+.lb-row.me{outline:2px solid var(--gold);outline-offset:1px;background:rgba(212,168,67,.08)}
+.lb-row.r0{background:rgba(212,168,67,.1);border-color:rgba(212,168,67,.35)}
+.lb-row.r1{background:rgba(192,192,192,.07);border-color:rgba(192,192,192,.25)}
+.lb-row.r2{background:rgba(205,127,50,.07);border-color:rgba(205,127,50,.22)}
+.lb-rank{font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;width:28px;text-align:center;color:var(--dim);flex-shrink:0}
+.lb-row.r0 .lb-rank{color:var(--gold-b)}
+.lb-row.r1 .lb-rank{color:#C8C8C8}
+.lb-row.r2 .lb-rank{color:#CD7F32}
+.lb-name{flex:1;font-weight:500;font-size:.88rem}
+.lb-score{font-family:'Syne',sans-serif;font-weight:700;color:var(--gold);font-size:.9rem}
 
-/* TABS */
-.tabs{display:flex;gap:3px;background:rgba(0,0,0,.3);border-radius:12px;padding:4px;margin-bottom:22px}
-.tab{flex:1;padding:8px 6px;border:none;border-radius:9px;background:transparent;color:var(--dim);
-  font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer;transition:all .2s;text-align:center}
+/* ── PROGRESS DOTS ── */
+.dots{display:flex;gap:5px;flex-wrap:wrap}
+.dot{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.12)}
+.dot.ok{background:var(--g)}
+.dot.cur{background:var(--gold);box-shadow:0 0 7px var(--gold)}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:3px;background:rgba(0,0,0,.3);border-radius:12px;padding:4px;margin-bottom:20px}
+.tab{flex:1;padding:8px 5px;border:none;border-radius:9px;background:transparent;color:var(--dim);
+  font-family:'DM Sans',sans-serif;font-size:.75rem;font-weight:600;cursor:pointer;transition:all .2s;text-align:center}
 .tab.active{background:var(--navy-l);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.4)}
 
-/* MISC */
-.divider{display:flex;align-items:center;gap:8px;color:var(--gold-d);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;margin:18px 0}
+/* ── HOST NAV ── */
+.hnav{position:fixed;top:0;left:0;right:0;z-index:100;padding:10px 16px;
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(8,14,28,.93);backdrop-filter:blur(16px);border-bottom:1px solid rgba(212,168,67,.1)}
+.hnav-brand{font-family:'Syne',sans-serif;font-size:.88rem;color:var(--gold);font-weight:700}
+.hnav-pill{padding:5px 12px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,.12);
+  color:var(--dim);font-size:.74rem;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;font-weight:500}
+.hnav-pill:hover{color:var(--text);border-color:rgba(212,168,67,.4)}
+.hnav-pill.gold{border-color:rgba(212,168,67,.4);color:var(--gold);background:rgba(212,168,67,.08)}
+.has-nav{padding-top:72px!important;justify-content:flex-start!important}
+
+/* ── MISC ── */
+.divider{display:flex;align-items:center;gap:8px;color:var(--gold-d);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;margin:16px 0}
 .divider::before,.divider::after{content:'';flex:1;height:1px}
 .divider::before{background:linear-gradient(90deg,transparent,rgba(212,168,67,.3))}
 .divider::after{background:linear-gradient(90deg,rgba(212,168,67,.3),transparent)}
-.alert{padding:10px 13px;border-radius:10px;font-size:.85rem;margin-bottom:12px}
-.alert-err{background:rgba(232,64,74,.12);border:1px solid rgba(232,64,74,.3);color:#f09090}
-.alert-ok{background:rgba(45,184,122,.12);border:1px solid rgba(45,184,122,.3);color:#7de8a5}
-.alert-info{background:rgba(212,168,67,.1);border:1px solid rgba(212,168,67,.3);color:var(--gold)}
+.alert{padding:10px 13px;border-radius:10px;font-size:.84rem;margin-bottom:12px}
+.err{background:rgba(232,64,74,.12);border:1px solid rgba(232,64,74,.3);color:#f09090}
+.ok-msg{background:rgba(45,184,122,.12);border:1px solid rgba(45,184,122,.3);color:#7de8a5}
+.info-msg{background:rgba(212,168,67,.1);border:1px solid rgba(212,168,67,.3);color:var(--gold)}
 .pill{display:inline-block;padding:2px 9px;border-radius:99px;font-size:.7rem;font-weight:600}
 .pill-ok{background:rgba(45,184,122,.18);color:#7de8a5}
 .pill-gold{background:rgba(212,168,67,.15);color:var(--gold)}
 .pill-gray{background:rgba(255,255,255,.08);color:var(--dim)}
-.pill-red{background:rgba(232,64,74,.15);color:#f09090}
-.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:20px}
-.stat{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:16px;text-align:center}
-.stat-v{font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;color:var(--gold);line-height:1}
-.stat-l{font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin-top:3px}
-.admin-tbl{width:100%;border-collapse:collapse;font-size:.82rem}
-.admin-tbl th{text-align:left;padding:8px 11px;border-bottom:1px solid rgba(255,255,255,.08);color:var(--gold);font-size:.68rem;text-transform:uppercase;letter-spacing:.1em}
-.admin-tbl td{padding:8px 11px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle}
-.scroll{max-height:400px;overflow-y:auto}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:18px}
+.stat{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:14px;text-align:center}
+.stat-v{font-family:'Syne',sans-serif;font-size:1.9rem;font-weight:800;color:var(--gold);line-height:1}
+.stat-l{font-size:.67rem;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin-top:3px}
+.tbl{width:100%;border-collapse:collapse;font-size:.81rem}
+.tbl th{text-align:left;padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.08);color:var(--gold);font-size:.67rem;text-transform:uppercase;letter-spacing:.1em}
+.tbl td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:middle}
+.scroll{max-height:380px;overflow-y:auto}
 .scroll::-webkit-scrollbar{width:4px}
 .scroll::-webkit-scrollbar-thumb{background:rgba(212,168,67,.25);border-radius:99px}
-
-@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-@keyframes scaleIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
-@keyframes pulse{0%,100%{box-shadow:0 4px 20px rgba(212,168,67,.3)}50%{box-shadow:0 4px 36px rgba(212,168,67,.6)}}
-@keyframes spin{to{transform:rotate(360deg)}}
-.ani{animation:fadeUp .4s ease forwards}
-.ani-s{animation:scaleIn .35s ease forwards}
+.big-num{font-family:'Syne',sans-serif;font-size:4rem;font-weight:800;color:var(--gold);line-height:1}
 .pulse{animation:pulse 2s ease-in-out infinite}
-.spin{animation:spin 1s linear infinite}
-
-/* HOST-SPECIFIC BIG LAYOUT */
-.host-q-card{background:rgba(8,14,28,.96);border:1px solid rgba(212,168,67,.22);border-radius:20px;padding:32px;margin-bottom:18px;text-align:center;position:relative}
-.host-q-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold-b),transparent)}
-.q-text-big{font-family:'Syne',sans-serif;font-size:clamp(1.2rem,3.5vw,2rem);font-weight:700;color:var(--cream);line-height:1.4}
-.answer-preview{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
-.ap-item{padding:12px 14px;border-radius:12px;display:flex;align-items:center;gap:10px;font-size:.9rem;font-weight:600}
-.ap-A{background:var(--r-d);border:1px solid rgba(232,64,74,.3);color:#f09090}
-.ap-B{background:var(--b-d);border:1px solid rgba(58,126,245,.3);color:#90b8ff}
-.ap-C{background:var(--y-d);border:1px solid rgba(232,180,32,.3);color:#f0c870}
-.ap-D{background:var(--g-d);border:1px solid rgba(45,184,122,.3);color:#80e8b0}
-.ap-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;flex-shrink:0;font-weight:800}
+@keyframes pulse{0%,100%{box-shadow:0 4px 20px rgba(212,168,67,.3)}50%{box-shadow:0 4px 36px rgba(212,168,67,.55)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes scaleIn{from{opacity:0;transform:scale(.93)}to{opacity:1;transform:scale(1)}}
+.ani{animation:fadeUp .35s ease forwards}
+.ani-s{animation:scaleIn .3s ease forwards}
+.wait-dots{display:flex;gap:6px;justify-content:center}
+.wait-dots span{width:8px;height:8px;border-radius:50%;background:var(--gold);opacity:.3;animation:dp 1.4s ease-in-out infinite}
+.wait-dots span:nth-child(2){animation-delay:.2s}
+.wait-dots span:nth-child(3){animation-delay:.4s}
+@keyframes dp{0%,80%,100%{opacity:.3;transform:scale(.8)}40%{opacity:1;transform:scale(1.1)}}
+/* host answer preview */
+.apv{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
+.ap{padding:11px 13px;border-radius:11px;display:flex;align-items:center;gap:9px;font-size:.88rem;font-weight:600}
+.ap-A{background:rgba(232,64,74,.14);border:1px solid rgba(232,64,74,.28);color:#f09090}
+.ap-B{background:rgba(58,126,245,.14);border:1px solid rgba(58,126,245,.28);color:#90b8ff}
+.ap-C{background:rgba(232,180,32,.14);border:1px solid rgba(232,180,32,.28);color:#f0c870}
+.ap-D{background:rgba(45,184,122,.14);border:1px solid rgba(45,184,122,.28);color:#80e8b0}
+.ap-icon{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.8rem;flex-shrink:0;font-weight:800}
 .ap-A .ap-icon{background:rgba(232,64,74,.3)}
 .ap-B .ap-icon{background:rgba(58,126,245,.3)}
 .ap-C .ap-icon{background:rgba(232,180,32,.3)}
 .ap-D .ap-icon{background:rgba(45,184,122,.3)}
-.correct-mark{display:inline-flex;align-items:center;gap:6px;background:rgba(45,184,122,.15);border:1px solid rgba(45,184,122,.4);border-radius:99px;padding:3px 10px;font-size:.75rem;color:#7de8a5;font-weight:700;margin-left:8px}
-
-/* TOP NAV on host */
-.hnav{position:fixed;top:0;left:0;right:0;z-index:100;padding:10px 18px;display:flex;align-items:center;justify-content:space-between;background:rgba(8,14,28,.93);backdrop-filter:blur(16px);border-bottom:1px solid rgba(212,168,67,.1)}
-.hnav-brand{font-family:'Syne',sans-serif;font-size:.9rem;color:var(--gold);font-weight:700}
-.hnav-actions{display:flex;gap:7px}
-.hnav-btn{padding:5px 12px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,.12);color:var(--dim);font-size:.76rem;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;font-weight:500}
-.hnav-btn:hover{color:var(--text);border-color:rgba(212,168,67,.4)}
-.hnav-btn.gold{border-color:rgba(212,168,67,.4);color:var(--gold);background:rgba(212,168,67,.08)}
-.has-nav{padding-top:74px!important;justify-content:flex-start!important}
-
-/* WAITING ANIM */
-.dots-loading{display:flex;gap:7px;justify-content:center;padding:10px 0}
-.dots-loading span{width:9px;height:9px;border-radius:50%;background:var(--gold);opacity:.3;animation:dotPulse 1.4s ease-in-out infinite}
-.dots-loading span:nth-child(2){animation-delay:.2s}
-.dots-loading span:nth-child(3){animation-delay:.4s}
-@keyframes dotPulse{0%,80%,100%{opacity:.3;transform:scale(.8)}40%{opacity:1;transform:scale(1.1)}}
-
-/* CONFETTI */
+.ck-mark{display:inline-flex;align-items:center;gap:4px;background:rgba(45,184,122,.15);border:1px solid rgba(45,184,122,.4);border-radius:99px;padding:2px 8px;font-size:.7rem;color:#7de8a5;font-weight:700;margin-left:6px}
+/* host answer bars */
+.bars{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.bar-item{background:rgba(255,255,255,.04);border-radius:10px;padding:9px 11px;border:1px solid rgba(255,255,255,.07)}
+.bar-label{font-size:.74rem;font-weight:700;margin-bottom:5px;display:flex;justify-content:space-between}
+.bar-track{height:6px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden}
+.bar-fill{height:100%;border-radius:99px;transition:width .4s ease}
+.bar-A .bar-fill{background:var(--r)}
+.bar-B .bar-fill{background:var(--b)}
+.bar-C .bar-fill{background:var(--y)}
+.bar-D .bar-fill{background:var(--g)}
 #confetti-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999}
-
-/* MOBILE ADJUST */
-@media(max-width:580px){.card{padding:24px 16px}.answer-grid{grid-template-columns:1fr 1fr;gap:9px}.ans-btn{min-height:68px;font-size:.88rem}.answer-preview{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.card{padding:24px 16px}.ans-btn{min-height:66px;font-size:.88rem}}
 </style>
 </head>
 <body>
 <canvas id="confetti-canvas"></canvas>
 
-<!-- ━━━━━━━━━━━━━━━━━ HOST NAV ━━━━━━━━━━━━━━━ -->
-<nav class="hnav" id="host-nav" style="display:none">
-  <span class="hnav-brand">🎂 Quiz Régis · Admin</span>
-  <div class="hnav-actions">
-    <button class="hnav-btn" id="hn-players">👥 0</button>
-    <button class="hnav-btn gold" id="hn-status">🟢 En attente</button>
-    <button class="hnav-btn" onclick="hostLogout()">⏏ Quitter</button>
+<!-- ── HOST NAV ── -->
+<nav id="hnav" style="display:none" class="hnav">
+  <span class="hnav-brand">🎂 Quiz Régis</span>
+  <div style="display:flex;gap:6px;align-items:center">
+    <span class="hnav-pill" id="hn-players">👥 0</span>
+    <span class="hnav-pill gold" id="hn-status">⏳ Lobby</span>
+    <button class="hnav-pill" onclick="hostLogout()">⏏</button>
   </div>
 </nav>
 
-<!-- ━━━━━━━━━━━━━━━━━ VIEW: HOME ━━━━━━━━━━━━━━ -->
-<div id="view-home" class="view active">
+<!-- ══════════════ HOME ══════════════ -->
+<div id="v-home" class="view active">
   <div class="card ani" style="text-align:center">
-    <div style="font-size:2.6rem;margin-bottom:8px">🎂</div>
+    <div style="font-size:2.5rem;margin-bottom:8px">🎂</div>
     <h1 class="brand">60 ans de <em>Régis</em></h1>
-    <p class="muted" style="margin:6px 0 22px;text-align:center">Quiz live · Répondez en même temps !</p>
-    <div class="divider">Rejoignez le quiz</div>
+    <p class="dim" style="text-align:center;margin:6px 0 22px">Quiz live · Répondez en même temps !</p>
+    <div class="divider">Scanner pour jouer</div>
     <div style="display:flex;justify-content:center;margin-bottom:14px">
       <div id="qr-home" style="background:#fff;padding:12px;border-radius:12px;display:inline-block"></div>
     </div>
-    <p class="muted" style="margin-bottom:20px;font-size:.79rem">Scannez le QR code ou appuyez ci-dessous</p>
-    <button class="btn btn-gold pulse" onclick="showView('register')">🎉 Je participe !</button>
-    <div style="margin-top:8px"><button class="btn btn-ghost" onclick="showView('lb-view')">🏆 Classement</button></div>
+    <p class="dim" style="font-size:.78rem;margin-bottom:20px">Ou appuyez ci-dessous</p>
+    <button class="btn btn-gold pulse" onclick="goTo('register')">🎉 Je participe !</button>
+    <div style="margin-top:8px"><button class="btn btn-ghost" onclick="goTo('lb-public')">🏆 Classement</button></div>
     <div style="margin-top:20px;padding-top:18px;border-top:1px solid rgba(255,255,255,.06)">
-      <button class="btn btn-ghost btn-sm" onclick="showView('host-login')" style="width:auto;opacity:.35;font-size:.7rem">⚙️ Animateur</button>
+      <button onclick="goTo('host-login')" class="btn btn-ghost btn-sm" style="width:auto;opacity:.35;font-size:.7rem">⚙️ Animateur</button>
     </div>
   </div>
 </div>
 
-<!-- ━━━━━━━━━━━━━━━━━ VIEW: REGISTER ━━━━━━━━━━━━ -->
-<div id="view-register" class="view">
+<!-- ══════════════ REGISTER ══════════════ -->
+<div id="v-register" class="view">
   <div class="card ani">
     <div style="font-size:2rem;margin-bottom:8px;text-align:center">👤</div>
-    <h1 class="brand" style="font-size:1.6rem;text-align:center">Qui êtes-vous ?</h1>
-    <p class="muted" style="text-align:center;margin:4px 0 22px">Entrez vos infos pour rejoindre le quiz</p>
-    <div id="reg-err" class="alert alert-err" style="display:none"></div>
-    <div class="form-group"><label class="label">Prénom *</label><input id="rg-prenom" type="text" placeholder="Marie" autocomplete="given-name" onkeydown="if(event.key==='Enter')document.getElementById('rg-nom').focus()"></div>
-    <div class="form-group"><label class="label">Nom *</label><input id="rg-nom" type="text" placeholder="Dupont" autocomplete="family-name" onkeydown="if(event.key==='Enter')registerPlayer()"></div>
-    <button class="btn btn-gold" onclick="registerPlayer()">▶ Rejoindre le quiz</button>
-    <div style="margin-top:8px"><button class="btn btn-ghost" onclick="showView('home')">← Retour</button></div>
+    <h1 class="brand" style="font-size:1.55rem;text-align:center">Qui êtes-vous ?</h1>
+    <p class="dim" style="text-align:center;margin:4px 0 22px">Entrez vos infos pour rejoindre</p>
+    <div id="reg-err" class="alert err" style="display:none"></div>
+    <div class="fg"><label class="lbl">Prénom *</label><input id="rg-prenom" type="text" placeholder="Marie" autocomplete="given-name" onkeydown="if(event.key==='Enter')document.getElementById('rg-nom').focus()"></div>
+    <div class="fg"><label class="lbl">Nom *</label><input id="rg-nom" type="text" placeholder="Dupont" autocomplete="family-name" onkeydown="if(event.key==='Enter')registerPlayer()"></div>
+    <button class="btn btn-gold" onclick="registerPlayer()" id="reg-btn">▶ Rejoindre</button>
+    <div style="margin-top:8px"><button class="btn btn-ghost" onclick="goTo('home')">← Retour</button></div>
   </div>
 </div>
 
-<!-- ━━━━━━━━━━━━━━━━━ VIEW: LOBBY (joueur) ━━━━━━━━━ -->
-<div id="view-lobby" class="view">
+<!-- ══════════════ LOBBY (joueur) ══════════════ -->
+<div id="v-lobby" class="view">
   <div class="card ani" style="text-align:center;max-width:520px">
     <div style="font-size:2rem;margin-bottom:6px">⏳</div>
-    <h1 class="brand" style="font-size:1.5rem">Bienvenue <em id="lobby-name"></em> !</h1>
-    <p class="muted" style="margin:6px 0 20px">En attente du démarrage par l'animateur...</p>
-    <div class="alert alert-info" style="margin-bottom:18px" id="lobby-status-msg">🎯 Préparez-vous, le quiz va commencer !</div>
-    <div style="background:rgba(255,255,255,.03);border-radius:12px;padding:16px;border:1px solid rgba(255,255,255,.07)">
-      <p class="label" style="text-align:left;margin-bottom:10px">Joueurs connectés</p>
-      <div class="player-chips" id="lobby-chips"></div>
-      <p class="muted" style="margin-top:10px;font-size:.75rem" id="lobby-count">0 joueur(s)</p>
+    <h1 class="brand" style="font-size:1.4rem">Bienvenue <em id="lb-player-name"></em> !</h1>
+    <p class="dim" style="margin:6px 0 18px">En attente du démarrage par l'animateur...</p>
+    <div style="background:rgba(255,255,255,.03);border-radius:12px;padding:16px;border:1px solid rgba(255,255,255,.07);text-align:left">
+      <p class="lbl" style="margin-bottom:10px">Joueurs connectés</p>
+      <div class="chips" id="player-lobby-chips"></div>
+      <p class="dim" style="margin-top:10px;font-size:.75rem" id="player-lobby-count">0 joueur</p>
     </div>
-    <div class="dots-loading" style="margin-top:16px"><span></span><span></span><span></span></div>
+    <div class="wait-dots" style="margin-top:20px"><span></span><span></span><span></span></div>
+    <p class="dim" style="font-size:.73rem;margin-top:8px">L'animateur va lancer le quiz...</p>
   </div>
 </div>
 
-<!-- ━━━━━━━━━━━━━━━━━ VIEW: QUESTION (joueur) ━━━━━ -->
-<div id="view-question" class="view" style="padding:16px">
-  <div style="width:100%;max-width:600px;margin:0 auto">
-    <!-- Progress + timer -->
+<!-- ══════════════ QUESTION (joueur) ══════════════ -->
+<div id="v-question" class="view" style="padding:16px">
+  <div style="width:100%;max-width:580px;margin:0 auto">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
       <div>
-        <div class="q-dots" id="player-dots"></div>
-        <p class="muted" style="font-size:.76rem" id="player-q-num">Question 1/10</p>
+        <div class="dots" id="pq-dots"></div>
+        <p class="dim" style="font-size:.74rem;margin-top:4px" id="pq-num">Question 1/10</p>
       </div>
-      <div class="timer-ring" id="player-timer">
-        <svg viewBox="0 0 80 80"><circle class="track" cx="40" cy="40" r="35"/><circle class="fill" id="player-timer-ring" cx="40" cy="40" r="35" stroke-dasharray="219.9" stroke-dashoffset="0"/></svg>
-        <span class="timer-num" id="player-timer-num">30</span>
+      <div class="timer-ring" id="pq-timer">
+        <svg viewBox="0 0 72 72"><circle class="tr-track" cx="36" cy="36" r="31"/><circle class="tr-fill" id="pq-ring" cx="36" cy="36" r="31" stroke-dasharray="194.8" stroke-dashoffset="0"/></svg>
+        <span class="timer-num" id="pq-secs">20</span>
       </div>
     </div>
-
-    <!-- Question card (shown to player too — readable on phone) -->
-    <div style="background:rgba(16,25,46,.95);border:1px solid rgba(212,168,67,.18);border-radius:16px;padding:20px;margin-bottom:16px;text-align:center;position:relative">
-      <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold-b),transparent);border-radius:16px 16px 0 0"></div>
-      <p class="muted" style="font-size:.7rem;text-transform:uppercase;letter-spacing:.12em;margin-bottom:8px" id="player-q-label">Question 1</p>
-      <p style="font-family:'Syne',sans-serif;font-size:clamp(1rem,3.5vw,1.4rem);color:var(--cream);font-weight:600;line-height:1.4" id="player-q-text">Chargement...</p>
+    <div style="background:rgba(16,25,46,.95);border:1px solid rgba(212,168,67,.18);border-radius:14px;padding:18px;margin-bottom:14px;text-align:center;position:relative">
+      <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold-b),transparent);border-radius:14px 14px 0 0"></div>
+      <p class="dim" style="font-size:.68rem;text-transform:uppercase;letter-spacing:.12em;margin-bottom:7px" id="pq-label">Question 1</p>
+      <p style="font-family:'Syne',sans-serif;font-size:clamp(1rem,3.5vw,1.35rem);color:var(--cream);font-weight:600;line-height:1.4" id="pq-text">Chargement...</p>
     </div>
-
-    <!-- Answer buttons 2×2 -->
-    <div class="answer-grid" id="player-answers"></div>
-    <div id="player-answered-msg" style="display:none;text-align:center;margin-top:20px">
-      <div style="font-size:2rem">✅</div>
-      <p style="font-family:'Syne',sans-serif;font-size:1.1rem;color:var(--cream);margin-top:6px">Réponse enregistrée !</p>
-      <p class="muted" style="font-size:.82rem;margin-top:4px">En attente des autres joueurs...</p>
-      <div class="dots-loading" style="margin-top:14px"><span></span><span></span><span></span></div>
+    <div class="ans-grid" id="pq-answers"></div>
+    <div id="pq-waiting" style="display:none;text-align:center;margin-top:22px">
+      <div style="font-size:2.2rem">✅</div>
+      <p style="font-family:'Syne',sans-serif;font-size:1.05rem;color:var(--cream);margin-top:8px">Réponse enregistrée !</p>
+      <p class="dim" style="font-size:.8rem;margin-top:4px">En attente des autres...</p>
+      <div class="wait-dots" style="margin-top:14px"><span></span><span></span><span></span></div>
     </div>
   </div>
 </div>
 
-<!-- ━━━━━━━━━━━━━━━━━ VIEW: REVEAL (joueur) ━━━━━━━━ -->
-<div id="view-reveal" class="view" style="padding:16px">
-  <div class="card ani-s" style="max-width:560px;text-align:center">
-    <div style="font-size:3rem;margin-bottom:10px" id="reveal-emoji">🎉</div>
-    <h1 class="brand" style="font-size:1.6rem" id="reveal-title">Bonne réponse !</h1>
-    <p class="muted" style="margin:6px 0" id="reveal-correct-ans"></p>
-    <div style="font-family:'Syne',sans-serif;font-size:2.8rem;font-weight:800;color:var(--gold);margin:16px 0;line-height:1" id="reveal-pts">+100</div>
-    <p class="muted" style="margin-bottom:6px;font-size:.82rem" id="reveal-total-pts">Score total : 0 pts</p>
-    <p class="muted" style="font-size:.8rem" id="reveal-rank"></p>
-    <div style="margin-top:20px;background:rgba(255,255,255,.04);border-radius:12px;padding:14px;border:1px solid rgba(255,255,255,.07)">
-      <p class="muted" style="font-size:.75rem;margin-bottom:4px">💡 Anecdote</p>
-      <p style="font-size:.88rem;color:var(--cream);font-style:italic" id="reveal-expl">—</p>
-    </div>
-    <div class="dots-loading" style="margin-top:18px"><span></span><span></span><span></span></div>
-    <p class="muted" style="font-size:.75rem;margin-top:8px">En attente de la prochaine question...</p>
-  </div>
-</div>
-
-<!-- ━━━━━━━━━━━━━━━━━ VIEW: CLASSEMENT INTER ━━━━━━━ -->
-<div id="view-lb-inter" class="view" style="padding:16px">
-  <div class="card ani-s" style="max-width:520px">
-    <div style="text-align:center;margin-bottom:20px">
-      <div style="font-size:2.2rem;margin-bottom:6px">🏆</div>
-      <h1 class="brand" style="font-size:1.5rem">Classement</h1>
-      <p class="muted" id="lb-inter-sub">Après 5 questions</p>
-    </div>
-    <div class="lb scroll" id="lb-inter-list"></div>
-    <div class="dots-loading" style="margin-top:18px"><span></span><span></span><span></span></div>
-    <p class="muted" style="text-align:center;font-size:.75rem;margin-top:6px">La suite arrive...</p>
-  </div>
-</div>
-
-<!-- ━━━━━━━━━━━━━━━━━ VIEW: RÉSULTAT FINAL ━━━━━━━━ -->
-<div id="view-final" class="view" style="padding:16px">
+<!-- ══════════════ REVEAL (joueur) ══════════════ -->
+<div id="v-reveal" class="view" style="padding:16px">
   <div class="card ani-s" style="max-width:520px;text-align:center">
-    <div style="font-size:3rem;margin-bottom:8px" id="final-emoji">🎉</div>
-    <h1 class="brand" style="font-size:1.6rem">Quiz terminé <em id="final-name"></em></h1>
-    <div class="big-num" style="margin:18px 0;line-height:1" id="final-score">0</div>
-    <p class="muted" style="margin-bottom:6px" id="final-pts-lbl">points</p>
-    <p style="font-size:.88rem;color:var(--cream);font-style:italic;margin-bottom:20px" id="final-msg"></p>
-    <div class="lb scroll" id="final-lb" style="max-height:320px;margin-bottom:18px"></div>
-    <button class="btn btn-ghost" onclick="showView('home')">← Accueil</button>
+    <div style="font-size:2.8rem;margin-bottom:10px" id="rv-emoji">🎉</div>
+    <h1 class="brand" style="font-size:1.5rem" id="rv-title">Bonne réponse !</h1>
+    <p class="dim" style="margin:6px 0" id="rv-ans"></p>
+    <div style="font-family:'Syne',sans-serif;font-size:2.6rem;font-weight:800;color:var(--gold);margin:16px 0;line-height:1" id="rv-pts">+100</div>
+    <p class="dim" style="font-size:.82rem" id="rv-total"></p>
+    <p style="font-size:.8rem;color:var(--cream);margin-top:4px" id="rv-rank"></p>
+    <div style="margin-top:18px;background:rgba(255,255,255,.04);border-radius:11px;padding:12px;border:1px solid rgba(255,255,255,.07)">
+      <p class="dim" style="font-size:.73rem;margin-bottom:4px">💡 Anecdote</p>
+      <p style="font-size:.86rem;color:var(--cream);font-style:italic" id="rv-expl">—</p>
+    </div>
+    <div class="wait-dots" style="margin-top:18px"><span></span><span></span><span></span></div>
+    <p class="dim" style="font-size:.73rem;margin-top:8px">En attente de la prochaine question...</p>
   </div>
 </div>
 
-<!-- ━━━━━━━━━━━━━━━━━ VIEW: LEADERBOARD PUBLIC ━━━━━ -->
-<div id="view-lb-view" class="view" style="padding:16px">
-  <div class="card ani" style="max-width:520px">
+<!-- ══════════════ LB INTER (joueur) ══════════════ -->
+<div id="v-lb-inter" class="view" style="padding:16px">
+  <div class="card ani-s" style="max-width:500px">
     <div style="text-align:center;margin-bottom:18px">
       <div style="font-size:2rem;margin-bottom:6px">🏆</div>
-      <h1 class="brand" style="font-size:1.5rem">Classement général</h1>
+      <h1 class="brand" style="font-size:1.4rem">Classement</h1>
+      <p class="dim" id="lbi-sub">Après 5 questions</p>
     </div>
-    <div class="lb scroll" id="lb-public-list"></div>
-    <div style="margin-top:18px"><button class="btn btn-ghost" onclick="showView('home')">← Retour</button></div>
+    <div class="lb scroll" id="lbi-list"></div>
+    <div class="wait-dots" style="margin-top:18px"><span></span><span></span><span></span></div>
+    <p class="dim" style="text-align:center;font-size:.73rem;margin-top:6px">La suite arrive bientôt...</p>
   </div>
 </div>
 
-<!-- ━━━━━━━━━━━━━━━━━ VIEW: HOST LOGIN ━━━━━━━━━━━━ -->
-<div id="view-host-login" class="view">
+<!-- ══════════════ FINAL (joueur) ══════════════ -->
+<div id="v-final" class="view" style="padding:16px">
+  <div class="card ani-s" style="max-width:500px;text-align:center">
+    <div style="font-size:2.8rem;margin-bottom:8px" id="fin-emoji">🎉</div>
+    <h1 class="brand" style="font-size:1.5rem">Terminé <em id="fin-name"></em> !</h1>
+    <div class="big-num" style="margin:16px 0" id="fin-score">0</div>
+    <p class="dim" id="fin-sub">points</p>
+    <p style="font-size:.88rem;color:var(--cream);font-style:italic;margin:10px 0 18px" id="fin-msg"></p>
+    <div class="lb scroll" id="fin-lb" style="max-height:280px;margin-bottom:18px"></div>
+    <button class="btn btn-ghost" onclick="goTo('home')">← Accueil</button>
+  </div>
+</div>
+
+<!-- ══════════════ LB PUBLIC ══════════════ -->
+<div id="v-lb-public" class="view" style="padding:16px">
+  <div class="card ani" style="max-width:500px">
+    <div style="text-align:center;margin-bottom:18px">
+      <div style="font-size:2rem;margin-bottom:6px">🏆</div>
+      <h1 class="brand" style="font-size:1.4rem">Classement général</h1>
+    </div>
+    <div class="lb scroll" id="lb-pub-list"></div>
+    <div style="margin-top:16px"><button class="btn btn-ghost" onclick="goTo('home')">← Retour</button></div>
+  </div>
+</div>
+
+<!-- ══════════════ HOST LOGIN ══════════════ -->
+<div id="v-host-login" class="view">
   <div class="card ani">
     <div style="font-size:2rem;margin-bottom:8px;text-align:center">🔐</div>
-    <h1 class="brand" style="font-size:1.5rem;text-align:center">Mode Animateur</h1>
-    <p class="muted" style="text-align:center;margin:4px 0 22px">Contrôlez le quiz depuis cet écran</p>
-    <div id="host-login-err" class="alert alert-err" style="display:none"></div>
-    <div class="form-group"><label class="label">Mot de passe</label><input id="host-pwd" type="password" placeholder="••••••" onkeydown="if(event.key==='Enter')hostLogin()"></div>
-    <button class="btn btn-gold" onclick="hostLogin()">🎯 Démarrer comme animateur</button>
-    <div style="margin-top:8px"><button class="btn btn-ghost" onclick="showView('home')">← Retour</button></div>
+    <h1 class="brand" style="font-size:1.4rem;text-align:center">Mode Animateur</h1>
+    <p class="dim" style="text-align:center;margin:4px 0 20px">Contrôlez le quiz en direct</p>
+    <div id="hl-err" class="alert err" style="display:none"></div>
+    <div class="fg"><label class="lbl">Mot de passe</label><input id="hl-pwd" type="password" placeholder="••••••" onkeydown="if(event.key==='Enter')hostLogin()"></div>
+    <button class="btn btn-gold" onclick="hostLogin()">🎯 Connexion</button>
+    <div style="margin-top:8px"><button class="btn btn-ghost" onclick="goTo('home')">← Retour</button></div>
   </div>
 </div>
 
-<!-- ━━━━━━━━━━━━━━━━━ VIEW: HOST LOBBY ━━━━━━━━━━━━ -->
-<div id="view-host-lobby" class="view has-nav" style="padding:80px 16px 30px">
-  <div class="card card-host ani">
+<!-- ══════════════ HOST LOBBY ══════════════ -->
+<div id="v-host-lobby" class="view has-nav" style="padding:72px 16px 30px;align-items:stretch">
+  <div class="card card-lg ani" style="margin:0 auto;width:100%">
     <div class="tabs">
-      <button class="tab active" id="htab-lobby" onclick="hTab('lobby')">🚀 Lancer</button>
-      <button class="tab" id="htab-q" onclick="hTab('q')">❓ Questions</button>
-      <button class="tab" id="htab-p" onclick="hTab('p')">👥 Participants</button>
-      <button class="tab" id="htab-cfg" onclick="hTab('cfg')">⚙️ Config</button>
-      <button class="tab" id="htab-qr" onclick="hTab('qr')">📱 QR</button>
+      <button class="tab active" id="ht-launch" onclick="hTab('launch')">🚀 Lancer</button>
+      <button class="tab" id="ht-qs" onclick="hTab('qs')">❓ Questions</button>
+      <button class="tab" id="ht-players" onclick="hTab('players')">👥 Joueurs</button>
+      <button class="tab" id="ht-cfg" onclick="hTab('cfg')">⚙️ Config</button>
+      <button class="tab" id="ht-qr" onclick="hTab('qr')">📱 QR</button>
     </div>
 
-    <!-- LOBBY TAB -->
-    <div id="htab-lobby-body">
-      <div class="stat-grid" id="host-stats"></div>
-      <div style="background:rgba(255,255,255,.03);border-radius:12px;padding:16px;border:1px solid rgba(255,255,255,.07);margin-bottom:18px">
-        <p class="label">Joueurs connectés</p>
-        <div class="player-chips" id="host-chips" style="min-height:36px"></div>
-        <p class="muted" style="margin-top:8px;font-size:.75rem" id="host-player-count">0 joueur(s)</p>
+    <!-- LAUNCH -->
+    <div id="hb-launch">
+      <div class="stats-grid" id="h-stats"></div>
+      <div style="background:rgba(255,255,255,.03);border-radius:12px;padding:16px;border:1px solid rgba(255,255,255,.07);margin-bottom:16px">
+        <p class="lbl" style="margin-bottom:10px">Joueurs connectés</p>
+        <div class="chips" id="host-lobby-chips"></div>
+        <p class="dim" style="margin-top:8px;font-size:.74rem" id="host-lobby-count">0 joueur connecté</p>
       </div>
-      <div id="host-start-wrap">
-        <button class="btn btn-gold" id="host-start-btn" onclick="hostStart()" style="font-size:1rem;padding:16px">🎯 Lancer le quiz !</button>
-        <p class="muted" style="text-align:center;font-size:.75rem;margin-top:8px" id="host-start-hint">Attendez que les joueurs rejoignent, puis lancez !</p>
-      </div>
-      <div id="host-resume-wrap" style="display:none">
-        <button class="btn btn-gold" onclick="hostNextQ()" style="font-size:1rem;padding:16px">▶ Continuer le quiz</button>
-        <button class="btn btn-danger btn-sm" style="margin-top:8px" onclick="hostResetQuiz()">↺ Recommencer</button>
-      </div>
+      <button class="btn btn-gold" id="h-start-btn" onclick="hostStart()" style="font-size:.97rem;padding:15px">
+        🎯 Lancer le quiz !
+      </button>
+      <p class="dim" style="text-align:center;font-size:.74rem;margin-top:8px" id="h-start-hint">Attendez que les joueurs rejoignent, puis lancez !</p>
     </div>
 
-    <!-- QUESTIONS TAB -->
-    <div id="htab-q-body" style="display:none">
+    <!-- QUESTIONS -->
+    <div id="hb-qs" style="display:none">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
-        <span class="muted" style="font-size:.8rem" id="q-count-lbl">0 questions</span>
-        <button class="btn btn-gold btn-sm" onclick="openQForm()">+ Ajouter</button>
+        <span class="dim" id="qs-count">0 question</span>
+        <button class="btn btn-gold btn-sm" onclick="qfOpen()">+ Ajouter</button>
       </div>
-      <div class="scroll" id="q-list"></div>
-      <div id="q-form" style="display:none;margin-top:20px;padding-top:18px;border-top:1px solid rgba(255,255,255,.07)">
-        <p class="label" id="qf-title-lbl">Nouvelle question</p>
+      <div class="scroll" id="qs-list"></div>
+      <div id="qf-wrap" style="display:none;margin-top:20px;padding-top:18px;border-top:1px solid rgba(255,255,255,.07)">
+        <p class="lbl" id="qf-lbl">Nouvelle question</p>
         <input type="hidden" id="qf-id">
-        <div class="form-group"><label class="label">Question *</label><textarea id="qf-q" placeholder="Quel est le plat préféré de Régis ?"></textarea></div>
-        <div class="form-group"><label class="label">✅ Bonne réponse (A) *</label><input id="qf-a" type="text" placeholder="La bonne réponse"></div>
+        <div class="fg"><label class="lbl">Question *</label><textarea id="qf-q" placeholder="Quel est le plat préféré de Régis ?"></textarea></div>
+        <div class="fg"><label class="lbl">✅ Bonne réponse (A) *</label><input id="qf-a" type="text"></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-          <div class="form-group"><label class="label">❌ Réponse B *</label><input id="qf-b" type="text"></div>
-          <div class="form-group"><label class="label">❌ Réponse C *</label><input id="qf-c" type="text"></div>
+          <div class="fg"><label class="lbl">❌ B *</label><input id="qf-b" type="text"></div>
+          <div class="fg"><label class="lbl">❌ C *</label><input id="qf-c" type="text"></div>
         </div>
-        <div class="form-group"><label class="label">❌ Réponse D *</label><input id="qf-d" type="text"></div>
-        <div class="form-group"><label class="label">💡 Anecdote (optionnel)</label><input id="qf-expl" type="text" placeholder="Petite anecdote sur Régis..."></div>
+        <div class="fg"><label class="lbl">❌ D *</label><input id="qf-d" type="text"></div>
+        <div class="fg"><label class="lbl">💡 Anecdote (optionnel)</label><input id="qf-expl" type="text" placeholder="Petite anecdote sur Régis..."></div>
         <div style="display:flex;gap:8px">
-          <button class="btn btn-gold btn-sm" onclick="saveQ()">💾 Sauvegarder</button>
-          <button class="btn btn-ghost btn-sm" onclick="closeQForm()">Annuler</button>
+          <button class="btn btn-gold btn-sm" onclick="qfSave()">💾 Enregistrer</button>
+          <button class="btn btn-ghost btn-sm" onclick="qfClose()">Annuler</button>
         </div>
       </div>
     </div>
 
-    <!-- PARTICIPANTS TAB -->
-    <div id="htab-p-body" style="display:none">
+    <!-- PLAYERS -->
+    <div id="hb-players" style="display:none">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
-        <span class="muted" id="p-count-lbl">0 participants</span>
-        <button class="btn btn-danger btn-sm" onclick="resetAll()">🗑 Tout effacer</button>
+        <span class="dim" id="h-pl-count">0 participant</span>
+        <button class="btn btn-danger btn-sm" onclick="resetAll()">🗑 Effacer tout</button>
       </div>
       <div class="scroll">
-        <table class="admin-tbl">
-          <thead><tr><th>#</th><th>Nom</th><th>Score</th><th>Statut</th><th></th></tr></thead>
-          <tbody id="p-tbody"></tbody>
-        </table>
+        <table class="tbl"><thead><tr><th>#</th><th>Nom</th><th>Score</th><th>Statut</th><th></th></tr></thead>
+        <tbody id="h-pl-tbody"></tbody></table>
       </div>
     </div>
 
-    <!-- CONFIG TAB -->
-    <div id="htab-cfg-body" style="display:none">
-      <div class="form-group"><label class="label">Classement toutes les X questions</label><input id="cfg-interval" type="number" placeholder="5" min="1"></div>
-      <div class="form-group"><label class="label">Durée par question (secondes)</label><input id="cfg-duration" type="number" placeholder="20" min="5" max="90"></div>
-      <div class="form-group"><label class="label">Statut du quiz</label>
-        <select id="cfg-status"><option value="open">✅ Ouvert</option><option value="closed">🔒 Fermé</option></select>
-      </div>
-      <div class="form-group"><label class="label">Nouveau mot de passe admin</label><input id="cfg-pwd" type="password" placeholder="laisser vide = inchangé"></div>
+    <!-- CONFIG -->
+    <div id="hb-cfg" style="display:none">
+      <div class="fg"><label class="lbl">Classement toutes les X questions</label><input id="cfg-intv" type="number" min="1" placeholder="5"></div>
+      <div class="fg"><label class="lbl">Durée par question (secondes)</label><input id="cfg-dur" type="number" min="5" max="90" placeholder="20"></div>
+      <div class="fg"><label class="lbl">Statut du quiz</label>
+        <select id="cfg-status"><option value="open">✅ Ouvert</option><option value="closed">🔒 Fermé</option></select></div>
+      <div class="fg"><label class="lbl">Nouveau mot de passe (laisser vide = inchangé)</label><input id="cfg-pwd" type="password" placeholder="••••••"></div>
       <div style="display:flex;align-items:center;gap:10px">
-        <button class="btn btn-gold btn-sm" onclick="saveCfg()">💾 Sauvegarder</button>
-        <span id="cfg-saved" style="display:none;color:#7de8a5;font-size:.82rem">✅ Sauvegardé</span>
+        <button class="btn btn-gold btn-sm" onclick="cfgSave()">💾 Enregistrer</button>
+        <span id="cfg-ok" style="display:none;color:#7de8a5;font-size:.82rem">✅ Sauvegardé</span>
       </div>
     </div>
 
-    <!-- QR TAB -->
-    <div id="htab-qr-body" style="display:none;text-align:center">
-      <p class="muted" style="margin-bottom:14px;font-size:.82rem;max-width:380px;margin-inline:auto">Affichez ce QR code sur l'écran principal. Les invités scannent pour rejoindre.</p>
-      <div style="display:flex;justify-content:center;margin-bottom:16px">
+    <!-- QR -->
+    <div id="hb-qr" style="display:none;text-align:center">
+      <p class="dim" style="margin-bottom:14px;font-size:.82rem;max-width:380px;margin-inline:auto">Affichez ce QR code lors de la fête pour que les invités rejoignent.</p>
+      <div style="display:flex;justify-content:center;margin-bottom:14px">
         <div id="qr-admin" style="background:#fff;padding:12px;border-radius:12px;display:inline-block"></div>
       </div>
-      <div class="form-group" style="text-align:left;max-width:400px;margin:0 auto 12px">
-        <label class="label">URL personnalisée (optionnel)</label>
-        <input id="cfg-url" type="text" placeholder="https://...">
-      </div>
+      <div class="fg" style="text-align:left;max-width:380px;margin:0 auto 10px"><label class="lbl">URL personnalisée</label><input id="cfg-url" type="text" placeholder="https://..."></div>
       <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-        <button class="btn btn-gold btn-sm" onclick="updateQR()">🔄 Mettre à jour</button>
-        <button class="btn btn-ghost btn-sm" onclick="dlQR()">⬇ Télécharger</button>
+        <button class="btn btn-gold btn-sm" onclick="qrUpdate()">🔄 Mettre à jour</button>
+        <button class="btn btn-ghost btn-sm" onclick="qrDl()">⬇ Télécharger</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ━━━━━━━━━━━━━━━━━ VIEW: HOST QUESTION ━━━━━━━━━━ -->
-<div id="view-host-question" class="view has-nav" style="padding:80px 16px 30px;align-items:stretch">
-  <div class="card-host ani" style="background:linear-gradient(150deg,rgba(16,25,46,.98),rgba(8,14,28,.99));border:1px solid rgba(212,168,67,.18);border-radius:20px;padding:28px;max-width:900px;margin:0 auto;width:100%;position:relative">
-    <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold-b),transparent);border-radius:20px 20px 0 0"></div>
-
-    <!-- Header -->
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+<!-- ══════════════ HOST QUESTION ══════════════ -->
+<div id="v-host-q" class="view has-nav" style="padding:72px 16px 30px;align-items:stretch">
+  <div class="card card-lg" style="margin:0 auto;width:100%;padding:26px">
+    <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold-b),transparent);border-radius:16px 16px 0 0"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:12px">
       <div>
-        <p class="muted" style="font-size:.7rem;text-transform:uppercase;letter-spacing:.14em;margin-bottom:3px" id="hq-num-label">Question 1 / 10</p>
-        <div class="q-dots" id="host-dots"></div>
+        <p class="dim" style="font-size:.68rem;text-transform:uppercase;letter-spacing:.14em;margin-bottom:5px" id="hq-label">Question 1/10</p>
+        <div class="dots" id="hq-dots"></div>
       </div>
       <div style="display:flex;align-items:center;gap:14px">
         <div style="text-align:center">
-          <p class="muted" style="font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">Ont répondu</p>
-          <p style="font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;color:var(--cream)" id="hq-answered-count">0 / 0</p>
+          <p class="dim" style="font-size:.65rem;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px">Réponses</p>
+          <p style="font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;color:var(--cream)" id="hq-answered">0/0</p>
         </div>
-        <div class="timer-ring" id="host-timer">
-          <svg viewBox="0 0 80 80"><circle class="track" cx="40" cy="40" r="35"/><circle class="fill" id="host-timer-ring" cx="40" cy="40" r="35" stroke-dasharray="219.9" stroke-dashoffset="0"/></svg>
-          <span class="timer-num" id="host-timer-num">30</span>
+        <div class="timer-ring" id="hq-timer">
+          <svg viewBox="0 0 72 72"><circle class="tr-track" cx="36" cy="36" r="31"/><circle class="tr-fill" id="hq-ring" cx="36" cy="36" r="31" stroke-dasharray="194.8" stroke-dashoffset="0"/></svg>
+          <span class="timer-num" id="hq-secs">20</span>
         </div>
       </div>
     </div>
-
-    <!-- Question -->
-    <div class="host-q-card">
-      <p class="q-text-big" id="hq-text">Chargement de la question...</p>
+    <div style="background:rgba(8,14,28,.9);border:1px solid rgba(212,168,67,.18);border-radius:14px;padding:24px;text-align:center;margin-bottom:14px">
+      <p style="font-family:'Syne',sans-serif;font-size:clamp(1.1rem,3vw,1.8rem);color:var(--cream);font-weight:700;line-height:1.4" id="hq-text">Question...</p>
     </div>
-
-    <!-- Answer preview 2×2 -->
-    <div class="answer-preview" id="hq-answers-preview"></div>
-
-    <!-- Live bars -->
-    <div class="ans-bars" id="hq-bars"></div>
-
-    <!-- Actions -->
-    <div style="display:flex;gap:10px;margin-top:20px;flex-wrap:wrap">
-      <button class="btn btn-red" onclick="hostReveal()" id="hq-reveal-btn" style="flex:1">⏹ Arrêter & révéler</button>
-      <button class="btn btn-ghost btn-sm" onclick="showView('host-lobby',true)">← Lobby</button>
+    <div class="apv" id="hq-apv"></div>
+    <div class="bars" id="hq-bars"></div>
+    <div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap">
+      <button class="btn btn-danger" onclick="hostReveal()" style="flex:1">⏹ Arrêter & révéler</button>
+      <button class="btn btn-ghost btn-sm" onclick="goTo('host-lobby',true)">← Lobby</button>
     </div>
   </div>
 </div>
 
-<!-- ━━━━━━━━━━━━━━━━━ VIEW: HOST REVEAL ━━━━━━━━━━━ -->
-<div id="view-host-reveal" class="view has-nav" style="padding:80px 16px 30px;align-items:stretch">
-  <div class="card-host" style="background:linear-gradient(150deg,rgba(16,25,46,.98),rgba(8,14,28,.99));border:1px solid rgba(212,168,67,.18);border-radius:20px;padding:28px;max-width:900px;margin:0 auto;width:100%;position:relative">
-    <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold-b),transparent);border-radius:20px 20px 0 0"></div>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
-      <h2 style="font-family:'Syne',sans-serif;font-size:1.2rem;color:var(--cream)">📊 Résultats de la question</h2>
-      <span class="muted" id="hr-answered-info"></span>
+<!-- ══════════════ HOST REVEAL ══════════════ -->
+<div id="v-host-reveal" class="view has-nav" style="padding:72px 16px 30px;align-items:stretch">
+  <div class="card card-lg" style="margin:0 auto;width:100%;padding:26px">
+    <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold-b),transparent);border-radius:16px 16px 0 0"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <h2 style="font-family:'Syne',sans-serif;font-size:1.1rem;color:var(--cream)">📊 Résultats</h2>
+      <span class="dim" id="hr-info"></span>
     </div>
-    <div class="host-q-card" style="margin-bottom:14px">
-      <p class="q-text-big" id="hr-q-text"></p>
+    <div style="background:rgba(8,14,28,.9);border:1px solid rgba(212,168,67,.18);border-radius:14px;padding:20px;text-align:center;margin-bottom:12px">
+      <p style="font-family:'Syne',sans-serif;font-size:clamp(1rem,2.8vw,1.6rem);color:var(--cream);font-weight:700;line-height:1.4" id="hr-text"></p>
     </div>
-    <div class="answer-preview" id="hr-answers-preview" style="margin-bottom:16px"></div>
-    <div class="ans-bars" id="hr-bars" style="margin-bottom:20px"></div>
-    <div style="margin-bottom:20px">
-      <p class="label" style="margin-bottom:10px">Top 5 après cette question</p>
-      <div class="lb" id="hr-mini-lb"></div>
-    </div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap">
-      <button class="btn btn-gold" onclick="hostNextOrLB()" id="hr-next-btn" style="flex:1;font-size:1rem;padding:14px">▶ Question suivante</button>
-    </div>
+    <div class="apv" id="hr-apv" style="margin-bottom:12px"></div>
+    <div class="bars" id="hr-bars" style="margin-bottom:16px"></div>
+    <p class="lbl" style="margin-bottom:10px">Top joueurs</p>
+    <div class="lb" id="hr-lb" style="margin-bottom:18px"></div>
+    <button class="btn btn-gold" onclick="hostNext()" id="hr-next" style="font-size:.97rem;padding:14px">▶ Question suivante</button>
   </div>
 </div>
 
-<!-- ━━━━━━━━━━━━━━━━━ VIEW: HOST LEADERBOARD ━━━━━━ -->
-<div id="view-host-lb" class="view has-nav" style="padding:80px 16px 30px">
-  <div class="card card-wide ani-s">
-    <div style="text-align:center;margin-bottom:22px">
-      <div style="font-size:2.2rem;margin-bottom:8px">🏆</div>
-      <h1 class="brand" style="font-size:1.7rem">Classement</h1>
-      <p class="muted" id="host-lb-sub">Classement en cours</p>
+<!-- ══════════════ HOST LB ══════════════ -->
+<div id="v-host-lb" class="view has-nav" style="padding:72px 16px 30px">
+  <div class="card card-lg ani-s" style="margin:0 auto;width:100%;max-width:700px">
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="font-size:2rem;margin-bottom:7px">🏆</div>
+      <h1 class="brand" style="font-size:1.6rem">Classement</h1>
+      <p class="dim" id="hlb-sub">Classement en cours</p>
     </div>
-    <div class="lb scroll" id="host-lb-list" style="max-height:400px;margin-bottom:22px"></div>
-    <button class="btn btn-gold" onclick="hostContinueAfterLB()" id="host-lb-next-btn" style="font-size:1rem;padding:14px">▶ Continuer</button>
+    <div class="lb scroll" id="hlb-list" style="max-height:380px;margin-bottom:20px"></div>
+    <button class="btn btn-gold" onclick="hostContinue()" id="hlb-btn" style="font-size:.97rem;padding:14px">▶ Continuer</button>
   </div>
 </div>
 
 <script>
-// ═══════════════════════════════════════════════════════════
-// STORAGE HELPERS
-// ═══════════════════════════════════════════════════════════
-async function sg(k,sh=true){try{const r=await window.storage.get(k,sh);return r?JSON.parse(r.value):null}catch{return null}}
-async function ss(k,v,sh=true){try{await window.storage.set(k,JSON.stringify(v),sh)}catch(e){console.error('storage:',e)}}
-async function sd(k,sh=true){try{await window.storage.delete(k,sh)}catch{}}
+// ════════════════════════════════════════════
+// STORAGE
+// ════════════════════════════════════════════
+async function sGet(k){
+  try{const r=await window.storage.get(k,true);return r?JSON.parse(r.value):null}catch{return null}
+}
+async function sSet(k,v){
+  try{await window.storage.set(k,JSON.stringify(v),true)}catch(e){console.warn('sSet',k,e)}
+}
 
-// ═══════════════════════════════════════════════════════════
-// STATE
-// ═══════════════════════════════════════════════════════════
-let G={
-  cfg:null, questions:[], players:{},
-  // game state (shared)
-  gs:null,
-  // local player
-  pid:null, player:null,
-  // host
-  isHost:false,
-  // polls
-  poll:null, timerPoll:null,
-  prevView:'home'
-};
-
-const DEF_CFG={adminPassword:'Regis60',showLbEvery:5,questionDuration:20,status:'open',quizUrl:''};
+// ════════════════════════════════════════════
+// DEFAULTS & CONSTANTS
+// ════════════════════════════════════════════
+const DEF_CFG={pwd:'Regis60',lbEvery:5,duration:20,status:'open',url:''};
 const DEF_QS=[
   {id:'q01',q:"Dans quelle ville est né Régis ?",a:"Bordeaux",b:"Paris",c:"Marseille",d:"Lyon",expl:"Bordeaux, la belle ville du Sud-Ouest !"},
   {id:'q02',q:"Quel est le plat préféré de Régis ?",a:"Cassoulet",b:"Sushi",c:"Pizza",d:"Raclette",expl:""},
   {id:'q03',q:"Quel sport Régis a-t-il pratiqué le plus longtemps ?",a:"Football",b:"Tennis",c:"Natation",d:"Cyclisme",expl:""},
-  {id:'q04',q:"Quelle est la boisson préférée de Régis ?",a:"Bordeaux rouge",b:"Pastis",c:"Bière pression",d:"Café",expl:"Il est de Bordeaux, après tout !"},
+  {id:'q04',q:"Quelle boisson Régis préfère-t-il ?",a:"Bordeaux rouge",b:"Pastis",c:"Bière",d:"Café",expl:"Il est de Bordeaux après tout !"},
   {id:'q05',q:"Combien d'enfants a Régis ?",a:"2",b:"1",c:"3",d:"4",expl:""},
-  {id:'q06',q:"Quelle est la destination de vacances préférée de Régis ?",a:"L'Espagne",b:"Les Maldives",c:"La Réunion",d:"La Corse",expl:""},
-  {id:'q07',q:"Quelle est la couleur préférée de Régis ?",a:"Bleu marine",b:"Rouge vif",c:"Vert sapin",d:"Noir",expl:""},
+  {id:'q06',q:"Destination de vacances préférée de Régis ?",a:"L'Espagne",b:"Les Maldives",c:"La Réunion",d:"La Corse",expl:""},
+  {id:'q07',q:"Couleur préférée de Régis ?",a:"Bleu marine",b:"Rouge vif",c:"Vert",d:"Noir",expl:""},
   {id:'q08',q:"En quelle année est né Régis ?",a:"1965",b:"1962",c:"1968",d:"1960",expl:"Il fête ses 60 ans cette année !"},
-  {id:'q09',q:"Quel est le passe-temps favori de Régis le week-end ?",a:"Jardinage",b:"Peinture",c:"Randonnée",d:"Jeux vidéo",expl:""},
-  {id:'q10',q:"Quelle chanson représente le mieux Régis ?",a:"My Way — Sinatra",b:"Bohemian Rhapsody — Queen",c:"La Vie en Rose — Piaf",d:"Born to Run — Springsteen",expl:""},
+  {id:'q09',q:"Passe-temps favori de Régis le week-end ?",a:"Jardinage",b:"Peinture",c:"Randonnée",d:"Jeux vidéo",expl:""},
+  {id:'q10',q:"Chanson qui représente le mieux Régis ?",a:"My Way — Sinatra",b:"Bohemian Rhapsody",c:"La Vie en Rose",d:"Born to Run",expl:""},
 ];
-
-const ANSWER_CFG=[
-  {key:'a',label:'A',color:'var(--r)',icon:'▲',cls:'ans-A'},
-  {key:'b',label:'B',color:'var(--b)',icon:'●',cls:'ans-B'},
-  {key:'c',label:'C',color:'var(--y)',icon:'◆',cls:'ans-C'},
-  {key:'d',label:'D',color:'var(--g)',icon:'■',cls:'ans-D'},
+const ACFG=[
+  {icon:'▲',cls:'ans-A',bc:'bar-A',apc:'ap-A'},
+  {icon:'●',cls:'ans-B',bc:'bar-B',apc:'ap-B'},
+  {icon:'◆',cls:'ans-C',bc:'bar-C',apc:'ap-C'},
+  {icon:'■',cls:'ans-D',bc:'bar-D',apc:'ap-D'},
 ];
-const AP_CLS=['ap-A','ap-B','ap-C','ap-D'];
 const MEDALS=['🥇','🥈','🥉'];
-const TOP_CLS=['top1','top2','top3'];
 
-// ═══════════════════════════════════════════════════════════
+// ════════════════════════════════════════════
+// GLOBAL STATE
+// ════════════════════════════════════════════
+let CFG=null, QS=[], PLAYERS={}, GS=null;
+let MY_ID=null, MY_PLAYER=null;
+let IS_HOST=false;
+let POLL_ID=null, TIMER_ID=null;
+let SHUFFLE_CACHE={};
+let CURRENT_VIEW='home';
+
+function mkGS(){return{status:'lobby',qIdx:-1,startAt:null,dur:20,lbAfter:null};}
+
+// ════════════════════════════════════════════
 // BOOT
-// ═══════════════════════════════════════════════════════════
+// ════════════════════════════════════════════
 window.addEventListener('load',async()=>{
-  G.cfg=(await sg('quiz-cfg'))||DEF_CFG;
-  G.questions=(await sg('quiz-qs'))||[];
-  if(!G.questions.length){G.questions=DEF_QS;await ss('quiz-qs',G.questions);}
-  G.players=(await sg('quiz-players'))||{};
-  G.gs=(await sg('quiz-gs'))||mkGs();
-  // restore session
-  G.pid=sessionStorage.getItem('quiz-pid');
-  if(G.pid&&G.players[G.pid]){
-    G.player=G.players[G.pid];
-    syncToGameState();
+  CFG=await sGet('cfg')||DEF_CFG;
+  QS=await sGet('qs')||[];
+  if(!QS.length){QS=[...DEF_QS];await sSet('qs',QS);}
+  PLAYERS=await sGet('players')||{};
+  GS=await sGet('gs')||mkGS();
+
+  MY_ID=sessionStorage.getItem('pid');
+  if(MY_ID&&PLAYERS[MY_ID]){
+    MY_PLAYER=PLAYERS[MY_ID];
+    // Reconnect to current game state
+    await routePlayer();
+    return;
   }
-  generateQR('qr-home',getURL());
-  showView('home');
+  qrGen('qr-home',getURL());
+  goTo('home');
 });
 
-function mkGs(){return{status:'lobby',qIndex:-1,startTime:null,duration:20,revealTime:null,lbAfter:null};}
-function getURL(){return G.cfg.quizUrl||window.location.href.split('#')[0];}
+function getURL(){return CFG.url||window.location.href.split('#')[0];}
 
-// ═══════════════════════════════════════════════════════════
-// VIEWS
-// ═══════════════════════════════════════════════════════════
-function showView(name,keep=false){
-  if(!keep)G.prevView=G.currentView||'home';
-  G.currentView=name;
-  stopPoll();stopTimer();
+// ════════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════════
+function goTo(name,keepPrev=false){
+  pollStop();timerStop();
+  CURRENT_VIEW=name;
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-  const el=document.getElementById('view-'+name);
+  const el=document.getElementById('v-'+name);
   if(el)el.classList.add('active');
-  document.getElementById('host-nav').style.display=G.isHost&&name!=='home'&&name!=='host-login'&&name!=='register'&&name!=='lobby'&&name!=='question'&&name!=='reveal'&&name!=='lb-inter'&&name!=='final'?'flex':'none';
+  // host nav
+  const hostViews=['host-lobby','host-q','host-reveal','host-lb'];
+  document.getElementById('hnav').style.display=(IS_HOST&&hostViews.includes(name))?'flex':'none';
   window.scrollTo(0,0);
-  if(name==='lb-view'){renderPublicLB();}
+  if(name==='lb-public'){loadPublicLB();}
 }
 
-// ═══════════════════════════════════════════════════════════
-// QR CODE
-// ═══════════════════════════════════════════════════════════
-const _qr={};
-function generateQR(id,url){
-  const el=document.getElementById(id); if(!el)return;
+// ════════════════════════════════════════════
+// QR
+// ════════════════════════════════════════════
+const _qrcache={};
+function qrGen(id,url){
+  const el=document.getElementById(id);if(!el)return;
   el.innerHTML='';
-  _qr[id]=new QRCode(el,{text:url||'https://quiz',width:176,height:176,colorDark:'#08100A',colorLight:'#FFFFFF'});
+  try{_qrcache[id]=new QRCode(el,{text:url||'https://quiz',width:172,height:172,colorDark:'#08100A',colorLight:'#FFFFFF'});}catch(e){el.textContent='QR error';}
 }
-function updateQR(){const url=document.getElementById('cfg-url').value.trim();G.cfg.quizUrl=url;ss('quiz-cfg',G.cfg);const u=getURL();generateQR('qr-admin',u);generateQR('qr-home',u);}
-function dlQR(){const img=document.querySelector('#qr-admin canvas')||document.querySelector('#qr-admin img');if(!img)return;const a=document.createElement('a');a.download='qr-regis.png';a.href=img.tagName==='CANVAS'?img.toDataURL():img.src;a.click();}
+function qrUpdate(){
+  const url=document.getElementById('cfg-url').value.trim();
+  CFG.url=url;sSet('cfg',CFG);
+  const u=getURL();qrGen('qr-admin',u);qrGen('qr-home',u);
+}
+function qrDl(){
+  const c=document.querySelector('#qr-admin canvas')||document.querySelector('#qr-admin img');
+  if(!c)return;const a=document.createElement('a');a.download='qr-regis.png';
+  a.href=c.tagName==='CANVAS'?c.toDataURL():c.src;a.click();
+}
 
-// ═══════════════════════════════════════════════════════════
+// ════════════════════════════════════════════
 // REGISTER
-// ═══════════════════════════════════════════════════════════
+// ════════════════════════════════════════════
 async function registerPlayer(){
   const prenom=document.getElementById('rg-prenom').value.trim();
   const nom=document.getElementById('rg-nom').value.trim();
-  const err=document.getElementById('reg-err');
-  err.style.display='none';
-  if(!prenom||!nom){err.textContent='Merci de remplir prénom et nom.';err.style.display='block';return;}
-  if(G.cfg.status==='closed'){err.textContent='Le quiz est actuellement fermé.';err.style.display='block';return;}
-  G.players=await sg('quiz-players')||{};
-  const key=(prenom+nom).toLowerCase().replace(/\s/g,'');
-  const dup=Object.values(G.players).find(p=>(p.prenom+p.nom).toLowerCase().replace(/\s/g,'')=== key);
-  if(dup){G.pid=dup.id;G.player=dup;sessionStorage.setItem('quiz-pid',dup.id);syncToGameState();return;}
+  const errEl=document.getElementById('reg-err');
+  errEl.style.display='none';
+  if(!prenom||!nom){errEl.textContent='Merci de remplir prénom et nom.';errEl.style.display='block';return;}
+  CFG=await sGet('cfg')||DEF_CFG;
+  if(CFG.status==='closed'){errEl.textContent='Le quiz est actuellement fermé.';errEl.style.display='block';return;}
+
+  // Read FRESH players to avoid overwriting others
+  const fresh=await sGet('players')||{};
+  PLAYERS=fresh;
+
+  const key=(prenom+nom).toLowerCase().replace(/\s+/g,'');
+  const dup=Object.values(PLAYERS).find(p=>(p.prenom+p.nom).toLowerCase().replace(/\s+/g,'')=== key);
+  if(dup){
+    MY_ID=dup.id;MY_PLAYER=dup;
+    sessionStorage.setItem('pid',MY_ID);
+    await routePlayer();
+    return;
+  }
   const id='p'+Date.now()+Math.random().toString(36).slice(2,5);
   const p={id,prenom,nom,score:0,answers:{},joinedAt:Date.now()};
-  G.players[id]=p; G.player=p; G.pid=id;
-  await ss('quiz-players',G.players);
-  sessionStorage.setItem('quiz-pid',id);
-  syncToGameState();
+  PLAYERS[id]=p;MY_PLAYER=p;MY_ID=id;
+  await sSet('players',PLAYERS);
+  sessionStorage.setItem('pid',MY_ID);
+  await routePlayer();
 }
 
-async function syncToGameState(){
-  G.gs=await sg('quiz-gs')||mkGs();
-  G.questions=await sg('quiz-qs')||G.questions;
-  // Merge fresh players from storage with our in-memory ones
-  const storedPlayers=await sg('quiz-players')||{};
-  G.players=Object.assign({},storedPlayers,G.players); // keep local changes
-  document.getElementById('lobby-name').textContent=G.player.prenom;
-  if(G.gs.status==='lobby'){
-    showView('lobby');
-    renderLobbyChips(); // ← affiche immédiatement sans attendre le poll
-    startLobbyPoll();
+// ════════════════════════════════════════════
+// PLAYER ROUTING — based on current game state
+// ════════════════════════════════════════════
+async function routePlayer(){
+  GS=await sGet('gs')||mkGS();
+  QS=await sGet('qs')||QS;
+  PLAYERS=await sGet('players')||{};
+  MY_PLAYER=PLAYERS[MY_ID]||MY_PLAYER;
+
+  document.getElementById('lb-player-name').textContent=MY_PLAYER.prenom;
+  qrGen('qr-home',getURL());
+
+  if(GS.status==='lobby'){
+    goTo('lobby');
+    refreshLobbyChips();
+    pollStart(playerLobbyTick,900);
+  } else if(GS.status==='question'){
+    goTo('question');
+    renderPlayerQ();
+    timerStart('player');
+    pollStart(playerQuestionTick,900);
+  } else if(GS.status==='reveal'){
+    goTo('reveal');
+    renderReveal();
+    pollStart(playerRevealTick,900);
+  } else if(GS.status==='leaderboard'){
+    goTo('lb-inter');
+    renderLBInter();
+    pollStart(playerLBTick,900);
+  } else if(GS.status==='finished'){
+    goTo('final');
+    renderFinal();
   }
-  else if(G.gs.status==='question'){showView('question');renderPlayerQ();startPlayerTimer();startPlayerPoll();}
-  else if(G.gs.status==='reveal'){showView('reveal');renderReveal();}
-  else if(G.gs.status==='leaderboard'){showView('lb-inter');renderLBInter();}
-  else if(G.gs.status==='finished'){showView('final');renderFinal();}
 }
 
-// Rendu immédiat des chips (appelable sans attendre le poll)
-function renderLobbyChips(players){
-  const pls=players||G.players;
-  const names=Object.values(pls).sort((a,b)=>a.joinedAt-b.joinedAt).map(p=>`${p.prenom} ${p.nom}`);
-  const chips=document.getElementById('lobby-chips');
-  const count=document.getElementById('lobby-count');
-  const hChips=document.getElementById('host-chips');
-  const hCount=document.getElementById('host-player-count');
-  if(chips)chips.innerHTML=names.map(n=>`<span class="chip">${n}</span>`).join('');
-  if(count)count.textContent=`${names.length} joueur${names.length>1?'s':''} connecté${names.length>1?'s':''}`;
-  if(hChips)hChips.innerHTML=names.map(n=>`<span class="chip">${n}</span>`).join('');
-  if(hCount)hCount.textContent=`${names.length} joueur${names.length>1?'s':''} connecté${names.length>1?'s':''}`;
+// ════════════════════════════════════════════
+// PLAYER POLLS — one per state, clean transitions
+// ════════════════════════════════════════════
+async function playerLobbyTick(){
+  const freshP=await sGet('players')||{};
+  PLAYERS=freshP;
+  MY_PLAYER=PLAYERS[MY_ID]||MY_PLAYER;
+  refreshLobbyChips();
+
+  const freshGS=await sGet('gs');
+  if(!freshGS)return;
+  GS=freshGS;
+
+  if(GS.status==='question'){
+    pollStop();
+    QS=await sGet('qs')||QS;
+    goTo('question');
+    renderPlayerQ();
+    timerStart('player');
+    pollStart(playerQuestionTick,900);
+  } else if(GS.status==='finished'){
+    pollStop();
+    goTo('final');
+    renderFinal();
+  }
 }
 
-// ═══════════════════════════════════════════════════════════
-// LOBBY POLL (player)
-// ═══════════════════════════════════════════════════════════
-async function lobbyTick(){
-  const fresh=await sg('quiz-players')||{};
-  if(Object.keys(fresh).length>0) G.players=fresh;
-  renderLobbyChips();
-  G.gs=await sg('quiz-gs')||G.gs;
-  if(G.gs.status==='question'){stopPoll();showView('question');renderPlayerQ();startPlayerTimer();startPlayerPoll();}
-  if(G.gs.status==='finished'){stopPoll();showView('final');renderFinal();}
+async function playerQuestionTick(){
+  const freshGS=await sGet('gs');
+  if(!freshGS)return;
+  // New question?
+  if(freshGS.status==='question'&&freshGS.qIdx!==GS.qIdx){
+    GS=freshGS;
+    PLAYERS=await sGet('players')||{};
+    MY_PLAYER=PLAYERS[MY_ID]||MY_PLAYER;
+    goTo('question');
+    renderPlayerQ();
+    timerStart('player');
+    return;
+  }
+  GS=freshGS;
+  if(GS.status==='reveal'){
+    pollStop();timerStop();
+    PLAYERS=await sGet('players')||{};
+    MY_PLAYER=PLAYERS[MY_ID]||MY_PLAYER;
+    goTo('reveal');
+    renderReveal();
+    pollStart(playerRevealTick,900);
+  } else if(GS.status==='leaderboard'){
+    pollStop();timerStop();
+    PLAYERS=await sGet('players')||{};
+    goTo('lb-inter');
+    renderLBInter();
+    pollStart(playerLBTick,900);
+  } else if(GS.status==='finished'){
+    pollStop();timerStop();
+    PLAYERS=await sGet('players')||{};
+    goTo('final');
+    renderFinal();
+    launchConfetti();
+  }
 }
 
-function startLobbyPoll(){
-  stopPoll();
-  lobbyTick(); // ← exécution immédiate, pas d'attente
-  G.poll=setInterval(lobbyTick,900); // poll toutes les 900ms
+async function playerRevealTick(){
+  const freshGS=await sGet('gs');if(!freshGS)return;
+  GS=freshGS;
+  if(GS.status==='question'){
+    pollStop();
+    PLAYERS=await sGet('players')||{};
+    MY_PLAYER=PLAYERS[MY_ID]||MY_PLAYER;
+    QS=await sGet('qs')||QS;
+    goTo('question');
+    renderPlayerQ();
+    timerStart('player');
+    pollStart(playerQuestionTick,900);
+  } else if(GS.status==='leaderboard'){
+    pollStop();
+    PLAYERS=await sGet('players')||{};
+    goTo('lb-inter');
+    renderLBInter();
+    pollStart(playerLBTick,900);
+  } else if(GS.status==='finished'){
+    pollStop();
+    PLAYERS=await sGet('players')||{};
+    goTo('final');
+    renderFinal();
+    launchConfetti();
+  }
 }
 
-// ═══════════════════════════════════════════════════════════
-// PLAYER QUESTION
-// ═══════════════════════════════════════════════════════════
+async function playerLBTick(){
+  const freshGS=await sGet('gs');if(!freshGS)return;
+  GS=freshGS;
+  if(GS.status==='question'){
+    pollStop();
+    PLAYERS=await sGet('players')||{};
+    MY_PLAYER=PLAYERS[MY_ID]||MY_PLAYER;
+    QS=await sGet('qs')||QS;
+    goTo('question');
+    renderPlayerQ();
+    timerStart('player');
+    pollStart(playerQuestionTick,900);
+  } else if(GS.status==='finished'){
+    pollStop();
+    PLAYERS=await sGet('players')||{};
+    goTo('final');
+    renderFinal();
+    launchConfetti();
+  }
+}
+
+// ════════════════════════════════════════════
+// PLAYER QUESTION RENDER
+// ════════════════════════════════════════════
 function renderPlayerQ(){
-  const qi=G.gs.qIndex; if(qi<0||qi>=G.questions.length)return;
-  const q=G.questions[qi];
-  const total=G.questions.length;
-  document.getElementById('player-q-label').textContent=`Question ${qi+1}`;
-  document.getElementById('player-q-num').textContent=`Question ${qi+1} / ${total}`;
-  document.getElementById('player-q-text').textContent=q.q;
-  document.getElementById('player-answered-msg').style.display='none';
+  const qi=GS.qIdx;
+  if(qi<0||qi>=QS.length){console.warn('renderPlayerQ: qi OOB',qi,QS.length);return;}
+  const q=QS[qi];
+  document.getElementById('pq-label').textContent=`Question ${qi+1}`;
+  document.getElementById('pq-num').textContent=`Question ${qi+1} / ${QS.length}`;
+  document.getElementById('pq-text').textContent=q.q;
+  document.getElementById('pq-waiting').style.display='none';
+  document.getElementById('pq-answers').style.display='grid';
+  renderDots('pq-dots',qi,QS.length);
 
-  // dots
-  renderDots('player-dots',qi,total);
-
-  // shuffle answers
-  const answers=shuffleAnswers(q);
-  const container=document.getElementById('player-answers');
+  const answers=shuffleQ(q);
+  const container=document.getElementById('pq-answers');
   container.innerHTML='';
-  container.style.display='grid';
+  const prevAns=MY_PLAYER.answers[q.id];
 
   answers.forEach((ans,i)=>{
-    const cfg=ANSWER_CFG[i];
+    const cfg=ACFG[i];
     const btn=document.createElement('button');
     btn.className=`ans-btn ${cfg.cls}`;
     btn.innerHTML=`<span class="ans-icon">${cfg.icon}</span>${ans.text}`;
-    // check if already answered this q
-    if(G.player.answers[q.id]!==undefined){
-      btn.disabled=true;btn.classList.add('disabled');
-      if(ans.ok)btn.classList.add('correct');
-      else if(G.player.answers[q.id]===i)btn.classList.add('wrong');
+    if(prevAns!==undefined){
+      btn.disabled=true;
+      if(ans.ok)btn.classList.add('ok');
+      else if(prevAns.choice===i)btn.classList.add('ko');
     } else {
-      btn.onclick=()=>playerAnswer(btn,ans.ok,i,answers,q.id);
+      btn.addEventListener('click',()=>onAnswer(btn,ans.ok,i,answers,q.id),{once:true});
     }
     container.appendChild(btn);
   });
 
-  if(G.player.answers[q.id]!==undefined){
-    document.getElementById('player-answers').style.display='grid';
-    document.getElementById('player-answered-msg').style.display='none';
+  if(prevAns!==undefined){
+    document.getElementById('pq-answers').style.display='grid';
+    document.getElementById('pq-waiting').style.display='none';
   }
 }
 
-async function playerAnswer(clickedBtn,isOk,choiceIdx,answers,qId){
-  const allBtns=document.querySelectorAll('.ans-btn');
-  allBtns.forEach(b=>{b.disabled=true;b.classList.add('disabled')});
-  answers.forEach((ans,i)=>{if(ans.ok)allBtns[i].classList.add('correct');});
-  if(!isOk)clickedBtn.classList.add('wrong');
+async function onAnswer(clickedBtn,isOk,choiceIdx,answers,qId){
+  // Disable all buttons immediately
+  document.querySelectorAll('#pq-answers .ans-btn').forEach(b=>b.disabled=true);
+  answers.forEach((ans,i)=>{
+    const b=document.querySelectorAll('#pq-answers .ans-btn')[i];
+    if(!b)return;
+    if(ans.ok)b.classList.add('ok');
+  });
+  if(!isOk)clickedBtn.classList.add('ko');
 
-  // speed bonus
-  const elapsed=(Date.now()-(G.gs.startTime||Date.now()))/1000;
-  const duration=G.gs.duration||20;
-  const pct=Math.max(0,(duration-elapsed)/duration);
-  const pts=isOk?Math.round(100+50*pct):0;
+  const elapsed=(Date.now()-(GS.startAt||Date.now()))/1000;
+  const dur=GS.dur||20;
+  const ratio=Math.max(0,(dur-elapsed)/dur);
+  const pts=isOk?Math.round(100+50*ratio):0;
 
-  G.player.score+=pts;
-  G.player.answers[qId]={choice:choiceIdx,ok:isOk,pts,ts:Date.now()};
+  MY_PLAYER.score+=pts;
+  MY_PLAYER.answers[qId]={choice:choiceIdx,ok:isOk,pts,ts:Date.now()};
 
-  // ← Lire les joueurs FRAIS depuis le stockage pour ne pas écraser les réponses des autres
-  const freshPlayers=await sg('quiz-players')||{};
-  freshPlayers[G.pid]=G.player; // on ne met à jour QUE le joueur actuel
-  G.players=freshPlayers;
-  await ss('quiz-players',G.players);
+  // Atomic update: read FRESH, update only my entry, write back
+  const freshP=await sGet('players')||{};
+  freshP[MY_ID]=MY_PLAYER;
+  PLAYERS=freshP;
+  await sSet('players',PLAYERS);
 
   setTimeout(()=>{
-    document.getElementById('player-answers').style.display='none';
-    document.getElementById('player-answered-msg').style.display='block';
-  },400);
+    document.getElementById('pq-answers').style.display='none';
+    document.getElementById('pq-waiting').style.display='block';
+  },350);
 }
 
-function startPlayerPoll(){
-  stopPoll();
-  G.poll=setInterval(async()=>{
-    G.gs=await sg('quiz-gs')||G.gs;
-    G.players=await sg('quiz-players')||{};
-    G.player=G.players[G.pid]||G.player;
-    if(G.gs.status==='reveal'){stopPoll();stopTimer();showView('reveal');renderReveal();}
-    else if(G.gs.status==='leaderboard'){stopPoll();stopTimer();showView('lb-inter');renderLBInter();}
-    else if(G.gs.status==='finished'){stopPoll();stopTimer();showView('final');renderFinal();}
-    else if(G.gs.status==='question'&&G.gs.qIndex!==G.currentQIdx){
-      G.currentQIdx=G.gs.qIndex;
-      showView('question',true);renderPlayerQ();startPlayerTimer();
-    }
-  },1500);
-}
-
-// ═══════════════════════════════════════════════════════════
-// PLAYER TIMER
-// ═══════════════════════════════════════════════════════════
-let _timerInterval=null;
-function stopTimer(){if(_timerInterval){clearInterval(_timerInterval);_timerInterval=null;}}
-function startPlayerTimer(){
-  stopTimer();
-  const dur=G.gs.duration||20;
-  const C=219.9;
-  _timerInterval=setInterval(()=>{
-    const elapsed=(Date.now()-(G.gs.startTime||Date.now()))/1000;
-    const left=Math.max(0,dur-elapsed);
-    const pct=left/dur;
-    document.getElementById('player-timer-num').textContent=Math.ceil(left);
-    document.getElementById('player-timer-ring').style.strokeDashoffset=C*(1-pct);
-    document.getElementById('player-timer-ring').style.stroke=pct>.5?'var(--g)':pct>.25?'var(--y)':'var(--r)';
-    if(left<=0)stopTimer();
-  },250);
-}
-function startHostTimer(){
-  stopTimer();
-  const dur=G.gs.duration||20;
-  const C=219.9;
-  _timerInterval=setInterval(async()=>{
-    const elapsed=(Date.now()-(G.gs.startTime||Date.now()))/1000;
-    const left=Math.max(0,dur-elapsed);
-    document.getElementById('host-timer-num').textContent=Math.ceil(left);
-    document.getElementById('host-timer-ring').style.strokeDashoffset=C*(1-(left/dur));
-    document.getElementById('host-timer-ring').style.stroke=left/dur>.5?'var(--g)':left/dur>.25?'var(--y)':'var(--r)';
-    // update live answer count
-    const pls=await sg('quiz-players')||{};
-    const qi=G.gs.qIndex;
-    const qId=G.questions[qi]?.id;
-    const answered=Object.values(pls).filter(p=>p.answers[qId]!==undefined).length;
-    const total=Object.keys(pls).length;
-    document.getElementById('hq-answered-count').textContent=`${answered} / ${total}`;
-    updateHostBars(pls,qId,'hq-bars');
-    if(left<=0){stopTimer();hostReveal();}
-  },500);
-}
-
-// ═══════════════════════════════════════════════════════════
-// REVEAL (player view)
-// ═══════════════════════════════════════════════════════════
+// ════════════════════════════════════════════
+// REVEAL (player)
+// ════════════════════════════════════════════
 function renderReveal(){
-  const qi=G.gs.qIndex; if(qi<0)return;
-  const q=G.questions[qi];
-  const ans=G.player.answers[q.id];
-  const ok=ans&&ans.ok;
-  const pts=ans?.pts||0;
-  document.getElementById('reveal-emoji').textContent=ok?'🎉':'😅';
-  document.getElementById('reveal-title').textContent=ok?'Bonne réponse !':'Mauvaise réponse !';
-  document.getElementById('reveal-title').style.color=ok?'var(--g)':'var(--r)';
-  document.getElementById('reveal-correct-ans').textContent=`La bonne réponse était : ${q.a}`;
-  document.getElementById('reveal-pts').textContent=ok?`+${pts} pts`:'+0 pts';
-  document.getElementById('reveal-pts').style.color=ok?'var(--gold)':'var(--r)';
-  document.getElementById('reveal-total-pts').textContent=`Score total : ${G.player.score} pts`;
-  document.getElementById('reveal-expl').textContent=q.expl||'—';
-  // rank
+  const qi=GS.qIdx;if(qi<0||qi>=QS.length)return;
+  const q=QS[qi];
+  const a=MY_PLAYER.answers[q.id];
+  const ok=a&&a.ok;const pts=a?.pts||0;
+  document.getElementById('rv-emoji').textContent=ok?'🎉':'😅';
+  document.getElementById('rv-title').textContent=ok?'Bonne réponse !':'Mauvaise réponse !';
+  document.getElementById('rv-title').style.color=ok?'var(--g)':'var(--r)';
+  document.getElementById('rv-ans').textContent=`La bonne réponse : ${q.a}`;
+  document.getElementById('rv-pts').textContent=ok?`+${pts} pts`:'+0 pts';
+  document.getElementById('rv-pts').style.color=ok?'var(--gold)':'var(--r)';
+  document.getElementById('rv-total').textContent=`Score total : ${MY_PLAYER.score} pts`;
+  document.getElementById('rv-expl').textContent=q.expl||'—';
   const sorted=sortPlayers();
-  const rank=sorted.findIndex(p=>p.id===G.pid)+1;
-  document.getElementById('reveal-rank').textContent=rank>0?`Vous êtes actuellement ${rank}${rank===1?'er':'ème'} 🏅`:'';
-  // poll waiting for next
-  stopPoll();
-  G.poll=setInterval(async()=>{
-    G.gs=await sg('quiz-gs')||G.gs;
-    if(G.gs.status==='question'){stopPoll();G.players=await sg('quiz-players')||{};G.player=G.players[G.pid]||G.player;showView('question',true);renderPlayerQ();startPlayerTimer();startPlayerPoll();}
-    else if(G.gs.status==='leaderboard'){stopPoll();G.players=await sg('quiz-players')||{};renderLBInter();showView('lb-inter');}
-    else if(G.gs.status==='finished'){stopPoll();G.players=await sg('quiz-players')||{};renderFinal();showView('final');launchConfetti();}
-  },1500);
+  const rank=sorted.findIndex(p=>p.id===MY_ID)+1;
+  document.getElementById('rv-rank').textContent=rank>0?`${rank}${rank===1?'er':'ème'} au classement 🏅`:'';
 }
 
-// ═══════════════════════════════════════════════════════════
-// LEADERBOARD INTER (player)
-// ═══════════════════════════════════════════════════════════
-async function renderLBInter(){
-  G.players=await sg('quiz-players')||{};
-  const qi=G.gs.qIndex;
-  document.getElementById('lb-inter-sub').textContent=`Après ${qi+1} question${qi+1>1?'s':''} sur ${G.questions.length}`;
-  renderLBData(sortPlayers(),'lb-inter-list',8);
-  stopPoll();
-  G.poll=setInterval(async()=>{
-    G.gs=await sg('quiz-gs')||G.gs;
-    if(G.gs.status==='question'){stopPoll();G.players=await sg('quiz-players')||{};G.player=G.players[G.pid]||G.player;showView('question',true);renderPlayerQ();startPlayerTimer();startPlayerPoll();}
-    else if(G.gs.status==='finished'){stopPoll();G.players=await sg('quiz-players')||{};renderFinal();showView('final');launchConfetti();}
-  },1500);
+// ════════════════════════════════════════════
+// LB INTER (player)
+// ════════════════════════════════════════════
+function renderLBInter(){
+  const qi=GS.qIdx;
+  document.getElementById('lbi-sub').textContent=`Après ${qi+1} question${qi+1>1?'s':''} sur ${QS.length}`;
+  renderLBData(sortPlayers(),'lbi-list',8);
 }
 
-// ═══════════════════════════════════════════════════════════
+// ════════════════════════════════════════════
 // FINAL (player)
-// ═══════════════════════════════════════════════════════════
-async function renderFinal(){
-  G.players=await sg('quiz-players')||{};
-  G.player=G.players[G.pid]||G.player;
+// ════════════════════════════════════════════
+function renderFinal(){
+  MY_PLAYER=PLAYERS[MY_ID]||MY_PLAYER;
   const sorted=sortPlayers();
-  const rank=sorted.findIndex(p=>p.id===G.pid)+1;
-  const total=G.questions.length*150;
-  const pct=total>0?Math.round((G.player.score/total)*100):0;
-  const msgs=[[100,'🏆','Parfait ! Vous connaissez Régis par cœur !'],[80,'🥇','Excellent ! Vous êtes un(e) proche de Régis !'],[60,'🥈','Bien joué ! Vous connaissez bien Régis.'],[40,'🥉','Pas mal ! Il reste encore à découvrir.'],[0,'😅','Hmm... Passez plus de temps avec Régis ! 😄']];
+  const rank=sorted.findIndex(p=>p.id===MY_ID)+1;
+  const maxPts=QS.length*150;
+  const pct=maxPts>0?Math.round((MY_PLAYER.score/maxPts)*100):0;
+  const msgs=[[100,'🏆','Parfait ! Vous connaissez Régis par cœur !'],[80,'🥇','Excellent ! Vous êtes très proche de Régis !'],[60,'🥈','Bien joué ! Vous le connaissez bien.'],[40,'🥉','Pas mal ! Encore des choses à découvrir.'],[0,'😅','Passez plus de temps avec Régis ! 😄']];
   const [,emoji,msg]=msgs.find(([t])=>pct>=t);
-  document.getElementById('final-emoji').textContent=emoji;
-  document.getElementById('final-name').textContent=G.player.prenom;
-  document.getElementById('final-score').textContent=G.player.score;
-  document.getElementById('final-pts-lbl').textContent=`points · ${pct}% de bonnes réponses · ${rank}${rank===1?'er':'ème'} au classement`;
-  document.getElementById('final-msg').textContent=msg;
-  renderLBData(sorted,'final-lb');
+  document.getElementById('fin-emoji').textContent=emoji;
+  document.getElementById('fin-name').textContent=MY_PLAYER.prenom;
+  document.getElementById('fin-score').textContent=MY_PLAYER.score;
+  document.getElementById('fin-sub').textContent=`points · ${pct}% de réussite · ${rank}${rank===1?'er':'ème'} au classement`;
+  document.getElementById('fin-msg').textContent=msg;
+  renderLBData(sorted,'fin-lb');
   if(rank<=3)launchConfetti();
 }
 
-async function renderPublicLB(){
-  G.players=await sg('quiz-players')||{};
-  renderLBData(sortPlayers(),'lb-public-list');
+async function loadPublicLB(){
+  PLAYERS=await sGet('players')||{};
+  renderLBData(sortPlayers(),'lb-pub-list');
 }
 
-// ═══════════════════════════════════════════════════════════
+// ════════════════════════════════════════════
 // HOST LOGIN
-// ═══════════════════════════════════════════════════════════
-function hostLogin(){
-  const pwd=document.getElementById('host-pwd').value;
-  G.cfg=G.cfg||DEF_CFG;
-  if(pwd===G.cfg.adminPassword){
-    G.isHost=true;document.getElementById('host-pwd').value='';
-    document.getElementById('host-login-err').style.display='none';
-    showView('host-lobby');refreshHost();hostLobbyPoll();
+// ════════════════════════════════════════════
+async function hostLogin(){
+  CFG=await sGet('cfg')||DEF_CFG;
+  const pwd=document.getElementById('hl-pwd').value;
+  if(pwd===CFG.pwd){
+    IS_HOST=true;
+    document.getElementById('hl-pwd').value='';
+    document.getElementById('hl-err').style.display='none';
+    goTo('host-lobby');
+    await hostRefresh();
+    pollStart(hostLobbyTick,900);
   } else {
-    const e=document.getElementById('host-login-err');e.textContent='Mot de passe incorrect.';e.style.display='block';
+    const e=document.getElementById('hl-err');
+    e.textContent='Mot de passe incorrect.';e.style.display='block';
   }
 }
-function hostLogout(){G.isHost=false;stopPoll();stopTimer();showView('home');}
+function hostLogout(){IS_HOST=false;pollStop();timerStop();goTo('home');}
 
-// ═══════════════════════════════════════════════════════════
-// HOST LOBBY
-// ═══════════════════════════════════════════════════════════
-let _hActiveTab='lobby';
-function hTab(t){
-  ['lobby','q','p','cfg','qr'].forEach(x=>{
-    document.getElementById('htab-'+x).classList.toggle('active',x===t);
-    document.getElementById('htab-'+x+'-body').style.display=x===t?'block':'none';
-  });
-  _hActiveTab=t;
-  if(t==='p')loadParticipants();
-  if(t==='q')loadQList();
-  if(t==='cfg')loadCfg();
-  if(t==='qr'){document.getElementById('cfg-url').value=G.cfg.quizUrl||'';setTimeout(()=>generateQR('qr-admin',getURL()),80);}
-}
-
+// ════════════════════════════════════════════
+// HOST LOBBY POLL
+// ════════════════════════════════════════════
 async function hostLobbyTick(){
-  const fresh=await sg('quiz-players')||{};
-  if(Object.keys(fresh).length>0) G.players=fresh;
-  G.gs=await sg('quiz-gs')||G.gs;
-  updateHostNavBar();
-  renderLobbyChips();
-  document.getElementById('hn-players').textContent=`👥 ${Object.keys(G.players).length}`;
-  if(_hActiveTab==='p')loadParticipants();
+  PLAYERS=await sGet('players')||{};
+  GS=await sGet('gs')||GS;
+  refreshLobbyChips();
+  document.getElementById('hn-players').textContent=`👥 ${Object.keys(PLAYERS).length}`;
+  document.getElementById('hn-status').textContent='⏳ Lobby';
+  if(_hTab==='players')hLoadPlayers();
 }
 
-function hostLobbyPoll(){
-  stopPoll();
-  hostLobbyTick(); // ← immédiat
-  G.poll=setInterval(hostLobbyTick,900);
+// ════════════════════════════════════════════
+// HOST REFRESH
+// ════════════════════════════════════════════
+async function hostRefresh(){
+  CFG=await sGet('cfg')||DEF_CFG;
+  QS=await sGet('qs')||QS;
+  PLAYERS=await sGet('players')||{};
+  GS=await sGet('gs')||mkGS();
+  qrGen('qr-home',getURL());
+  refreshLobbyChips();
+  updateHostStats();
+  hLoadQs();
 }
 
-async function refreshHost(){
-  G.cfg=await sg('quiz-cfg')||DEF_CFG;
-  G.questions=await sg('quiz-qs')||G.questions;
-  const fresh=await sg('quiz-players')||{};
-  if(Object.keys(fresh).length>0) G.players=fresh;
-  G.gs=await sg('quiz-gs')||mkGs();
-  updateHostNavBar();
-  renderLobbyChips(); // ← mise à jour immédiate des chips
-  document.getElementById('hn-players').textContent=`👥 ${Object.keys(G.players).length}`;
-  const qs=G.questions; const ps=Object.values(G.players);
-  const done=ps.filter(p=>Object.keys(p.answers).length>=qs.length).length;
-  const avg=ps.length?Math.round(ps.reduce((s,p)=>s+p.score,0)/ps.length):0;
-  document.getElementById('host-stats').innerHTML=`
+function updateHostStats(){
+  const ps=Object.values(PLAYERS);
+  const done=ps.filter(p=>Object.keys(p.answers).length>=QS.length).length;
+  const avg=ps.length?Math.round(ps.reduce((a,p)=>a+p.score,0)/ps.length):0;
+  document.getElementById('h-stats').innerHTML=`
     <div class="stat"><div class="stat-v">${ps.length}</div><div class="stat-l">Joueurs</div></div>
     <div class="stat"><div class="stat-v">${done}</div><div class="stat-l">Terminés</div></div>
-    <div class="stat"><div class="stat-v">${qs.length}</div><div class="stat-l">Questions</div></div>
-    <div class="stat"><div class="stat-v">${avg}</div><div class="stat-l">Score moyen</div></div>
+    <div class="stat"><div class="stat-v">${QS.length}</div><div class="stat-l">Questions</div></div>
+    <div class="stat"><div class="stat-v">${avg}</div><div class="stat-l">Moy.</div></div>
   `;
-  // show start or resume
-  const started=G.gs.status!=='lobby';
-  document.getElementById('host-start-wrap').style.display=started?'none':'block';
-  document.getElementById('host-resume-wrap').style.display=started?'block':'none';
-  loadQList();
+  document.getElementById('hn-players').textContent=`👥 ${ps.length}`;
 }
 
-function updateHostNavBar(){
-  const lbl={lobby:'⏳ Lobby',question:'🎯 En cours',reveal:'📊 Révélation',leaderboard:'🏆 Classement',finished:'✅ Terminé'};
-  document.getElementById('hn-status').textContent=lbl[G.gs?.status]||'—';
+// ════════════════════════════════════════════
+// CHIPS — shared between lobby + host
+// ════════════════════════════════════════════
+function refreshLobbyChips(){
+  const sorted=Object.values(PLAYERS).sort((a,b)=>a.joinedAt-b.joinedAt);
+  const count=sorted.length;
+  const html=sorted.map(p=>`<span class="chip">${p.prenom} ${p.nom}</span>`).join('');
+  const txt=`${count} joueur${count>1?'s':''} connecté${count>1?'s':''}`;
+
+  const playerChips=document.getElementById('player-lobby-chips');
+  const playerCount=document.getElementById('player-lobby-count');
+  const hostChips=document.getElementById('host-lobby-chips');
+  const hostCount=document.getElementById('host-lobby-count');
+
+  if(playerChips)playerChips.innerHTML=html;
+  if(playerCount)playerCount.textContent=txt;
+  if(hostChips)hostChips.innerHTML=html;
+  if(hostCount)hostCount.textContent=txt;
 }
 
-// ═══════════════════════════════════════════════════════════
-// HOST START / NEXT QUESTION
-// ═══════════════════════════════════════════════════════════
+// ════════════════════════════════════════════
+// HOST TABS
+// ════════════════════════════════════════════
+let _hTab='launch';
+function hTab(t){
+  ['launch','qs','players','cfg','qr'].forEach(x=>{
+    document.getElementById('ht-'+x).classList.toggle('active',x===t);
+    document.getElementById('hb-'+x).style.display=x===t?'block':'none';
+  });
+  _hTab=t;
+  if(t==='players')hLoadPlayers();
+  if(t==='qs')hLoadQs();
+  if(t==='cfg')hLoadCfg();
+  if(t==='qr'){document.getElementById('cfg-url').value=CFG.url||'';setTimeout(()=>qrGen('qr-admin',getURL()),60);}
+}
+
+// ════════════════════════════════════════════
+// HOST START / NEXT
+// ════════════════════════════════════════════
 async function hostStart(){
-  if(!G.questions.length){alert('Ajoutez des questions d\'abord !');return;}
-  G.gs=mkGs();
-  G.gs.duration=parseInt(G.cfg.questionDuration)||20;
-  await ss('quiz-gs',G.gs);
-  stopPoll();
+  QS=await sGet('qs')||[];
+  if(!QS.length){alert('Ajoutez des questions d\'abord !');return;}
+  SHUFFLE_CACHE={};
+  GS=mkGS();
+  GS.dur=parseInt(CFG.duration)||20;
+  await sSet('gs',GS);
+  pollStop();
   await hostNextQ();
 }
 
 async function hostNextQ(){
-  G.gs=await sg('quiz-gs')||G.gs;
-  G.questions=await sg('quiz-qs')||G.questions;
-  const nextIdx=G.gs.qIndex+1;
-  if(nextIdx>=G.questions.length){await hostFinish();return;}
-  G.gs.status='question';
-  G.gs.qIndex=nextIdx;
-  G.gs.startTime=Date.now();
-  G.gs.duration=parseInt(G.cfg.questionDuration)||20;
-  await ss('quiz-gs',G.gs);
-  G.currentQIdx=nextIdx;
-  showView('host-question');
-  renderHostQuestion();
-  startHostTimer();
-  startHostQuestionPoll();
+  QS=await sGet('qs')||QS;
+  const next=GS.qIdx+1;
+  if(next>=QS.length){await hostFinish();return;}
+  GS.status='question';
+  GS.qIdx=next;
+  GS.startAt=Date.now();
+  GS.dur=parseInt(CFG.duration)||20;
+  await sSet('gs',GS);
+
+  goTo('host-q');
+  renderHostQ();
+  timerStart('host');
+  pollStart(hostQTick,700);
+
+  document.getElementById('hn-status').textContent='🎯 En cours';
 }
 
-function renderHostQuestion(){
-  const qi=G.gs.qIndex; if(qi<0)return;
-  const q=G.questions[qi]; const total=G.questions.length;
-  document.getElementById('hq-num-label').textContent=`Question ${qi+1} / ${total}`;
+function renderHostQ(){
+  const qi=GS.qIdx;const q=QS[qi];
+  document.getElementById('hq-label').textContent=`Question ${qi+1} / ${QS.length}`;
   document.getElementById('hq-text').textContent=q.q;
-  renderDots('host-dots',qi,total);
+  renderDots('hq-dots',qi,QS.length);
 
-  // Answer preview
-  const ap=document.getElementById('hq-answers-preview');
-  const shuffled=shuffleAnswers(q);
-  ap.innerHTML=shuffled.map((ans,i)=>`
-    <div class="ap-item ${AP_CLS[i]}">
-      <span class="ap-icon">${ANSWER_CFG[i].icon}</span>
+  const sh=shuffleQ(q);
+  document.getElementById('hq-apv').innerHTML=sh.map((ans,i)=>`
+    <div class="ap ${ACFG[i].apc}">
+      <span class="ap-icon">${ACFG[i].icon}</span>
       ${ans.text}
-      ${ans.ok?`<span class="correct-mark">✅ Bonne</span>`:''}
+      ${ans.ok?'<span class="ck-mark">✅</span>':''}
     </div>
   `).join('');
 
-  // Init bars
-  initHostBars('hq-bars');
+  initBars('hq-bars');
+  document.getElementById('hq-answered').textContent=`0/${Object.keys(PLAYERS).length}`;
 }
 
-function startHostQuestionPoll(){
-  stopPoll();
-  G.poll=setInterval(async()=>{
-    G.players=await sg('quiz-players')||{};
-    const qi=G.gs.qIndex;
-    const qId=G.questions[qi]?.id;
-    const answered=Object.values(G.players).filter(p=>p.answers[qId]!==undefined).length;
-    const total=Object.keys(G.players).length;
-    document.getElementById('hq-answered-count').textContent=`${answered} / ${total}`;
-    updateHostBars(G.players,qId,'hq-bars');
-    document.getElementById('hn-players').textContent=`👥 ${total}`;
-  },1200);
+async function hostQTick(){
+  PLAYERS=await sGet('players')||{};
+  const qi=GS.qIdx;const qId=QS[qi]?.id;
+  if(!qId)return;
+  const pList=Object.values(PLAYERS);
+  const answered=pList.filter(p=>p.answers[qId]!==undefined).length;
+  document.getElementById('hq-answered').textContent=`${answered}/${pList.length}`;
+  document.getElementById('hn-players').textContent=`👥 ${pList.length}`;
+  updateBars(PLAYERS,qId,'hq-bars');
 }
 
 async function hostReveal(){
-  stopTimer();stopPoll();
-  G.players=await sg('quiz-players')||{};
-  G.gs.status='reveal';
-  G.gs.revealTime=Date.now();
-  await ss('quiz-gs',G.gs);
-  renderHostReveal();
-  showView('host-reveal');
-}
+  pollStop();timerStop();
+  PLAYERS=await sGet('players')||{};
+  GS.status='reveal';
+  await sSet('gs',GS);
 
-function renderHostReveal(){
-  const qi=G.gs.qIndex; if(qi<0)return;
-  const q=G.questions[qi];
-  const total=G.questions.length;
-  document.getElementById('hr-q-text').textContent=q.q;
-
-  const shuffled=shuffleAnswers(q);
-  const ap=document.getElementById('hr-answers-preview');
-  ap.innerHTML=shuffled.map((ans,i)=>`
-    <div class="ap-item ${AP_CLS[i]}" style="${ans.ok?'opacity:1;filter:none':'opacity:.5'}">
-      <span class="ap-icon">${ANSWER_CFG[i].icon}</span>
+  const qi=GS.qIdx;const q=QS[qi];
+  document.getElementById('hr-text').textContent=q.q;
+  const sh=shuffleQ(q);
+  document.getElementById('hr-apv').innerHTML=sh.map((ans,i)=>`
+    <div class="ap ${ACFG[i].apc}" style="${ans.ok?'':'opacity:.45'}">
+      <span class="ap-icon">${ACFG[i].icon}</span>
       ${ans.text}
-      ${ans.ok?`<span class="correct-mark">✅</span>`:''}
+      ${ans.ok?'<span class="ck-mark">✅</span>':''}
     </div>
   `).join('');
 
-  const qId=q.id;
-  const pList=Object.values(G.players);
-  const answered=pList.filter(p=>p.answers[qId]!==undefined).length;
-  const correct=pList.filter(p=>p.answers[qId]?.ok).length;
-  document.getElementById('hr-answered-info').textContent=`${correct}/${answered} bonne(s) réponse(s)`;
+  initBars('hr-bars');
+  updateBars(PLAYERS,q.id,'hr-bars');
 
-  updateHostBars(G.players,qId,'hr-bars');
-  renderLBData(sortPlayers(),'hr-mini-lb',5);
+  const pList=Object.values(PLAYERS);
+  const answered=pList.filter(p=>p.answers[q.id]!==undefined).length;
+  const correct=pList.filter(p=>p.answers[q.id]?.ok).length;
+  document.getElementById('hr-info').textContent=`${correct}/${answered} bonne${correct>1?'s':''} réponse${correct>1?'s':''}`;
 
-  const isLast=qi>=total-1;
-  document.getElementById('hr-next-btn').textContent=isLast?'🏆 Voir le classement final':'▶ Question suivante';
+  renderLBData(sortPlayers(),'hr-lb',5);
+
+  const isLast=qi>=QS.length-1;
+  document.getElementById('hr-next').textContent=isLast?'🏆 Classement final':'▶ Question suivante';
+
+  goTo('host-reveal');
+  document.getElementById('hn-status').textContent='📊 Révélation';
 }
 
-function hostNextOrLB(){
-  const qi=G.gs.qIndex; const total=G.questions.length;
-  const interval=parseInt(G.cfg.showLbEvery)||5;
-  const isLast=qi>=total-1;
-  if(isLast){hostShowFinalLB();return;}
+function hostNext(){
+  const qi=GS.qIdx;const isLast=qi>=QS.length-1;
+  if(isLast){hostShowLB(true);return;}
+  const intv=parseInt(CFG.lbEvery)||5;
   const nextIdx=qi+1;
-  if(nextIdx>0&&nextIdx%interval===0&&!isLast){hostShowIntermissionLB();}
+  if(nextIdx>0&&nextIdx%intv===0){hostShowLB(false);}
   else{hostNextQ();}
 }
 
-async function hostShowIntermissionLB(){
-  G.gs.status='leaderboard';
-  G.gs.lbAfter=G.gs.qIndex;
-  await ss('quiz-gs',G.gs);
-  document.getElementById('host-lb-sub').textContent=`Après ${G.gs.qIndex+1} questions`;
-  renderLBData(sortPlayers(),'host-lb-list');
-  document.getElementById('host-lb-next-btn').textContent='▶ Question suivante';
-  document.getElementById('host-lb-next-btn').onclick=hostNextQ;
-  showView('host-lb');
+async function hostShowLB(isFinal){
+  if(isFinal){
+    GS.status='finished';
+    await sSet('gs',GS);
+    document.getElementById('hlb-sub').textContent='🎉 Classement final';
+    document.getElementById('hlb-btn').textContent='↺ Recommencer';
+    document.getElementById('hlb-btn').onclick=hostReset;
+    PLAYERS=await sGet('players')||{};
+    renderLBData(sortPlayers(),'hlb-list');
+    goTo('host-lb');
+    launchConfetti();
+    document.getElementById('hn-status').textContent='✅ Terminé';
+  } else {
+    GS.status='leaderboard';
+    await sSet('gs',GS);
+    document.getElementById('hlb-sub').textContent=`Après ${GS.qIdx+1} questions`;
+    document.getElementById('hlb-btn').textContent='▶ Question suivante';
+    document.getElementById('hlb-btn').onclick=hostContinue;
+    PLAYERS=await sGet('players')||{};
+    renderLBData(sortPlayers(),'hlb-list');
+    goTo('host-lb');
+    document.getElementById('hn-status').textContent='🏆 Classement';
+  }
 }
 
-async function hostShowFinalLB(){
-  await hostFinish();
+function hostContinue(){hostNextQ();}
+
+async function hostFinish(){await hostShowLB(true);}
+
+async function hostReset(){
+  if(!confirm('Recommencer ? Tous les scores seront effacés.'))return;
+  await sSet('players',{});
+  const newGS=mkGS();
+  await sSet('gs',newGS);
+  PLAYERS={};GS=newGS;SHUFFLE_CACHE={};
+  sessionStorage.removeItem('pid');MY_PLAYER=null;MY_ID=null;
+  await hostRefresh();
+  goTo('host-lobby');
+  pollStart(hostLobbyTick,900);
 }
 
-async function hostFinish(){
-  G.gs.status='finished';
-  await ss('quiz-gs',G.gs);
-  document.getElementById('host-lb-sub').textContent='Classement final 🎉';
-  document.getElementById('host-lb-next-btn').textContent='↺ Rejouer';
-  document.getElementById('host-lb-next-btn').onclick=hostResetQuiz;
-  G.players=await sg('quiz-players')||{};
-  renderLBData(sortPlayers(),'host-lb-list');
-  showView('host-lb');
-  launchConfetti();
+async function resetAll(){
+  if(!confirm('⚠️ Effacer tous les joueurs et réinitialiser ?'))return;
+  await sSet('players',{});
+  const newGS=mkGS();await sSet('gs',newGS);
+  PLAYERS={};GS=newGS;SHUFFLE_CACHE={};
+  sessionStorage.removeItem('pid');MY_PLAYER=null;MY_ID=null;
+  await hostRefresh();hLoadPlayers();
 }
 
-async function hostContinueAfterLB(){
-  // handled by dynamic onclick set above
+// ════════════════════════════════════════════
+// TIMERS
+// ════════════════════════════════════════════
+function timerStop(){if(TIMER_ID){clearInterval(TIMER_ID);TIMER_ID=null;}}
+function timerStart(who){
+  timerStop();
+  const C=194.8;
+  const dur=GS.dur||20;
+  const numId=who==='host'?'hq-secs':'pq-secs';
+  const ringId=who==='host'?'hq-ring':'pq-ring';
+  TIMER_ID=setInterval(async()=>{
+    const elapsed=(Date.now()-(GS.startAt||Date.now()))/1000;
+    const left=Math.max(0,dur-elapsed);
+    const pct=left/dur;
+    const numEl=document.getElementById(numId);
+    const ringEl=document.getElementById(ringId);
+    if(numEl)numEl.textContent=Math.ceil(left);
+    if(ringEl){
+      ringEl.style.strokeDashoffset=C*(1-pct);
+      ringEl.style.stroke=pct>.5?'var(--g)':pct>.25?'var(--y)':'var(--r)';
+    }
+    if(left<=0){
+      timerStop();
+      if(who==='host')hostReveal();
+    }
+  },300);
 }
 
-async function hostResetQuiz(){
-  if(!confirm('Recommencer le quiz ? Tous les scores seront effacés.'))return;
-  await ss('quiz-players',{});
-  await ss('quiz-gs',mkGs());
-  G.players={};G.gs=mkGs();
-  sessionStorage.removeItem('quiz-pid');
-  G.player=null;G.pid=null;
-  refreshHost();hostLobbyPoll();showView('host-lobby',true);
+// ════════════════════════════════════════════
+// POLL MANAGER (single slot)
+// ════════════════════════════════════════════
+function pollStop(){if(POLL_ID){clearInterval(POLL_ID);POLL_ID=null;}}
+function pollStart(fn,ms){
+  pollStop();
+  fn(); // immediate first call
+  POLL_ID=setInterval(fn,ms);
 }
 
-// ═══════════════════════════════════════════════════════════
+// ════════════════════════════════════════════
+// ADMIN — QUESTIONS
+// ════════════════════════════════════════════
+function hLoadQs(){
+  document.getElementById('qs-count').textContent=`${QS.length} question${QS.length>1?'s':''}`;
+  const el=document.getElementById('qs-list');
+  if(!QS.length){el.innerHTML='<p class="dim" style="padding:16px 0;text-align:center">Aucune question. Ajoutez-en une !</p>';return;}
+  el.innerHTML=`<table class="tbl"><thead><tr><th>#</th><th>Question</th><th>Bonne réponse</th><th></th></tr></thead><tbody>
+    ${QS.map((q,i)=>`<tr>
+      <td class="dim">${i+1}</td>
+      <td style="max-width:260px;word-break:break-word">${q.q}</td>
+      <td><span class="pill pill-ok">${q.a}</span></td>
+      <td><div style="display:flex;gap:5px">
+        <button class="btn btn-ghost btn-sm" onclick="qfEdit('${q.id}')">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="qfDel('${q.id}')">🗑</button>
+      </div></td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+
+function qfOpen(){
+  document.getElementById('qf-lbl').textContent='Nouvelle question';
+  document.getElementById('qf-id').value='';
+  ['q','a','b','c','d','expl'].forEach(f=>document.getElementById('qf-'+f).value='');
+  document.getElementById('qf-wrap').style.display='block';
+  document.getElementById('qf-wrap').scrollIntoView({behavior:'smooth'});
+}
+function qfEdit(id){
+  const q=QS.find(x=>x.id===id);if(!q)return;
+  document.getElementById('qf-lbl').textContent='Modifier la question';
+  document.getElementById('qf-id').value=id;
+  ['q','a','b','c','d'].forEach(f=>document.getElementById('qf-'+f).value=q[f]||'');
+  document.getElementById('qf-expl').value=q.expl||'';
+  document.getElementById('qf-wrap').style.display='block';
+  document.getElementById('qf-wrap').scrollIntoView({behavior:'smooth'});
+}
+async function qfSave(){
+  const id=document.getElementById('qf-id').value;
+  const q={id:id||'q'+Date.now(),q:document.getElementById('qf-q').value.trim(),
+    a:document.getElementById('qf-a').value.trim(),b:document.getElementById('qf-b').value.trim(),
+    c:document.getElementById('qf-c').value.trim(),d:document.getElementById('qf-d').value.trim(),
+    expl:document.getElementById('qf-expl').value.trim()};
+  if(!q.q||!q.a||!q.b||!q.c||!q.d){alert('Remplissez tous les champs *');return;}
+  if(id){const i=QS.findIndex(x=>x.id===id);if(i>=0)QS[i]=q;}else QS.push(q);
+  await sSet('qs',QS);SHUFFLE_CACHE={};qfClose();hLoadQs();updateHostStats();
+}
+async function qfDel(id){
+  if(!confirm('Supprimer cette question ?'))return;
+  QS=QS.filter(q=>q.id!==id);
+  await sSet('qs',QS);SHUFFLE_CACHE={};hLoadQs();updateHostStats();
+}
+function qfClose(){document.getElementById('qf-wrap').style.display='none';}
+
+// ════════════════════════════════════════════
+// ADMIN — PLAYERS
+// ════════════════════════════════════════════
+async function hLoadPlayers(){
+  PLAYERS=await sGet('players')||{};
+  const sorted=sortPlayers();
+  document.getElementById('h-pl-count').textContent=`${sorted.length} participant${sorted.length>1?'s':''}`;
+  const maxPts=QS.length*150;
+  const tbody=document.getElementById('h-pl-tbody');
+  tbody.innerHTML=sorted.length?sorted.map((p,i)=>`<tr>
+    <td>${i+1}</td>
+    <td>${p.prenom} ${p.nom}</td>
+    <td><strong style="color:var(--gold)">${p.score}</strong><span class="dim">/${maxPts}</span></td>
+    <td><span class="pill ${Object.keys(p.answers).length>=QS.length?'pill-ok':'pill-gold'}">${Object.keys(p.answers).length>=QS.length?'✅ Fini':'⏳ En cours'}</span></td>
+    <td><button class="btn btn-danger btn-sm" onclick="hDelPlayer('${p.id}')">🗑</button></td>
+  </tr>`).join('')
+  :'<tr><td colspan="5" style="text-align:center" class="dim">Aucun participant</td></tr>';
+}
+async function hDelPlayer(id){
+  if(!confirm('Supprimer ce joueur ?'))return;
+  const fresh=await sGet('players')||{};
+  delete fresh[id];PLAYERS=fresh;
+  await sSet('players',PLAYERS);
+  hLoadPlayers();updateHostStats();refreshLobbyChips();
+}
+
+// ════════════════════════════════════════════
+// ADMIN — CONFIG
+// ════════════════════════════════════════════
+function hLoadCfg(){
+  document.getElementById('cfg-intv').value=CFG.lbEvery||5;
+  document.getElementById('cfg-dur').value=CFG.duration||20;
+  document.getElementById('cfg-status').value=CFG.status||'open';
+}
+async function cfgSave(){
+  const pwd=document.getElementById('cfg-pwd').value;
+  CFG.lbEvery=parseInt(document.getElementById('cfg-intv').value)||5;
+  CFG.duration=parseInt(document.getElementById('cfg-dur').value)||20;
+  CFG.status=document.getElementById('cfg-status').value;
+  if(pwd)CFG.pwd=pwd;
+  await sSet('cfg',CFG);
+  document.getElementById('cfg-pwd').value='';
+  const ok=document.getElementById('cfg-ok');ok.style.display='inline';
+  setTimeout(()=>ok.style.display='none',2500);
+}
+
+// ════════════════════════════════════════════
 // HOST BARS
-// ═══════════════════════════════════════════════════════════
-function initHostBars(elId){
-  const el=document.getElementById(elId); if(!el)return;
+// ════════════════════════════════════════════
+function initBars(elId){
+  const el=document.getElementById(elId);if(!el)return;
   el.innerHTML=['A','B','C','D'].map((l,i)=>`
-    <div class="ans-bar-item bar-${l}">
-      <div class="ans-bar-label"><span>${ANSWER_CFG[i].icon} ${l}</span><span id="${elId}-cnt-${l}">0</span></div>
-      <div class="ans-bar-track"><div class="ans-bar-fill" id="${elId}-fill-${l}" style="width:0%"></div></div>
+    <div class="bar-item ${ACFG[i].bc}">
+      <div class="bar-label"><span>${ACFG[i].icon} ${l}</span><span id="${elId}-cnt-${l}">0</span></div>
+      <div class="bar-track"><div class="bar-fill" id="${elId}-fill-${l}" style="width:0%"></div></div>
     </div>
   `).join('');
 }
-
-function updateHostBars(players,qId,elId){
-  if(!document.getElementById(elId+'-fill-A'))return;
+function updateBars(players,qId,elId){
+  const sh=SHUFFLE_CACHE[qId];if(!sh)return;
   const pList=Object.values(players);
   const answered=pList.filter(p=>p.answers[qId]!==undefined);
-  const q=G.questions.find(x=>x.id===qId); if(!q)return;
-  const shuffled=G._shuffleCache?.[qId];
-  if(!shuffled)return;
   const counts=[0,0,0,0];
-  answered.forEach(p=>{const a=p.answers[qId];if(a&&a.choice!==undefined)counts[a.choice]++;});
+  answered.forEach(p=>{const a=p.answers[qId];if(a?.choice!==undefined)counts[a.choice]++;});
   const tot=Math.max(answered.length,1);
   ['A','B','C','D'].forEach((l,i)=>{
-    const el=document.getElementById(elId+'-fill-'+l);
-    const cel=document.getElementById(elId+'-cnt-'+l);
-    if(el)el.style.width=`${(counts[i]/tot)*100}%`;
-    if(cel)cel.textContent=counts[i];
+    const f=document.getElementById(elId+'-fill-'+l);
+    const c=document.getElementById(elId+'-cnt-'+l);
+    if(f)f.style.width=`${(counts[i]/tot)*100}%`;
+    if(c)c.textContent=counts[i];
   });
 }
 
-// ═══════════════════════════════════════════════════════════
+// ════════════════════════════════════════════
 // HELPERS
-// ═══════════════════════════════════════════════════════════
-function shuffleAnswers(q){
-  if(!G._shuffleCache)G._shuffleCache={};
-  if(G._shuffleCache[q.id])return G._shuffleCache[q.id];
+// ════════════════════════════════════════════
+function shuffleQ(q){
+  if(SHUFFLE_CACHE[q.id])return SHUFFLE_CACHE[q.id];
   const arr=[{text:q.a,ok:true},{text:q.b,ok:false},{text:q.c,ok:false},{text:q.d,ok:false}];
   for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}
-  G._shuffleCache[q.id]=arr;
+  SHUFFLE_CACHE[q.id]=arr;
   return arr;
 }
-
-function sortPlayers(){return Object.values(G.players).sort((a,b)=>b.score-a.score);}
-
-const MEDALS_FULL=['🥇','🥈','🥉'];
+function sortPlayers(){
+  return Object.values(PLAYERS).sort((a,b)=>b.score-a.score);
+}
 function renderLBData(sorted,elId,limit=50){
-  const el=document.getElementById(elId); if(!el)return;
-  if(!sorted.length){el.innerHTML='<p style="text-align:center;color:var(--dim);padding:20px 0">Aucun participant pour l\'instant...</p>';return;}
+  const el=document.getElementById(elId);if(!el)return;
+  if(!sorted.length){el.innerHTML='<p style="text-align:center;padding:20px 0" class="dim">Aucun participant pour l\'instant...</p>';return;}
   el.innerHTML=sorted.slice(0,limit).map((p,i)=>{
-    const isMe=G.pid&&p.id===G.pid;
-    return`<div class="lb-row ${TOP_CLS[i]||''} ${isMe?'me':''}">
-      <span class="lb-rank">${MEDALS_FULL[i]||i+1}</span>
-      <span class="lb-name">${p.prenom} ${p.nom}${isMe?' <span class="pill pill-gold">Vous</span>':''}</span>
+    const isMe=MY_ID&&p.id===MY_ID;
+    return`<div class="lb-row ${i<3?'r'+i:''} ${isMe?'me':''}">
+      <span class="lb-rank">${MEDALS[i]||i+1}</span>
+      <span class="lb-name">${p.prenom} ${p.nom}${isMe?` <span class="pill pill-gold">Vous</span>`:''}</span>
       <span class="lb-score">${p.score} pts</span>
     </div>`;
   }).join('');
 }
-
-function renderDots(elId,current,total){
-  const el=document.getElementById(elId); if(!el)return;
-  const show=Math.min(total,20);
-  el.innerHTML=Array.from({length:show},(_,i)=>`<span class="q-dot ${i<current?'done-ok':i===current?'current':''}"></span>`).join('');
+function renderDots(elId,cur,total){
+  const el=document.getElementById(elId);if(!el)return;
+  const n=Math.min(total,20);
+  el.innerHTML=Array.from({length:n},(_,i)=>`<span class="dot ${i<cur?'ok':i===cur?'cur':''}"></span>`).join('');
 }
 
-// Admin: questions
-function loadQList(){
-  const qs=G.questions;
-  document.getElementById('q-count-lbl').textContent=`${qs.length} question(s)`;
-  const el=document.getElementById('q-list');
-  if(!qs.length){el.innerHTML='<p class="muted" style="padding:16px 0;text-align:center">Aucune question. Ajoutez-en une !</p>';return;}
-  el.innerHTML=`<table class="admin-tbl"><thead><tr><th>#</th><th>Question</th><th>Bonne réponse</th><th></th></tr></thead><tbody>
-    ${qs.map((q,i)=>`<tr>
-      <td class="muted">${i+1}</td>
-      <td style="max-width:280px">${q.q}</td>
-      <td><span class="pill pill-ok">${q.a}</span></td>
-      <td><div style="display:flex;gap:5px">
-        <button class="btn btn-ghost btn-sm" onclick="editQ('${q.id}')">✏️</button>
-        <button class="btn btn-danger btn-sm" onclick="delQ('${q.id}')">🗑</button>
-      </div></td>
-    </tr>`).join('')}
-  </tbody></table>`;
-  G._shuffleCache={};
-}
-
-function openQForm(){document.getElementById('qf-title-lbl').textContent='Nouvelle question';document.getElementById('qf-id').value='';['q','a','b','c','d','expl'].forEach(f=>document.getElementById('qf-'+f).value='');document.getElementById('q-form').style.display='block';document.getElementById('q-form').scrollIntoView({behavior:'smooth'});}
-function editQ(id){const q=G.questions.find(x=>x.id===id);if(!q)return;document.getElementById('qf-title-lbl').textContent='Modifier';document.getElementById('qf-id').value=id;document.getElementById('qf-q').value=q.q;document.getElementById('qf-a').value=q.a;document.getElementById('qf-b').value=q.b;document.getElementById('qf-c').value=q.c;document.getElementById('qf-d').value=q.d;document.getElementById('qf-expl').value=q.expl||'';document.getElementById('q-form').style.display='block';document.getElementById('q-form').scrollIntoView({behavior:'smooth'});}
-async function saveQ(){
-  const id=document.getElementById('qf-id').value;
-  const q={id:id||'q'+Date.now(),q:document.getElementById('qf-q').value.trim(),a:document.getElementById('qf-a').value.trim(),b:document.getElementById('qf-b').value.trim(),c:document.getElementById('qf-c').value.trim(),d:document.getElementById('qf-d').value.trim(),expl:document.getElementById('qf-expl').value.trim()};
-  if(!q.q||!q.a||!q.b||!q.c||!q.d){alert('Remplissez tous les champs *');return;}
-  if(id){const i=G.questions.findIndex(x=>x.id===id);if(i>=0)G.questions[i]=q;}else G.questions.push(q);
-  await ss('quiz-qs',G.questions);G._shuffleCache={};closeQForm();loadQList();refreshHost();
-}
-async function delQ(id){if(!confirm('Supprimer ?'))return;G.questions=G.questions.filter(q=>q.id!==id);await ss('quiz-qs',G.questions);G._shuffleCache={};loadQList();refreshHost();}
-function closeQForm(){document.getElementById('q-form').style.display='none';}
-
-async function loadParticipants(){
-  G.players=await sg('quiz-players')||{};
-  const sorted=sortPlayers();
-  document.getElementById('p-count-lbl').textContent=`${sorted.length} participant(s)`;
-  const max=G.questions.length*150;
-  const tbody=document.getElementById('p-tbody');
-  tbody.innerHTML=sorted.length?sorted.map((p,i)=>`<tr>
-    <td>${i+1}</td><td>${p.prenom} ${p.nom}</td>
-    <td><strong style="color:var(--gold)">${p.score}</strong><span class="muted">/${max}</span></td>
-    <td><span class="pill ${Object.keys(p.answers).length>=G.questions.length?'pill-ok':'pill-gold'}">${Object.keys(p.answers).length>=G.questions.length?'✅ Fini':'⏳ En cours'}</span></td>
-    <td><button class="btn btn-danger btn-sm" onclick="delPlayer('${p.id}')">🗑</button></td>
-  </tr>`).join(''):'<tr><td colspan="5" style="text-align:center" class="muted">Aucun participant</td></tr>';
-}
-
-async function delPlayer(id){if(!confirm('Supprimer ?'))return;delete G.players[id];await ss('quiz-players',G.players);loadParticipants();refreshHost();}
-async function resetAll(){if(!confirm('⚠️ Effacer tous les joueurs et réinitialiser le quiz ?'))return;await ss('quiz-players',{});await ss('quiz-gs',mkGs());G.players={};G.gs=mkGs();sessionStorage.removeItem('quiz-pid');G.player=null;G.pid=null;loadParticipants();refreshHost();}
-
-function loadCfg(){document.getElementById('cfg-interval').value=G.cfg.showLbEvery||5;document.getElementById('cfg-duration').value=G.cfg.questionDuration||20;document.getElementById('cfg-status').value=G.cfg.status||'open';}
-async function saveCfg(){
-  const pwd=document.getElementById('cfg-pwd').value;
-  G.cfg.showLbEvery=parseInt(document.getElementById('cfg-interval').value)||5;
-  G.cfg.questionDuration=parseInt(document.getElementById('cfg-duration').value)||20;
-  G.cfg.status=document.getElementById('cfg-status').value;
-  if(pwd)G.cfg.adminPassword=pwd;
-  await ss('quiz-cfg',G.cfg);document.getElementById('cfg-pwd').value='';
-  const ok=document.getElementById('cfg-saved');ok.style.display='inline';setTimeout(()=>ok.style.display='none',2500);
-}
-
-function stopPoll(){if(G.poll){clearInterval(G.poll);G.poll=null;}}
-
-// ═══════════════════════════════════════════════════════════
+// ════════════════════════════════════════════
 // CONFETTI
-// ═══════════════════════════════════════════════════════════
+// ════════════════════════════════════════════
 function launchConfetti(){
   const cv=document.getElementById('confetti-canvas');
   const ctx=cv.getContext('2d');
   cv.width=window.innerWidth;cv.height=window.innerHeight;
-  const colors=['#D4A843','#F0C84A','#F0E6CC','#2DB87A','#E8404A','#9B59B6','#3A7EF5','#fff'];
-  const bits=Array.from({length:160},()=>({x:Math.random()*cv.width,y:-30-Math.random()*180,w:Math.random()*10+4,h:Math.random()*5+3,c:colors[~~(Math.random()*colors.length)],vx:(Math.random()-.5)*5,vy:Math.random()*5+2,r:Math.random()*360,rv:(Math.random()-.5)*12}));
+  const cols=['#D4A843','#F0C84A','#F0E6CC','#2DB87A','#E8404A','#9B59B6','#3A7EF5','#fff'];
+  const bits=Array.from({length:160},()=>({
+    x:Math.random()*cv.width,y:-30-Math.random()*180,
+    w:Math.random()*10+4,h:Math.random()*5+3,
+    c:cols[~~(Math.random()*cols.length)],
+    vx:(Math.random()-.5)*5,vy:Math.random()*5+2,r:Math.random()*360,rv:(Math.random()-.5)*12
+  }));
   let f=0;
-  function draw(){ctx.clearRect(0,0,cv.width,cv.height);bits.forEach(b=>{ctx.save();ctx.translate(b.x,b.y);ctx.rotate(b.r*Math.PI/180);ctx.fillStyle=b.c;ctx.fillRect(-b.w/2,-b.h/2,b.w,b.h);ctx.restore();b.x+=b.vx;b.y+=b.vy;b.r+=b.rv;if(b.y>cv.height){b.y=-20;b.x=Math.random()*cv.width;}});f++;if(f<260)requestAnimationFrame(draw);else ctx.clearRect(0,0,cv.width,cv.height);}
-  draw();
+  (function draw(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    bits.forEach(b=>{
+      ctx.save();ctx.translate(b.x,b.y);ctx.rotate(b.r*Math.PI/180);
+      ctx.fillStyle=b.c;ctx.fillRect(-b.w/2,-b.h/2,b.w,b.h);ctx.restore();
+      b.x+=b.vx;b.y+=b.vy;b.r+=b.rv;
+      if(b.y>cv.height){b.y=-20;b.x=Math.random()*cv.width;}
+    });
+    if(++f<260)requestAnimationFrame(draw);
+    else ctx.clearRect(0,0,cv.width,cv.height);
+  })();
 }
 </script>
 </body>
