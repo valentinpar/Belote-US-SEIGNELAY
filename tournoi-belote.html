@@ -674,9 +674,33 @@ function genererManche() {
     matchs.push({ id: 'm_' + tournoi.mancheActuelle + '_' + i, eq1: liste[i], eq2: liste[i + 1], rang1: i + 1, rang2: i + 2, score1: '', score2: '', joue: false });
   }
 
-  // Ajouter le bye en dernier
+  // Gérer l'exemption et la file d'attente des exemptés
   if (byeEquipe) {
-    matchs.push({ id: 'bye_' + tournoi.mancheActuelle, eq1: byeEquipe, eq2: null, rang1: cl.indexOf(byeEquipe) + 1, rang2: null, score1: '', score2: '', joue: true, bye: true });
+    if (!tournoi.byeQueue) tournoi.byeQueue = [];
+    tournoi.byeQueue.push({ id: byeEquipe.id, mancheNum: tournoi.mancheActuelle });
+
+    if (tournoi.byeQueue.length >= 2) {
+      // Deux équipes ont été exemptées → on les fait jouer ensemble
+      const entry1 = tournoi.byeQueue.shift();
+      const entry2 = tournoi.byeQueue.shift();
+      const beq1 = equipes.find(e => e.id === entry1.id);
+      const beq2 = equipes.find(e => e.id === entry2.id);
+      // Afficher aussi la carte d'exemption de l'équipe courante (informative)
+      matchs.push({ id: 'bye_' + tournoi.mancheActuelle, eq1: byeEquipe, eq2: null, rang1: cl.indexOf(byeEquipe) + 1, rang2: null, score1: '', score2: '', joue: true, bye: true, byeInMatch: true });
+      // Ajouter le match de rattrapage
+      matchs.push({
+        id: 'byematch_' + tournoi.mancheActuelle,
+        eq1: beq1, eq2: beq2,
+        score1: '', score2: '',
+        joue: false,
+        byeMatch: true,
+        mancheBye1: entry1.mancheNum,
+        mancheBye2: entry2.mancheNum
+      });
+    } else {
+      // Une seule équipe exemptée, on attend la suivante
+      matchs.push({ id: 'bye_' + tournoi.mancheActuelle, eq1: byeEquipe, eq2: null, rang1: cl.indexOf(byeEquipe) + 1, rang2: null, score1: '', score2: '', joue: true, bye: true });
+    }
   }
 
   tournoi.manches.push({ num: tournoi.mancheActuelle, matchs, valide: false });
@@ -709,13 +733,50 @@ function renderManche() {
   manche.matchs.forEach(m => {
     if (m.bye) {
       // Carte spéciale exemption
+      const byeLabel = m.byeInMatch
+        ? '⭐ Exemption — match de rattrapage programmé ci-dessous'
+        : '⭐ Exemption — pas de match cette manche';
+      const byeSub = m.byeInMatch
+        ? '<div style="margin-top:0.4rem;font-size:0.78rem;color:#60a5fa">Un match de rattrapage a été ajouté ↓</div>'
+        : '<div style="margin-top:0.4rem;font-size:0.78rem;color:#78716c">Exempt · aucun point attribué</div>';
       html += `<div class="match-card joue" id="mc-${m.id}" style="border-color:rgba(217,119,6,0.5);background:rgba(217,119,6,0.04)">
-        <div class="match-label" style="color:var(--or)">⭐ Exemption — pas de match cette manche</div>
+        <div class="match-label" style="color:var(--or)">${byeLabel}</div>
         <div class="match-body" style="justify-content:center;padding:1rem 1.2rem">
           <div class="match-eq" style="align-items:center;text-align:center;flex:1">
             <div class="match-eq-nom" style="color:var(--or)">${m.eq1.nom}</div>
             <div class="match-eq-joueurs">${m.eq1.joueurs || ''}</div>
-            <div style="margin-top:0.4rem;font-size:0.78rem;color:#78716c">Exempt · aucun point attribué</div>
+            ${byeSub}
+          </div>
+        </div>
+      </div>`;
+      return;
+    }
+    if (m.byeMatch) {
+      // Match de rattrapage entre deux équipes exemptées
+      const s1 = +m.score1, s2 = +m.score2;
+      const e1w = m.joue && s1 > s2, e2w = m.joue && s2 > s1, nul = m.joue && s1 === s2;
+      html += `<div class="match-card ${m.joue ? 'joue' : ''}" id="mc-${m.id}" style="border-color:rgba(96,165,250,0.5);background:rgba(30,58,138,0.06)">
+        <div class="match-label" style="color:#60a5fa">🔄 Match de rattrapage — équipes exemptées</div>
+        <div class="match-body">
+          <div class="match-eq">
+            <div class="match-eq-nom" style="color:${e1w ? 'var(--vert-clair)' : ''}">${m.eq1.nom}${e1w ? ' ✓' : ''}</div>
+            <div class="match-eq-joueurs">${m.eq1.joueurs || ''}</div>
+            <div style="font-size:0.72rem;color:#60a5fa;margin-top:0.2rem">Exempt manche ${m.mancheBye1}</div>
+          </div>
+          <div class="match-centre">
+            <div class="score-row">
+              <input type="number" class="score-input" value="${m.score1}" min="0" placeholder="—"
+                ${manche.valide ? 'disabled' : ''} oninput="sauverScore('${m.id}',1,this.value)">
+              <span class="vs-badge">VS</span>
+              <input type="number" class="score-input" value="${m.score2}" min="0" placeholder="—"
+                ${manche.valide ? 'disabled' : ''} oninput="sauverScore('${m.id}',2,this.value)">
+            </div>
+            ${nul ? '<div style="font-size:0.7rem;color:#a8a29e">Nul</div>' : ''}
+          </div>
+          <div class="match-eq right">
+            <div class="match-eq-nom" style="color:${e2w ? 'var(--vert-clair)' : ''}">${e2w ? '✓ ' : ''}${m.eq2.nom}</div>
+            <div class="match-eq-joueurs">${m.eq2.joueurs || ''}</div>
+            <div style="font-size:0.72rem;color:#60a5fa;margin-top:0.2rem">Exempt manche ${m.mancheBye2}</div>
           </div>
         </div>
       </div>`;
@@ -749,6 +810,17 @@ function renderManche() {
   });
 
   html += '</div>';
+
+  // Afficher la file d'attente des exemptés en attente de rattrapage
+  if (tournoi.byeQueue && tournoi.byeQueue.length > 0) {
+    const queueEq = tournoi.byeQueue.map(b => {
+      const eq = equipes.find(e => e.id === b.id);
+      return `<strong style="color:#60a5fa">${eq ? eq.nom : b.id}</strong> <span style="color:#78716c;font-size:0.78rem">(exempt manche ${b.mancheNum})</span>`;
+    }).join(', ');
+    html += `<div class="alert" style="background:rgba(30,58,138,0.18);border:1px solid rgba(96,165,250,0.35);color:#93c5fd;margin-top:0.8rem">
+      ⏳ <strong>En attente d'un match de rattrapage :</strong> ${queueEq} — Dès qu'une 2ᵉ équipe sera exemptée, elles joueront ensemble.
+    </div>`;
+  }
 
   if (!manche.valide) {
     html += `<div class="flex gap-1 wrap mt-2">
@@ -895,7 +967,16 @@ function renderHistorique() {
         html += `<div class="histo-match" style="border-left:2px solid rgba(217,119,6,0.4);padding-left:0.6rem">
           <span style="color:var(--or)">⭐ ${m.eq1.nom}</span>
           <span class="histo-score" style="color:#78716c">exempt</span>
-          <span style="color:#78716c">—</span>
+          <span style="color:#78716c">${m.byeInMatch ? '→ match de rattrapage' : '—'}</span>
+        </div>`;
+        return;
+      }
+      if (m.byeMatch) {
+        const s1 = +m.score1, s2 = +m.score2;
+        html += `<div class="histo-match" style="border-left:2px solid rgba(96,165,250,0.45);padding-left:0.6rem">
+          <span class="${s1>s2?'histo-win':'histo-lose'}">🔄 ${m.eq1.nom}</span>
+          <span class="histo-score">${m.score1} — ${m.score2}</span>
+          <span class="${s2>s1?'histo-win':'histo-lose'}">${m.eq2.nom} <span style="color:#60a5fa;font-size:0.75rem">(rattrapage)</span></span>
         </div>`;
         return;
       }
@@ -1077,7 +1158,10 @@ function appliquerDonnees(data) {
   if (Array.isArray(data.equipes)) equipes = data.equipes;
   else if (data.equipes) equipes = Object.values(data.equipes);
   if (data.cfg)     cfg     = data.cfg;
-  if (data.tournoi) tournoi = data.tournoi;
+  if (data.tournoi) {
+    tournoi = data.tournoi;
+    if (tournoi && !tournoi.byeQueue) tournoi.byeQueue = [];
+  }
   if (data.mdp)     mdp     = data.mdp;
   if (data.questionSecrete !== undefined) questionSecrete = data.questionSecrete;
   if (data.reponseSecrete  !== undefined) reponseSecrete  = data.reponseSecrete;
