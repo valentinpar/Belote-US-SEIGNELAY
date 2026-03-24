@@ -685,28 +685,51 @@ async function registerPlayer(){
 async function syncToGameState(){
   G.gs=await sg('quiz-gs')||mkGs();
   G.questions=await sg('quiz-qs')||G.questions;
+  // Merge fresh players from storage with our in-memory ones
+  const storedPlayers=await sg('quiz-players')||{};
+  G.players=Object.assign({},storedPlayers,G.players); // keep local changes
   document.getElementById('lobby-name').textContent=G.player.prenom;
-  if(G.gs.status==='lobby'){showView('lobby');startLobbyPoll();}
+  if(G.gs.status==='lobby'){
+    showView('lobby');
+    renderLobbyChips(); // ← affiche immédiatement sans attendre le poll
+    startLobbyPoll();
+  }
   else if(G.gs.status==='question'){showView('question');renderPlayerQ();startPlayerTimer();startPlayerPoll();}
   else if(G.gs.status==='reveal'){showView('reveal');renderReveal();}
   else if(G.gs.status==='leaderboard'){showView('lb-inter');renderLBInter();}
   else if(G.gs.status==='finished'){showView('final');renderFinal();}
 }
 
+// Rendu immédiat des chips (appelable sans attendre le poll)
+function renderLobbyChips(players){
+  const pls=players||G.players;
+  const names=Object.values(pls).sort((a,b)=>a.joinedAt-b.joinedAt).map(p=>`${p.prenom} ${p.nom}`);
+  const chips=document.getElementById('lobby-chips');
+  const count=document.getElementById('lobby-count');
+  const hChips=document.getElementById('host-chips');
+  const hCount=document.getElementById('host-player-count');
+  if(chips)chips.innerHTML=names.map(n=>`<span class="chip">${n}</span>`).join('');
+  if(count)count.textContent=`${names.length} joueur${names.length>1?'s':''} connecté${names.length>1?'s':''}`;
+  if(hChips)hChips.innerHTML=names.map(n=>`<span class="chip">${n}</span>`).join('');
+  if(hCount)hCount.textContent=`${names.length} joueur${names.length>1?'s':''} connecté${names.length>1?'s':''}`;
+}
+
 // ═══════════════════════════════════════════════════════════
 // LOBBY POLL (player)
 // ═══════════════════════════════════════════════════════════
+async function lobbyTick(){
+  const fresh=await sg('quiz-players')||{};
+  if(Object.keys(fresh).length>0) G.players=fresh;
+  renderLobbyChips();
+  G.gs=await sg('quiz-gs')||G.gs;
+  if(G.gs.status==='question'){stopPoll();showView('question');renderPlayerQ();startPlayerTimer();startPlayerPoll();}
+  if(G.gs.status==='finished'){stopPoll();showView('final');renderFinal();}
+}
+
 function startLobbyPoll(){
   stopPoll();
-  G.poll=setInterval(async()=>{
-    G.players=await sg('quiz-players')||{};
-    const names=Object.values(G.players).map(p=>`${p.prenom} ${p.nom}`);
-    document.getElementById('lobby-chips').innerHTML=names.map(n=>`<span class="chip">${n}</span>`).join('');
-    document.getElementById('lobby-count').textContent=`${names.length} joueur(s) connecté(s)`;
-    G.gs=await sg('quiz-gs')||G.gs;
-    if(G.gs.status==='question'){stopPoll();showView('question');renderPlayerQ();startPlayerTimer();startPlayerPoll();}
-    if(G.gs.status==='finished'){stopPoll();showView('final');renderFinal();}
-  },1500);
+  lobbyTick(); // ← exécution immédiate, pas d'attente
+  G.poll=setInterval(lobbyTick,900); // poll toutes les 900ms
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -766,7 +789,11 @@ async function playerAnswer(clickedBtn,isOk,choiceIdx,answers,qId){
 
   G.player.score+=pts;
   G.player.answers[qId]={choice:choiceIdx,ok:isOk,pts,ts:Date.now()};
-  G.players[G.pid]=G.player;
+
+  // ← Lire les joueurs FRAIS depuis le stockage pour ne pas écraser les réponses des autres
+  const freshPlayers=await sg('quiz-players')||{};
+  freshPlayers[G.pid]=G.player; // on ne met à jour QUE le joueur actuel
+  G.players=freshPlayers;
   await ss('quiz-players',G.players);
 
   setTimeout(()=>{
@@ -937,26 +964,31 @@ function hTab(t){
   if(t==='qr'){document.getElementById('cfg-url').value=G.cfg.quizUrl||'';setTimeout(()=>generateQR('qr-admin',getURL()),80);}
 }
 
+async function hostLobbyTick(){
+  const fresh=await sg('quiz-players')||{};
+  if(Object.keys(fresh).length>0) G.players=fresh;
+  G.gs=await sg('quiz-gs')||G.gs;
+  updateHostNavBar();
+  renderLobbyChips();
+  document.getElementById('hn-players').textContent=`👥 ${Object.keys(G.players).length}`;
+  if(_hActiveTab==='p')loadParticipants();
+}
+
 function hostLobbyPoll(){
   stopPoll();
-  G.poll=setInterval(async()=>{
-    G.players=await sg('quiz-players')||{};
-    G.gs=await sg('quiz-gs')||G.gs;
-    updateHostNavBar();
-    const names=Object.values(G.players);
-    document.getElementById('host-chips').innerHTML=names.map(p=>`<span class="chip">${p.prenom} ${p.nom}</span>`).join('');
-    document.getElementById('host-player-count').textContent=`${names.length} joueur(s) connecté(s)`;
-    document.getElementById('hn-players').textContent=`👥 ${names.length}`;
-    if(_hActiveTab==='p')loadParticipants();
-  },2000);
+  hostLobbyTick(); // ← immédiat
+  G.poll=setInterval(hostLobbyTick,900);
 }
 
 async function refreshHost(){
   G.cfg=await sg('quiz-cfg')||DEF_CFG;
   G.questions=await sg('quiz-qs')||G.questions;
-  G.players=await sg('quiz-players')||{};
+  const fresh=await sg('quiz-players')||{};
+  if(Object.keys(fresh).length>0) G.players=fresh;
   G.gs=await sg('quiz-gs')||mkGs();
   updateHostNavBar();
+  renderLobbyChips(); // ← mise à jour immédiate des chips
+  document.getElementById('hn-players').textContent=`👥 ${Object.keys(G.players).length}`;
   const qs=G.questions; const ps=Object.values(G.players);
   const done=ps.filter(p=>Object.keys(p.answers).length>=qs.length).length;
   const avg=ps.length?Math.round(ps.reduce((s,p)=>s+p.score,0)/ps.length):0;
