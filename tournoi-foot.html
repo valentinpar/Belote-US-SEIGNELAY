@@ -116,8 +116,7 @@
 let E=[],C={np:4,pV:3,pN:1,pD:0,qual:2},T=null,mdp=localStorage.getItem('foot_mdp')||'1234',deb=false;
 let reglementTexte='';
 // ── FCM Push ──
-const VAPID_KEY='BG6Keb2AlSIZsLkJ8ht97glPihiS-8nfM3I9n_9-QImKC21uVBR-12RGpBzr_wYsVpeWwbBsGJH9TxWtOSyjAkE';
-var fcmMessaging=null,fcmToken=null;
+
 function ouvrirLogin(){document.getElementById('pwd-input').value='';document.getElementById('pwd-error').textContent='';document.getElementById('modal-pwd').classList.add('open');setTimeout(()=>document.getElementById('pwd-input').focus(),50)}
 function fermerModal(){document.getElementById('modal-pwd').classList.remove('open')}
 function checkPwd(){if(document.getElementById('pwd-input').value===mdp){deb=true;localStorage.setItem('foot_session','1');fermerModal();['tab-equipes','tab-setup','tab-poules','tab-elim','tab-notifs'].forEach(t=>document.getElementById(t).classList.add('visible'));document.getElementById('btn-orga').style.display='none';document.getElementById('btn-lock').style.display='block';document.getElementById('regl-btn-edit-wrap').style.display='';goTab('equipes',document.getElementById('tab-equipes'))}else{const e=document.getElementById('pwd-error');e.textContent='❌ Incorrect';document.getElementById('pwd-input').value='';setTimeout(()=>e.textContent='',2e3)}}
@@ -502,50 +501,14 @@ function loadLocal(){try{const e=localStorage.getItem('foot_E'),c=localStorage.g
 function queuePush(title,body,target){
 if(!fbOk||!db)return;
 db.ref('foot_push_queue').push({title:title,body:body,target:target||'all',ts:Date.now()})}
-
-async function initFCM(source){
-source=source||'tournoi';
-hideFCMBanner(); // Cacher immédiatement
-if(!fbOk||!db)return null;
-try{
-if(!('serviceWorker'in navigator)||!('Notification'in window))return null;
-fcmMessaging=firebase.messaging();
-const reg=await navigator.serviceWorker.register('./sw.js');
-const token=await fcmMessaging.getToken({vapidKey:VAPID_KEY,serviceWorkerRegistration:reg});
-if(!token)return null;
-fcmToken=token;
-localStorage.setItem('foot_fcm_token',token);
-var key=btoa(token).replace(/[^a-zA-Z0-9]/g,'').substring(0,28);
-db.ref('foot_fcm_tokens/'+key).set({token:token,source:source,teams:notifTeams,updatedAt:Date.now()});
-fcmMessaging.onMessage(function(payload){
-var t=(payload.notification&&payload.notification.title)||(payload.data&&payload.data.title)||'📢';
-var b=(payload.notification&&payload.notification.body)||(payload.data&&payload.data.body)||'';
-notify(t,b)});
-localStorage.setItem('foot_fcm_asked','1');
-hideFCMBanner();
-return token;
-}catch(e){console.warn('FCM:',e);return null}}
-
-function updateFCMTeams(){
-if(!fcmToken||!fbOk||!db)return;
-var key=btoa(fcmToken).replace(/[^a-zA-Z0-9]/g,'').substring(0,28);
-db.ref('foot_fcm_tokens/'+key+'/teams').set(notifTeams)}
-
-function showFCMBanner(){
-if(localStorage.getItem('foot_fcm_asked'))return;
-if(!('Notification'in window))return;
-if(Notification.permission==='denied')return;
-if(document.getElementById('fcm-banner-prompt'))return;
-var b=document.createElement('div');b.id='fcm-banner-prompt';
-b.style.cssText='position:fixed;bottom:1rem;left:50%;transform:translateX(-50%);z-index:9998;background:var(--gris-fonce);border:1px solid var(--or);border-radius:12px;padding:.7rem 1rem;box-shadow:0 4px 20px rgba(0,0,0,.6);display:flex;align-items:center;gap:.7rem;max-width:90vw;font-size:.82rem';
-b.innerHTML='<span>🔔 Recevoir les notifications du tournoi ?</span><button onclick="initFCM(\'tournoi\')" style="background:var(--vert-fonce);color:var(--or);border:1px solid var(--or);border-radius:8px;padding:.25rem .7rem;cursor:pointer;font-size:.8rem;font-weight:700">Oui</button><button onclick="hideFCMBanner()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:.8rem">Non merci</button>';
-document.body.appendChild(b)}
-function hideFCMBanner(){
-localStorage.setItem('foot_fcm_asked','1');
-var b=document.getElementById('fcm-banner-prompt');if(b)b.remove()}
 if(localStorage.getItem('foot_session')==='1'){deb=true;['tab-equipes','tab-setup','tab-poules','tab-elim','tab-notifs'].forEach(t=>document.getElementById(t).classList.add('visible'));document.getElementById('btn-orga').style.display='none';document.getElementById('btn-lock').style.display='block';document.getElementById('regl-btn-edit-wrap').style.display=''}
 initFB();if(T)rRes();renderReglement();rNotifBtn();
-setTimeout(showFCMBanner,2000);
+// Auto-register FCM si permission déjà accordée
+setTimeout(function(){
+if('Notification'in window&&Notification.permission==='granted'&&fbOk){
+initFCM('tournoi').then(function(t){if(t)console.log('FCM ok',t.substring(0,20))});}
+else{showFCMBanner();}
+},3000);
 // PAR ÉQUIPE
 var selectedEqId='';
 function rParEquipe(){var d=document.getElementById('parequipe-content');if(!T||!E.length){d.innerHTML='<div class="empty-state"><div class="icon">👤</div>Lancez le tournoi</div>';return}
@@ -606,7 +569,10 @@ if(notifTeams[id]){
 var eq=E.find(function(e){return e.id===id});
 notify('🔔 Notifications activées','Vous serez alerté pour les matchs de '+(eq?eq.nom:'votre équipe')+' !');
 initFCM('tournoi').then(function(){updateFCMTeams()});
-}else{updateFCMTeams()}}function notifEq(eqId,title,body){if(notifTeams[eqId]&&notifGranted())notify(title,body)}
+}else{updateFCMTeams()}}
+function notifEq(eqId,title,body){
+if(notifTeams[eqId])notify(title,body);
+queuePush(title,body,eqId)}
 
 var historique=JSON.parse(localStorage.getItem('foot_historique')||'[]');
 function saveHisto(){localStorage.setItem('foot_historique',JSON.stringify(historique));saveFB()}
@@ -709,7 +675,11 @@ var abonnes=E.filter(function(e){return notifTeams[e.id]});
 var h='';
 // ── Bannière test ──
 h+='<div class="card"><h2>🔔 État des notifications</h2>';
-h+='<div style="font-size:.78rem;color:var(--vert-pale);margin-bottom:.6rem">✅ Actif sur tous les appareils connectés</div>';
+var fcmStatus=fcmToken?'✅ Push activé (token enregistré)':'⚠️ Push non enregistré — appuie sur Réenregistrer';
+var fcmColor=fcmToken?'var(--vert-pale)':'#fcd34d';
+h+='<div style="font-size:.78rem;color:var(--vert-pale);margin-bottom:.4rem">✅ Bannières in-app actives</div>';
+h+='<div style="font-size:.78rem;color:'+fcmColor+';margin-bottom:.6rem">'+fcmStatus+'</div>';
+h+='<button class="btn btn-primary btn-sm" onclick="initFCM(\'tournoi\').then(function(t){rNotifs();if(t)notify(\'✅ Push enregistré\',\'Notifications activées !\')})">🔄 Réenregistrer le push</button>';
 h+='<div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap"><select id="test-delay" style="background:var(--gris-fonce);border:1px solid var(--gris-moyen);color:var(--txt);border-radius:6px;padding:.2rem .4rem;font-size:.8rem"><option value="5">5s</option><option value="10" selected>10s</option><option value="15">15s</option><option value="30">30s</option></select><button id="test-timer-btn" class="btn btn-primary btn-sm" onclick="startTestTimer()">▶ Test minuteur</button><span id="test-timer-lbl" style="font-size:.8rem;color:var(--or);font-weight:700;min-width:40px"></span><button class="btn btn-ghost btn-sm" onclick="testNotif()">Tester maintenant</button></div></div>';
 // ── Annonce ──
 h+='<div class="card"><h2>📢 Envoyer une annonce</h2>';
