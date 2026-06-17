@@ -90,7 +90,7 @@
 <button class="btn btn-primary mt-1" onclick="ajouterHisto()">➕ Ajouter</button>
 </div>
 <div id="histo-liste"></div></div>
-<div class="card"><h2>🔔 Notifications</h2><p style="color:var(--muted);font-size:.8rem;margin-bottom:.7rem">Recevez une alerte à chaque étape clé : tour validé, éliminatoires lancés, champion couronné…</p><div id="notif-btn-wrap"></div><div id="alert-notif" class="mt-1"></div></div>
+<div class="card"><h2>🔔 Notifications</h2><p style="color:var(--muted);font-size:.8rem;margin-bottom:.7rem">Une bannière s'affiche à chaque étape clé : tour validé, éliminatoires lancés, champion couronné… Compatible avec tous les navigateurs dont Safari.</p><div id="notif-btn-wrap"></div><div id="alert-notif" class="mt-1"></div></div>
 <div class="card"><h2>❓ Question secrète de récupération</h2><p style="color:var(--muted);font-size:.8rem;margin-bottom:.7rem">En cas d'oubli du mot de passe, cette question permet de le réinitialiser.</p><div style="display:grid;grid-template-columns:1fr auto;gap:.6rem;align-items:end;margin-bottom:.5rem"><div><label>Question secrète</label><input type="text" id="cfg-question" placeholder="Ex: Nom de votre premier chien ?"></div><button class="btn btn-primary" onclick="sauverQuestion()">💾</button></div><div><label>Réponse secrète</label><input type="text" id="cfg-reponse" placeholder="Votre réponse (insensible à la casse)"></div><div id="alert-question" class="mt-1"></div></div>
 <div class="card"><h2>🔑 Mot de passe</h2><div class="pwd-row"><div><label>Nouveau</label><div class="pwd-wrap"><input type="password" id="new-pwd"><button class="pwd-eye" onclick="toggleEye('new-pwd')">👁</button></div></div><div><label>Confirmer</label><input type="password" id="new-pwd2" onkeydown="if(event.key==='Enter')chgMdp()"></div><button class="btn btn-primary" onclick="chgMdp()">💾</button></div><div id="alert-mdp" class="mt-1"></div></div><div class="card"><h2>ℹ️ Règles</h2><p style="color:var(--muted);line-height:1.6;font-size:.83rem"><strong style="color:var(--txt)">📋 Poules :</strong> Tous vs tous avec rotation par tours. Les matchs sont répartis en tours successifs sur la journée. Chaque équipe joue 1 match par tour et se repose entre deux. Classement : pts → diff buts → buts marqués.<br><br><strong style="color:var(--txt)">🏆 Élim :</strong> Les meilleurs de chaque poule (nombre réglable en Config) rejoignent la <strong style="color:var(--or)">Coupe principale</strong>, qui démarre toujours en quarts de finale (Quarts → Demis → Petite finale → Finale). Toutes les autres équipes jouent la <strong>🛡️ Coupe de consolation</strong> (même format adapté à leur nombre). <strong style="color:var(--or)">En cas d'égalité : tirs au but pour départager.</strong><br><br><strong style="color:var(--or)">3 pts victoire · 1 pt nul · 0 pt défaite</strong></p></div></section>
 <section id="sec-poules" class="section"><div id="poules-content"><div class="empty-state"><div class="icon">📋</div>Lancez le tournoi</div></div></section>
@@ -479,7 +479,9 @@ var selectedEqId='';
 function rParEquipe(){var d=document.getElementById('parequipe-content');if(!T||!E.length){d.innerHTML='<div class="empty-state"><div class="icon">👤</div>Lancez le tournoi</div>';return}
 var h='<div class="card"><h2>👤 Planning par équipe</h2><p style="color:var(--muted);font-size:.8rem;margin-bottom:.7rem">Sélectionnez une équipe pour voir son programme complet.</p><select id="sel-equipe" style="width:100%;margin-bottom:1rem;font-size:.9rem;padding:.5rem .7rem" onchange="selectedEqId=this.value;renderEqDetail()"><option value="">— Choisir une équipe —</option>';
 E.forEach(function(e){h+='<option value="'+e.id+'"'+(selectedEqId===e.id?' selected':'')+'>'+e.nom+'</option>'});
-h+='</select><div id="eq-detail"></div></div>';d.innerHTML=h;if(selectedEqId)renderEqDetail()}
+h+='</select><div id="eq-detail"></div></div>';
+h+='<div class="card" style="background:linear-gradient(135deg,rgba(13,51,24,.8),rgba(26,92,42,.4));border-color:rgba(134,239,172,.25)"><h2 style="color:var(--vert-pale)">📲 Ajouter l&#39;app sur votre téléphone</h2><p style="font-size:.8rem;color:var(--muted);margin-bottom:.8rem">Pour recevoir les alertes de vos matchs, ajoutez cette page à votre écran d&#39;accueil :</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem"><div style="background:rgba(0,0,0,.3);border-radius:8px;padding:.6rem .7rem"><div style="font-weight:700;font-size:.82rem;color:var(--txt);margin-bottom:.4rem">🍎 iPhone (Safari)</div><ol style="margin:0;padding-left:1.1rem;font-size:.76rem;color:var(--muted);line-height:1.7"><li>Ouvrir dans <strong style="color:var(--txt)">Safari</strong></li><li>Appuyer sur <strong style="color:var(--txt)">⎙ Partager</strong></li><li>Choisir <strong style="color:var(--txt)">Sur l&#39;écran d&#39;accueil</strong></li><li>Appuyer sur <strong style="color:var(--txt)">Ajouter</strong></li></ol></div><div style="background:rgba(0,0,0,.3);border-radius:8px;padding:.6rem .7rem"><div style="font-weight:700;font-size:.82rem;color:var(--txt);margin-bottom:.4rem">🤖 Android (Chrome)</div><ol style="margin:0;padding-left:1.1rem;font-size:.76rem;color:var(--muted);line-height:1.7"><li>Ouvrir dans <strong style="color:var(--txt)">Chrome</strong></li><li>Appuyer sur <strong style="color:var(--txt)">⋮ Menu</strong></li><li>Choisir <strong style="color:var(--txt)">Ajouter a l&#39;écran d&#39;accueil</strong></li><li>Appuyer sur <strong style="color:var(--txt)">Ajouter</strong></li></ol></div></div></div>';
+d.innerHTML=h;if(selectedEqId)renderEqDetail()}
 function renderEqDetail(){var d=document.getElementById('eq-detail');if(!d)return;if(!selectedEqId||!T){d.innerHTML='';return}
 var eq=E.find(function(e){return e.id===selectedEqId});if(!eq){d.innerHTML='';return}
 // Trouver la poule de l'équipe
@@ -527,12 +529,8 @@ d.innerHTML=h}
 var notifTeams=JSON.parse(localStorage.getItem('foot_notif_teams')||'{}');
 function saveNotifTeams(){localStorage.setItem('foot_notif_teams',JSON.stringify(notifTeams))}
 function toggleNotifTeam(id){
-if(!notifSupported()){alert('Votre navigateur ne supporte pas les notifications.');return}
-if(notifDenied()){alert('Les notifications sont bloquées dans votre navigateur. Autorisez-les dans les réglages puis réessayez.');return}
-function doToggle(){notifTeams[id]=!notifTeams[id];saveNotifTeams();renderEqDetail();
-if(notifTeams[id]){var eq=E.find(function(e){return e.id===id});notify('🔔 Notifications activées','Vous serez alerté pour les matchs de '+(eq?eq.nom:'votre équipe')+' !')}}
-if(!notifGranted())Notification.requestPermission().then(function(p){if(p==='granted')doToggle()});
-else doToggle()}
+notifTeams[id]=!notifTeams[id];saveNotifTeams();renderEqDetail();
+if(notifTeams[id]){var eq=E.find(function(e){return e.id===id});notify('🔔 Notifications activées','Vous serez alerté pour les matchs de '+(eq?eq.nom:'votre équipe')+' !');}}
 function notifEq(eqId,title,body){if(notifTeams[eqId]&&notifGranted())notify(title,body)}
 
 var historique=JSON.parse(localStorage.getItem('foot_historique')||'[]');
@@ -577,27 +575,47 @@ h+='</div>';d.innerHTML=h}
 let qrGenerated=false;
 function initQR(){if(qrGenerated)return;qrGenerated=true;new QRCode(document.getElementById('qrcode'),{text:'https://valentinpar.github.io/Belote-US-SEIGNELAY/',width:220,height:220,colorDark:'#0d3318',colorLight:'#f0f8f0',correctLevel:QRCode.CorrectLevel.M})}
 function telechargerQR(){setTimeout(()=>{const c=document.querySelector('#qrcode canvas');if(c){const a=document.createElement('a');a.download='qrcode-tournoi-foot.png';a.href=c.toDataURL('image/png');a.click()}},100)}
-// ══════════ NOTIFICATIONS ══════════
-function notifSupported(){return'Notification'in window}
-function notifGranted(){return notifSupported()&&Notification.permission==='granted'}
-function notifDenied(){return notifSupported()&&Notification.permission==='denied'}
-function notify(title,body,icon){
-if(!notifGranted())return;
-try{new Notification(title,{body:body,icon:icon||'https://valentinpar.github.io/Belote-US-SEIGNELAY/foot-icon.png',badge:'https://valentinpar.github.io/Belote-US-SEIGNELAY/foot-icon.png',vibrate:[200,100,200]})}catch(e){}}
-function demanderNotifs(){
-if(!notifSupported()){alert('Votre navigateur ne supporte pas les notifications.');return}
-Notification.requestPermission().then(function(p){
-var a=document.getElementById('alert-notif');
-if(p==='granted'){flash(a,'success','✅ Notifications activées !')}
-else{flash(a,'warning','⚠️ Notifications refusées.')}
-rNotifBtn()})}
+// ══════════ NOTIFICATIONS (bannières in-app, compatible tous navigateurs) ══════════
+var _notifQueue=[];var _notifBusy=false;
+function notify(title,body){
+_notifQueue.push({title:title,body:body});
+if(!_notifBusy)_notifNext()}
+function _notifNext(){
+if(!_notifQueue.length){_notifBusy=false;return}
+_notifBusy=true;var n=_notifQueue.shift();
+var el=document.getElementById('notif-banner');
+if(!el){el=document.createElement('div');el.id='notif-banner';
+el.style.cssText='position:fixed;top:1rem;left:50%;transform:translateX(-50%) translateY(-120%);z-index:99999;background:var(--gris-fonce);border:1px solid var(--or);border-radius:12px;padding:.7rem 1.1rem;box-shadow:0 4px 24px rgba(0,0,0,.6);min-width:260px;max-width:90vw;text-align:center;transition:transform .35s cubic-bezier(.34,1.56,.64,1);pointer-events:none';
+document.body.appendChild(el)}
+el.innerHTML='<div style="font-weight:800;font-size:.9rem;color:var(--or);margin-bottom:.2rem">'+n.title+'</div>'+(n.body?'<div style="font-size:.8rem;color:var(--txt)">'+n.body+'</div>':'');
+requestAnimationFrame(function(){el.style.transform='translateX(-50%) translateY(0)'});
+// Son discret via AudioContext
+try{var ac=new(window.AudioContext||window.webkitAudioContext)();var o=ac.createOscillator();var g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.setValueAtTime(880,ac.currentTime);o.frequency.exponentialRampToValueAtTime(660,ac.currentTime+.12);g.gain.setValueAtTime(.18,ac.currentTime);g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+.3);o.start();o.stop(ac.currentTime+.3)}catch(e){}
+setTimeout(function(){el.style.transform='translateX(-50%) translateY(-120%)';setTimeout(_notifNext,400)},3200)}
+function notifEq(eqId,title,body){if(notifTeams[eqId])notify(title,body)}
+function testNotif(){notify('⚽ Test notification','Les notifications fonctionnent !')}
+var _testTimer=null;
+function startTestTimer(){
+var sec=parseInt(document.getElementById('test-delay').value)||10;
+clearInterval(_testTimer);
+var remaining=sec;
+var btn=document.getElementById('test-timer-btn');
+var lbl=document.getElementById('test-timer-lbl');
+btn.disabled=true;
+_testTimer=setInterval(function(){
+remaining--;
+lbl.textContent='🕐 '+remaining+'s…';
+if(remaining<=0){
+clearInterval(_testTimer);
+lbl.textContent='';
+btn.disabled=false;
+notify('⚽ Test minuteur','La notification a bien fonctionné après '+sec+' secondes !')}
+},1000);
+lbl.textContent='🕐 '+remaining+'s…'}
+
 function rNotifBtn(){
 var w=document.getElementById('notif-btn-wrap');if(!w)return;
-if(!notifSupported()){w.innerHTML='<span style="font-size:.78rem;color:var(--muted)">Notifications non supportées par ce navigateur.</span>';return}
-if(notifDenied()){w.innerHTML='<span style="font-size:.78rem;color:var(--rouge-clair)">❌ Notifications bloquées — autorisez-les dans les réglages du navigateur.</span>';return}
-if(notifGranted()){w.innerHTML='<span style="font-size:.78rem;color:var(--vert-pale)">✅ Notifications activées</span> <button class="btn btn-ghost btn-sm" onclick="testNotif()">Tester</button>';return}
-w.innerHTML='<button class="btn btn-primary btn-sm" onclick="demanderNotifs()">🔔 Activer les notifications</button>'}
-function testNotif(){notify('⚽ Test notification','Les notifications fonctionnent !')}
+w.innerHTML='<div style="display:flex;flex-wrap:wrap;align-items:center;gap:.5rem"><span style="font-size:.78rem;color:var(--vert-pale)">✅ Actif sur tous les appareils</span><button class="btn btn-ghost btn-sm" onclick="testNotif()">Tester</button></div><div style="display:flex;align-items:center;gap:.5rem;margin-top:.6rem"><span style="font-size:.78rem;color:var(--muted)">Minuteur :</span><select id="test-delay" style="background:var(--gris-fonce);border:1px solid var(--gris-moyen);color:var(--txt);border-radius:6px;padding:.2rem .4rem;font-size:.8rem"><option value="5">5s</option><option value="10" selected>10s</option><option value="15">15s</option><option value="30">30s</option></select><button id="test-timer-btn" class="btn btn-primary btn-sm" onclick="startTestTimer()">▶ Lancer</button><span id="test-timer-lbl" style="font-size:.8rem;color:var(--or);font-weight:700;min-width:40px"></span></div>'}
 
 var buvette=JSON.parse(localStorage.getItem('foot_buvette')||'[]');
 function saveBuvette(){localStorage.setItem('foot_buvette',JSON.stringify(buvette));saveFB()}
