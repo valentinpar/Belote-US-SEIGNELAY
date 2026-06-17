@@ -56,6 +56,7 @@
 </style>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
@@ -114,6 +115,9 @@
 <script>
 let E=[],C={np:4,pV:3,pN:1,pD:0,qual:2},T=null,mdp=localStorage.getItem('foot_mdp')||'1234',deb=false;
 let reglementTexte='';
+// ── FCM Push ──
+const VAPID_KEY='O-NoPl4-5WFWAipuPbtUBlWiY4j-OE6_DKCmhKUs1jY';
+var fcmMessaging=null,fcmToken=null;
 function ouvrirLogin(){document.getElementById('pwd-input').value='';document.getElementById('pwd-error').textContent='';document.getElementById('modal-pwd').classList.add('open');setTimeout(()=>document.getElementById('pwd-input').focus(),50)}
 function fermerModal(){document.getElementById('modal-pwd').classList.remove('open')}
 function checkPwd(){if(document.getElementById('pwd-input').value===mdp){deb=true;localStorage.setItem('foot_session','1');fermerModal();['tab-equipes','tab-setup','tab-poules','tab-elim','tab-notifs'].forEach(t=>document.getElementById(t).classList.add('visible'));document.getElementById('btn-orga').style.display='none';document.getElementById('btn-lock').style.display='block';document.getElementById('regl-btn-edit-wrap').style.display='';goTab('equipes',document.getElementById('tab-equipes'))}else{const e=document.getElementById('pwd-error');e.textContent='❌ Incorrect';document.getElementById('pwd-input').value='';setTimeout(()=>e.textContent='',2e3)}}
@@ -202,11 +206,13 @@ var toutesOk=T.tours.every(function(t){return t.ok});
 if(toutesOk){
 T.ps.forEach(function(p){p.ok=true});
 notify('✅ Poules terminées !','Toutes les poules sont jouées. Prêt pour les éliminatoires !');
-// Notifier toutes les équipes abonnées
+if(fbOk&&db)db.ref('foot_broadcast').set({title:'✅ Poules terminées !',body:'Prêt pour les éliminatoires !',target:'all',ts:Date.now()});
+queuePush('✅ Poules terminées !','Prêt pour les éliminatoires !','all');
 E.forEach(function(e){notifEq(e.id,'✅ Poules terminées !','Restez attentif pour les éliminatoires !')});
 }else{
 notify('✅ Tour '+tour.num+' Poule '+tour.poule+' validé','Prochain tour disponible.');
-// Notifier les équipes du prochain tour de cette poule
+if(fbOk&&db)db.ref('foot_broadcast').set({title:'✅ Tour '+tour.num+' · Poule '+tour.poule,body:'Prochain tour disponible.',target:'all',ts:Date.now()});
+queuePush('✅ Tour '+tour.num+' · Poule '+tour.poule,'Prochain tour disponible.','all');
 var nextTour=T.tours.find(function(t){return t.poule===tour.poule&&!t.ok});
 if(nextTour){nextTour.ms.forEach(function(m){
 var adv1=m.e2,adv2=m.e1;
@@ -226,6 +232,8 @@ var cups=[buildCup(qSeeds,'P','Coupe principale','🏆',8)];
 if(cSeeds.length>=2)cups.push(buildCup(cSeeds,'C','Coupe de consolation','🛡️',2));
 T.el={cups:cups};T.ph='elim';T.fin=false;regenElimSlots();save();
 notify('🏆 Éliminatoires lancés !','Les quarts de finale démarrent. Bonne chance à tous !');
+if(fbOk&&db)db.ref('foot_broadcast').set({title:'🏆 Éliminatoires lancés !',body:'Les quarts de finale démarrent !',target:'all',ts:Date.now()});
+queuePush('🏆 Éliminatoires lancés !','Les quarts de finale démarrent. Bonne chance !','all');
 goTab('elim',document.getElementById('tab-elim'))}
 function rElim(){var d=document.getElementById('elim-content');if(!T||!T.el||!T.el.cups){d.innerHTML='<div class="empty-state"><div class="icon">🏆</div>Terminez les poules</div>';return}var scrollY=window.scrollY;var h='';
 T.el.cups.forEach(function(c){if(c.champion)h+='<div class="champion-banner" style="margin-bottom:1rem"><div class="icon">'+c.icon+'</div><div class="nom">'+c.champion.nom+'</div><div class="label">'+(c.key==='P'?'Champion · ':'Vainqueur · ')+c.nom+'</div></div>'});
@@ -256,25 +264,27 @@ r.ok=true;
 var bracketRounds=c.rs.filter(function(x){return x.type==='bracket'});
 var finaleLevel=bracketRounds.reduce(function(mx,x){return Math.max(mx,x.level)},0);
 if(r.type==='petite'){var pm=r.ms[0];if(pm.e1&&pm.e2)c.troisieme=mWinner(pm);
-notify('🥉 Petite finale '+c.icon+' terminée','3e place : '+(c.troisieme?c.troisieme.nom:'—'));
+var titP='🥉 Petite finale '+c.icon+' terminée',bodP='3e place : '+(c.troisieme?c.troisieme.nom:'—');
+notify(titP,bodP);if(fbOk&&db)db.ref('foot_broadcast').set({title:titP,body:bodP,target:'all',ts:Date.now()});queuePush(titP,bodP,'all');
 save();rElim();rRes();return}
 if(r.level===finaleLevel){var fm=r.ms[0];c.champion=mWinner(fm);c.second=mLoser(fm);if(c.key==='P')T.fin=true;
-if(c.key==='P'){notify('🏆 Champion du tournoi !',c.champion?c.champion.nom+' remporte le tournoi !':'');
+if(c.key==='P'){var titC='🏆 Champion du tournoi !',bodC=c.champion?c.champion.nom+' remporte le tournoi !':'';
+notify(titC,bodC);if(fbOk&&db)db.ref('foot_broadcast').set({title:titC,body:bodC,target:'all',ts:Date.now()});queuePush(titC,bodC,'all');
 if(c.champion)notifEq(c.champion.id,'🏆 Vous êtes Champions !','Félicitations, '+c.champion.nom+' remporte le tournoi !');
 if(c.second)notifEq(c.second.id,'🥈 Finaliste','Bravo pour cette finale, '+c.second.nom+' !');}
-else{notify('🛡️ Vainqueur consolation',c.champion?c.champion.nom+' remporte la coupe de consolation !':'');
+else{var titV='🛡️ Vainqueur consolation',bodV=c.champion?c.champion.nom+' remporte la consolation !':'';
+notify(titV,bodV);queuePush(titV,bodV,'all');
 if(c.champion)notifEq(c.champion.id,'🛡️ Coupe de consolation','Bravo '+c.champion.nom+', vous remportez la consolation !');}
 save();rElim();rRes();return}
 var nextR=c.rs.find(function(x){return x.type==='bracket'&&x.level===r.level+1});
 r.ms.forEach(function(m,i){var w=mWinner(m);var tgt=nextR.ms[Math.floor(i/2)];if(i%2===0)tgt.e1=w;else tgt.e2=w;
-// Notifier le qualifié
 if(w)notifEq(w.id,'✅ Qualifié — '+nextR.nm,c.icon+' Votre prochain match : '+nextR.nm);
-// Notifier l'éliminé si petite finale
 });
 if(nextR.level===finaleLevel){var pet=c.rs.find(function(x){return x.type==='petite'});if(pet){var ls=r.ms.map(function(m){return mLoser(m)});pet.ms[0].e1=ls[0]||null;pet.ms[0].e2=ls[1]||null;
 ls.forEach(function(loser){if(loser)notifEq(loser.id,'🥉 Petite finale','Vous jouez la petite finale pour la 3e place !')})}}
 resolveByesRound(nextR);
-notify(c.icon+' '+r.nm+' terminé',nextR.nm+' disponible — à vous de jouer !');
+var titR=c.icon+' '+r.nm+' terminé',bodR=nextR.nm+' disponible !';
+notify(titR,bodR);if(fbOk&&db)db.ref('foot_broadcast').set({title:titR,body:bodR,target:'all',ts:Date.now()});queuePush(titR,bodR,'all');
 save();rElim();rPlanningEditor()}
 function rFin(d){rElim()}
 function rRes(){const d=document.getElementById('resultats-content');if(!T){d.innerHTML='<div class="empty-state"><div class="icon">📊</div>Lancez le tournoi</div>';return}let h='';
@@ -487,6 +497,37 @@ function saveLocal(){localStorage.setItem('foot_E',JSON.stringify(E));localStora
 function saveFB(){if(!fbOk||!db)return;_s=true;db.ref('foot').set({E,C,T,mdp,terrains,qSec,rSec,historique,reglement:reglementTexte}).then(()=>setTimeout(()=>_s=false,1e3)).catch(()=>_s=false)}
 function save(){saveLocal();saveFB()}
 function loadLocal(){try{const e=localStorage.getItem('foot_E'),c=localStorage.getItem('foot_C'),t=localStorage.getItem('foot_T');if(e)E=JSON.parse(e);if(c)C=JSON.parse(c);if(t)T=JSON.parse(t)}catch(e){}}
+
+// ── FCM Push Notifications ──
+function queuePush(title,body,target){
+if(!fbOk||!db)return;
+db.ref('foot_push_queue').push({title:title,body:body,target:target||'all',ts:Date.now()})}
+
+async function initFCM(){
+if(!fbOk||!db||VAPID_KEY==='REMPLACER_PAR_VOTRE_CLE_VAPID')return null;
+try{
+if(!('serviceWorker'in navigator)){return null}
+fcmMessaging=firebase.messaging();
+const reg=await navigator.serviceWorker.register('./sw.js');
+const token=await fcmMessaging.getToken({vapidKey:VAPID_KEY,serviceWorkerRegistration:reg});
+if(!token)return null;
+fcmToken=token;
+localStorage.setItem('foot_fcm_token',token);
+// Stocker le token dans Firebase avec les équipes abonnées
+var key=btoa(token).replace(/[^a-zA-Z0-9]/g,'').substring(0,28);
+db.ref('foot_fcm_tokens/'+key).set({token:token,teams:notifTeams,updatedAt:Date.now()});
+// En premier plan → afficher la bannière in-app
+fcmMessaging.onMessage(function(payload){
+var t=(payload.notification&&payload.notification.title)||(payload.data&&payload.data.title)||'📢';
+var b=(payload.notification&&payload.notification.body)||(payload.data&&payload.data.body)||'';
+notify(t,b)});
+return token;
+}catch(e){console.warn('FCM init:',e);return null}}
+
+function updateFCMTeams(){
+if(!fcmToken||!fbOk||!db)return;
+var key=btoa(fcmToken).replace(/[^a-zA-Z0-9]/g,'').substring(0,28);
+db.ref('foot_fcm_tokens/'+key+'/teams').set(notifTeams)}
 if(localStorage.getItem('foot_session')==='1'){deb=true;['tab-equipes','tab-setup','tab-poules','tab-elim','tab-notifs'].forEach(t=>document.getElementById(t).classList.add('visible'));document.getElementById('btn-orga').style.display='none';document.getElementById('btn-lock').style.display='block';document.getElementById('regl-btn-edit-wrap').style.display=''}
 initFB();if(T)rRes();renderReglement();rNotifBtn();
 // PAR ÉQUIPE
@@ -545,8 +586,11 @@ var notifTeams=JSON.parse(localStorage.getItem('foot_notif_teams')||'{}');
 function saveNotifTeams(){localStorage.setItem('foot_notif_teams',JSON.stringify(notifTeams))}
 function toggleNotifTeam(id){
 notifTeams[id]=!notifTeams[id];saveNotifTeams();renderEqDetail();
-if(notifTeams[id]){var eq=E.find(function(e){return e.id===id});notify('🔔 Notifications activées','Vous serez alerté pour les matchs de '+(eq?eq.nom:'votre équipe')+' !');}}
-function notifEq(eqId,title,body){if(notifTeams[eqId]&&notifGranted())notify(title,body)}
+if(notifTeams[id]){
+var eq=E.find(function(e){return e.id===id});
+notify('🔔 Notifications activées','Vous serez alerté pour les matchs de '+(eq?eq.nom:'votre équipe')+' !');
+initFCM().then(function(){updateFCMTeams()});
+}else{updateFCMTeams()}}function notifEq(eqId,title,body){if(notifTeams[eqId]&&notifGranted())notify(title,body)}
 
 var historique=JSON.parse(localStorage.getItem('foot_historique')||'[]');
 function saveHisto(){localStorage.setItem('foot_historique',JSON.stringify(historique));saveFB()}
@@ -607,7 +651,9 @@ requestAnimationFrame(function(){el.style.transform='translateX(-50%) translateY
 // Son discret via AudioContext
 try{var ac=new(window.AudioContext||window.webkitAudioContext)();var o=ac.createOscillator();var g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.setValueAtTime(880,ac.currentTime);o.frequency.exponentialRampToValueAtTime(660,ac.currentTime+.12);g.gain.setValueAtTime(.18,ac.currentTime);g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+.3);o.start();o.stop(ac.currentTime+.3)}catch(e){}
 setTimeout(function(){el.style.transform='translateX(-50%) translateY(-120%)';setTimeout(_notifNext,400)},3200)}
-function notifEq(eqId,title,body){if(notifTeams[eqId])notify(title,body)}
+function notifEq(eqId,title,body){
+if(notifTeams[eqId])notify(title,body);
+queuePush(title,body,eqId)}
 function testNotif(){notify('⚽ Test notification','Les notifications fonctionnent !')}
 var _testTimer=null;
 function startTestTimer(){
@@ -694,7 +740,9 @@ var target=document.getElementById('bc-target').value;
 var a=document.getElementById('alert-bc');
 if(!titre&&!body){flash(a,'warning','⚠️ Écris un message.');return}
 if(!fbOk||!db){flash(a,'warning','⚠️ Firebase non connecté.');return}
-db.ref('foot_broadcast').set({title:titre||'📢 Annonce',body:body,target:target,ts:Date.now()}).then(function(){flash(a,'success','✅ Annonce envoyée !');document.getElementById('bc-titre').value='';document.getElementById('bc-body').value=''}).catch(function(){flash(a,'warning','⚠️ Erreur envoi.')})}
+db.ref('foot_broadcast').set({title:titre||'📢 Annonce',body:body,target:target,ts:Date.now()}).then(function(){
+queuePush(titre||'📢 Annonce',body,target);
+flash(a,'success','✅ Annonce envoyée !');document.getElementById('bc-titre').value='';document.getElementById('bc-body').value=''}).catch(function(){flash(a,'warning','⚠️ Erreur envoi.')})}
 
 var buvette=JSON.parse(localStorage.getItem('foot_buvette')||'[]');
 function saveBuvette(){localStorage.setItem('foot_buvette',JSON.stringify(buvette));saveFB()}

@@ -335,6 +335,15 @@
     <div id="alert-ev"></div>
   </div>
 
+  <!-- PANNEAU ANNONCE PUSH -->
+  <div class="admin-panel" id="notif-panel">
+    <h3>📢 Envoyer une annonce</h3>
+    <p style="color:var(--texte-muted);font-size:.82rem;margin-bottom:.8rem">Le message apparaît en bannière sur tous les téléphones qui ont l'app ouverte, et en notification push sur ceux qui l'ont ajoutée à l'écran d'accueil.</p>
+    <div style="margin-bottom:.5rem"><label>Message</label><textarea id="bc-message" placeholder="Ex: Le tournoi commence dans 10 minutes !" style="width:100%;height:70px;resize:vertical;background:var(--gris-fonce);border:1px solid var(--gris-moyen);color:var(--texte-clair);border-radius:8px;padding:.5rem .7rem;font-family:'Source Sans 3',sans-serif;font-size:.9rem"></textarea></div>
+    <button class="btn-add" onclick="envoyerAnnonce()">📤 Envoyer à tous</button>
+    <div id="alert-annonce" style="margin-top:.5rem"></div>
+  </div>
+
   <!-- PANEL MOT DE PASSE -->
   <div class="admin-panel" id="pwd-panel" style="margin-bottom:1rem">
     <h3>🔑 Changer le mot de passe</h3>
@@ -364,6 +373,7 @@
 
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js"></script>
 <script>
 const firebaseConfig = {
   apiKey: "AIzaSyDnjxRbAzDJPMUcvoNsB5hoHQnMTP7lZb4",
@@ -398,6 +408,7 @@ if (localStorage.getItem('uss_admin') === '1') {
   connecte = true;
   document.getElementById('admin-panel').classList.add('open');
   document.getElementById('pwd-panel').classList.add('open');
+  document.getElementById('notif-panel').classList.add('open');
   document.getElementById('btn-admin').style.opacity = '0.4';
   document.getElementById('btn-deconnexion').style.display = 'block';
   document.getElementById('btn-tournois').style.display = 'inline-flex';
@@ -589,6 +600,7 @@ function checkPwd() {
     fermerLogin();
     document.getElementById('admin-panel').classList.add('open');
     document.getElementById('pwd-panel').classList.add('open');
+    document.getElementById('notif-panel').classList.add('open');
     document.getElementById('btn-admin').style.opacity = '0.4';
     document.getElementById('btn-deconnexion').style.display = 'block';
     document.getElementById('btn-tournois').style.display = 'inline-flex';
@@ -637,6 +649,7 @@ function deconnecter() {
   localStorage.removeItem('uss_admin');
   document.getElementById('admin-panel').classList.remove('open');
   document.getElementById('pwd-panel').classList.remove('open');
+  document.getElementById('notif-panel').classList.remove('open');
   document.getElementById('btn-admin').style.opacity = '1';
   document.getElementById('btn-deconnexion').style.display = 'none';
   document.getElementById('btn-tournois').style.display = 'none';
@@ -747,9 +760,46 @@ function flash(el, type, msg) {
 document.getElementById('modal-modifier-custom').addEventListener('click', e => { if (e.target === e.currentTarget) fermerModifierCustom(); });
 // Fermer modals en cliquant dehors
 document.getElementById('modal-event').addEventListener('click', e => { if (e.target === e.currentTarget) fermerEvent(); });
-document.getElementById('modal-recup').addEventListener('click', e => { if (e.target === e.currentTarget) fermerRecup(); });
-document.getElementById('modal-modifier').addEventListener('click', e => { if (e.target === e.currentTarget) fermerModifier(); });
-document.getElementById('modal-login').addEventListener('click', e => { if (e.target === e.currentTarget) fermerLogin(); });
+// ── Bannière in-app (compatible tous navigateurs) ──
+var _notifQueue=[];var _notifBusy=false;
+function showBanner(title,body){
+_notifQueue.push({title:title,body:body});
+if(!_notifBusy)_nextBanner()}
+function _nextBanner(){
+if(!_notifQueue.length){_notifBusy=false;return}
+_notifBusy=true;var n=_notifQueue.shift();
+var el=document.getElementById('notif-banner-idx');
+if(!el){el=document.createElement('div');el.id='notif-banner-idx';
+el.style.cssText='position:fixed;top:1rem;left:50%;transform:translateX(-50%) translateY(-120%);z-index:99999;background:#1e2a1e;border:1px solid #d4a017;border-radius:12px;padding:.7rem 1.1rem;box-shadow:0 4px 24px rgba(0,0,0,.6);min-width:260px;max-width:90vw;text-align:center;transition:transform .35s cubic-bezier(.34,1.56,.64,1);pointer-events:none';
+document.body.appendChild(el)}
+el.innerHTML='<div style="font-weight:800;font-size:.9rem;color:#d4a017;margin-bottom:.2rem">'+n.title+'</div><div style="font-size:.8rem;color:#e7f0e7">'+n.body+'</div>';
+requestAnimationFrame(function(){el.style.transform='translateX(-50%) translateY(0)'});
+setTimeout(function(){el.style.transform='translateX(-50%) translateY(-120%)';setTimeout(_nextBanner,400)},3500)}
+
+// Écouter les annonces en temps réel (pour tous les visiteurs)
+var _lastBcTs=Date.now();
+function initBroadcastListener(){
+if(!db)return;
+db.ref('foot_broadcast').on('value',function(snap){
+var d=snap.val();if(!d||!d.ts||d.ts<=_lastBcTs)return;
+_lastBcTs=d.ts;
+showBanner(d.title||'📢 Annonce',d.body||'')})}
+
+// Envoyer une annonce (admin seulement)
+function envoyerAnnonce(){
+var msg=document.getElementById('bc-message').value.trim();
+var a=document.getElementById('alert-annonce');
+if(!msg){a.innerHTML='<span style="color:#f87171">⚠️ Écris un message.</span>';return}
+if(!db){a.innerHTML='<span style="color:#f87171">⚠️ Firebase non connecté.</span>';return}
+var titre='📢 Annonce US Seignelay';
+db.ref('foot_broadcast').set({title:titre,body:msg,target:'all',ts:Date.now()});
+db.ref('foot_push_queue').push({title:titre,body:msg,target:'all',ts:Date.now()});
+a.innerHTML='<span style="color:#86efac">✅ Annonce envoyée !</span>';
+document.getElementById('bc-message').value='';
+setTimeout(function(){a.innerHTML=''},3000)}
+
+window.addEventListener('load',function(){initBroadcastListener()});
+
 
 // Mise à jour si le gestionnaire crée un tournoi dans un autre onglet
 window.addEventListener('storage', function(e) {
