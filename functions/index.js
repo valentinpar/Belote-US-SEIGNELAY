@@ -6,7 +6,7 @@ admin.initializeApp();
  * Se déclenche quand un élément est ajouté à /foot_push_queue
  * Envoie la notification FCM aux bons appareils et supprime l'entrée
  */
-exports.sendPushNotification = functions.database
+exports.sendPushNotification = functions.region('europe-west1').database
   .ref('/foot_push_queue/{pushId}')
   .onCreate(async (snap, context) => {
     const data = snap.val();
