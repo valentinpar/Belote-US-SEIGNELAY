@@ -503,33 +503,48 @@ function queuePush(title,body,target){
 if(!fbOk||!db)return;
 db.ref('foot_push_queue').push({title:title,body:body,target:target||'all',ts:Date.now()})}
 
-async function initFCM(){
-if(!fbOk||!db||VAPID_KEY==='REMPLACER_PAR_VOTRE_CLE_VAPID')return null;
+async function initFCM(source){
+source=source||'tournoi';
+if(!fbOk||!db)return null;
 try{
-if(!('serviceWorker'in navigator)){return null}
+if(!('serviceWorker'in navigator)||!('Notification'in window))return null;
 fcmMessaging=firebase.messaging();
 const reg=await navigator.serviceWorker.register('./sw.js');
 const token=await fcmMessaging.getToken({vapidKey:VAPID_KEY,serviceWorkerRegistration:reg});
 if(!token)return null;
 fcmToken=token;
 localStorage.setItem('foot_fcm_token',token);
-// Stocker le token dans Firebase avec les équipes abonnées
 var key=btoa(token).replace(/[^a-zA-Z0-9]/g,'').substring(0,28);
-db.ref('foot_fcm_tokens/'+key).set({token:token,teams:notifTeams,updatedAt:Date.now()});
-// En premier plan → afficher la bannière in-app
+db.ref('foot_fcm_tokens/'+key).set({token:token,source:source,teams:notifTeams,updatedAt:Date.now()});
 fcmMessaging.onMessage(function(payload){
 var t=(payload.notification&&payload.notification.title)||(payload.data&&payload.data.title)||'📢';
 var b=(payload.notification&&payload.notification.body)||(payload.data&&payload.data.body)||'';
 notify(t,b)});
+localStorage.setItem('foot_fcm_asked','1');
+hideFCMBanner();
 return token;
-}catch(e){console.warn('FCM init:',e);return null}}
+}catch(e){console.warn('FCM:',e);return null}}
 
 function updateFCMTeams(){
 if(!fcmToken||!fbOk||!db)return;
 var key=btoa(fcmToken).replace(/[^a-zA-Z0-9]/g,'').substring(0,28);
 db.ref('foot_fcm_tokens/'+key+'/teams').set(notifTeams)}
+
+function showFCMBanner(){
+if(localStorage.getItem('foot_fcm_asked'))return;
+if(!('Notification'in window))return;
+if(Notification.permission==='denied')return;
+if(document.getElementById('fcm-banner-prompt'))return;
+var b=document.createElement('div');b.id='fcm-banner-prompt';
+b.style.cssText='position:fixed;bottom:1rem;left:50%;transform:translateX(-50%);z-index:9998;background:var(--gris-fonce);border:1px solid var(--or);border-radius:12px;padding:.7rem 1rem;box-shadow:0 4px 20px rgba(0,0,0,.6);display:flex;align-items:center;gap:.7rem;max-width:90vw;font-size:.82rem';
+b.innerHTML='<span>🔔 Recevoir les notifications du tournoi ?</span><button onclick="initFCM(\'tournoi\')" style="background:var(--vert-fonce);color:var(--or);border:1px solid var(--or);border-radius:8px;padding:.25rem .7rem;cursor:pointer;font-size:.8rem;font-weight:700">Oui</button><button onclick="hideFCMBanner()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:.8rem">Non merci</button>';
+document.body.appendChild(b)}
+function hideFCMBanner(){
+localStorage.setItem('foot_fcm_asked','1');
+var b=document.getElementById('fcm-banner-prompt');if(b)b.remove()}
 if(localStorage.getItem('foot_session')==='1'){deb=true;['tab-equipes','tab-setup','tab-poules','tab-elim','tab-notifs'].forEach(t=>document.getElementById(t).classList.add('visible'));document.getElementById('btn-orga').style.display='none';document.getElementById('btn-lock').style.display='block';document.getElementById('regl-btn-edit-wrap').style.display=''}
 initFB();if(T)rRes();renderReglement();rNotifBtn();
+setTimeout(showFCMBanner,2000);
 // PAR ÉQUIPE
 var selectedEqId='';
 function rParEquipe(){var d=document.getElementById('parequipe-content');if(!T||!E.length){d.innerHTML='<div class="empty-state"><div class="icon">👤</div>Lancez le tournoi</div>';return}
@@ -589,7 +604,7 @@ notifTeams[id]=!notifTeams[id];saveNotifTeams();renderEqDetail();
 if(notifTeams[id]){
 var eq=E.find(function(e){return e.id===id});
 notify('🔔 Notifications activées','Vous serez alerté pour les matchs de '+(eq?eq.nom:'votre équipe')+' !');
-initFCM().then(function(){updateFCMTeams()});
+initFCM('tournoi').then(function(){updateFCMTeams()});
 }else{updateFCMTeams()}}function notifEq(eqId,title,body){if(notifTeams[eqId]&&notifGranted())notify(title,body)}
 
 var historique=JSON.parse(localStorage.getItem('foot_historique')||'[]');
@@ -686,7 +701,7 @@ function rNotifBtn(){
 var w=document.getElementById('notif-btn-wrap');if(!w)return;
 w.innerHTML='<div style="display:flex;flex-wrap:wrap;align-items:center;gap:.5rem"><span style="font-size:.78rem;color:var(--vert-pale)">✅ Actif sur tous les appareils</span><button class="btn btn-ghost btn-sm" onclick="testNotif()">Tester</button></div><div style="display:flex;align-items:center;gap:.5rem;margin-top:.6rem"><span style="font-size:.78rem;color:var(--muted)">Minuteur :</span><select id="test-delay" style="background:var(--gris-fonce);border:1px solid var(--gris-moyen);color:var(--txt);border-radius:6px;padding:.2rem .4rem;font-size:.8rem"><option value="5">5s</option><option value="10" selected>10s</option><option value="15">15s</option><option value="30">30s</option></select><button id="test-timer-btn" class="btn btn-primary btn-sm" onclick="startTestTimer()">▶ Lancer</button><span id="test-timer-lbl" style="font-size:.8rem;color:var(--or);font-weight:700;min-width:40px"></span></div>';
 // Peupler le select équipes
-var sel=document.getElementById('bc-target');if(sel){while(sel.options.length>1)sel.remove(1);E.forEach(function(e){var o=document.createElement('option');o.value=e.id;o.textContent='👥 '+e.nom;sel.appendChild(o)})}}
+var sel=document.getElementById('bc-target');if(sel){while(sel.options.length>3)sel.remove(3);E.forEach(function(e){var o=document.createElement('option');o.value=e.id;o.textContent='👥 '+e.nom;sel.appendChild(o)})}}
 function rNotifs(){
 var d=document.getElementById('notifs-content');if(!d)return;
 var abonnes=E.filter(function(e){return notifTeams[e.id]});
@@ -700,7 +715,7 @@ h+='<div class="card"><h2>📢 Envoyer une annonce</h2>';
 h+='<input type="text" id="bc-titre" placeholder="Titre (ex: Attention !)" style="width:100%;margin-bottom:.5rem">';
 h+='<textarea id="bc-body" placeholder="Message…" style="width:100%;height:70px;resize:vertical;background:var(--gris-fonce);border:1px solid var(--gris-moyen);color:var(--txt);border-radius:6px;padding:.4rem .6rem;font-family:inherit;font-size:.84rem"></textarea>';
 h+='<div style="display:flex;align-items:center;gap:.5rem;margin-top:.5rem;flex-wrap:wrap">';
-h+='<select id="bc-target" style="flex:1;min-width:160px;background:var(--gris-fonce);border:1px solid var(--gris-moyen);color:var(--txt);border-radius:6px;padding:.35rem .5rem;font-size:.84rem"><option value="all">📣 Toutes les équipes</option>';
+h+='<select id="bc-target" style="flex:1;min-width:160px;background:var(--gris-fonce);border:1px solid var(--gris-moyen);color:var(--txt);border-radius:6px;padding:.35rem .5rem;font-size:.84rem"><option value="all">📣 Tout le monde</option><option value="index">🏠 Visiteurs accueil</option><option value="tournoi">⚽ Équipes tournoi</option>';
 E.forEach(function(e){h+='<option value="'+e.id+'">👥 '+e.nom+'</option>'});
 h+='</select><button class="btn btn-gold" onclick="envoyerBroadcast()">📤 Envoyer</button></div>';
 h+='<div id="alert-bc" class="mt-1"></div></div>';
