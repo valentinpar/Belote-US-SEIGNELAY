@@ -505,6 +505,7 @@ db.ref('foot_push_queue').push({title:title,body:body,target:target||'all',ts:Da
 
 async function initFCM(source){
 source=source||'tournoi';
+hideFCMBanner(); // Cacher immédiatement
 if(!fbOk||!db)return null;
 try{
 if(!('serviceWorker'in navigator)||!('Notification'in window))return null;

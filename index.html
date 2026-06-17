@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>US Seignelay — Événements</title>
+<link rel="manifest" href="manifest-index.json">
+<link rel="apple-touch-icon" href="logo-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="US Seignelay">
+<meta name="theme-color" content="#1a5c2a">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -337,10 +343,29 @@
 
   <!-- PANNEAU ANNONCE PUSH -->
   <div class="admin-panel" id="notif-panel">
-    <h3>📢 Envoyer une annonce</h3>
-    <p style="color:var(--texte-muted);font-size:.82rem;margin-bottom:.8rem">Le message apparaît en bannière sur tous les téléphones qui ont l'app ouverte, et en notification push sur ceux qui l'ont ajoutée à l'écran d'accueil.</p>
-    <div style="margin-bottom:.5rem"><label>Message</label><textarea id="bc-message" placeholder="Ex: Le tournoi commence dans 10 minutes !" style="width:100%;height:70px;resize:vertical;background:var(--gris-fonce);border:1px solid var(--gris-moyen);color:var(--texte-clair);border-radius:8px;padding:.5rem .7rem;font-family:'Source Sans 3',sans-serif;font-size:.9rem"></textarea></div>
-    <button class="btn-add" onclick="envoyerAnnonce()">📤 Envoyer à tous</button>
+    <h3>🔔 Notifications</h3>
+    <div id="notif-status" style="font-size:.82rem;color:#86efac;margin-bottom:.8rem">✅ Actif sur tous les appareils connectés</div>
+    <!-- Test minuteur -->
+    <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid var(--gris-moyen)">
+      <span style="font-size:.8rem;color:var(--texte-muted)">Test :</span>
+      <select id="idx-test-delay" style="background:var(--gris-fonce);border:1px solid var(--gris-moyen);color:var(--texte-clair);border-radius:6px;padding:.2rem .4rem;font-size:.8rem">
+        <option value="5">5s</option><option value="10" selected>10s</option><option value="15">15s</option><option value="30">30s</option>
+      </select>
+      <button id="idx-timer-btn" class="btn-add" style="padding:.3rem .8rem;font-size:.8rem" onclick="startIdxTimer()">▶ Lancer</button>
+      <span id="idx-timer-lbl" style="font-size:.8rem;color:#d4a017;font-weight:700;min-width:35px"></span>
+      <button class="btn-add" style="padding:.3rem .8rem;font-size:.8rem" onclick="showBanner('⚽ Test','Notification US Seignelay !')">Tester</button>
+    </div>
+    <!-- Envoyer annonce -->
+    <div style="margin-bottom:.5rem"><label>Titre</label><input type="text" id="bc-titre-idx" placeholder="Ex: Attention !" style="width:100%"></div>
+    <div style="margin-bottom:.5rem"><label>Message</label><textarea id="bc-message" placeholder="Ex: Le tournoi commence dans 10 minutes !" style="width:100%;height:60px;resize:vertical;background:var(--gris-fonce);border:1px solid var(--gris-moyen);color:var(--texte-clair);border-radius:8px;padding:.5rem .7rem;font-family:'Source Sans 3',sans-serif;font-size:.9rem"></textarea></div>
+    <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+      <select id="bc-target-idx" style="flex:1;min-width:160px;background:var(--gris-fonce);border:1px solid var(--gris-moyen);color:var(--texte-clair);border-radius:6px;padding:.35rem .5rem;font-size:.84rem">
+        <option value="all">📣 Tout le monde</option>
+        <option value="index">🏠 Visiteurs accueil</option>
+        <option value="tournoi">⚽ Équipes tournoi</option>
+      </select>
+      <button class="btn-add" onclick="envoyerAnnonce()">📤 Envoyer</button>
+    </div>
     <div id="alert-annonce" style="margin-top:.5rem"></div>
   </div>
 
@@ -787,22 +812,42 @@ showBanner(d.title||'📢 Annonce',d.body||'')})}
 
 // Envoyer une annonce (admin seulement)
 function envoyerAnnonce(){
+var titre=(document.getElementById('bc-titre-idx')||{value:''}).value.trim()||'📢 Annonce US Seignelay';
 var msg=document.getElementById('bc-message').value.trim();
+var target=(document.getElementById('bc-target-idx')||{value:'all'}).value;
 var a=document.getElementById('alert-annonce');
 if(!msg){a.innerHTML='<span style="color:#f87171">⚠️ Écris un message.</span>';return}
 if(!db){a.innerHTML='<span style="color:#f87171">⚠️ Firebase non connecté.</span>';return}
-var titre='📢 Annonce US Seignelay';
-db.ref('foot_broadcast').set({title:titre,body:msg,target:'all',ts:Date.now()});
-db.ref('foot_push_queue').push({title:titre,body:msg,target:'all',ts:Date.now()});
+db.ref('foot_broadcast').set({title:titre,body:msg,target:target,ts:Date.now()});
+db.ref('foot_push_queue').push({title:titre,body:msg,target:target,ts:Date.now()});
 a.innerHTML='<span style="color:#86efac">✅ Annonce envoyée !</span>';
 document.getElementById('bc-message').value='';
+if(document.getElementById('bc-titre-idx'))document.getElementById('bc-titre-idx').value='';
 setTimeout(function(){a.innerHTML=''},3000)}
+
+// Minuteur de test
+var _idxTimer=null;
+function startIdxTimer(){
+var sec=parseInt(document.getElementById('idx-test-delay').value)||10;
+clearInterval(_idxTimer);
+var target=Date.now()+(sec*1000);
+localStorage.setItem('idx_notif_test_target',target);
+var btn=document.getElementById('idx-timer-btn');
+var lbl=document.getElementById('idx-timer-lbl');
+btn.disabled=true;
+function tick(){var rem=Math.ceil((target-Date.now())/1000);if(rem<=0){clearInterval(_idxTimer);localStorage.removeItem('idx_notif_test_target');lbl.textContent='';btn.disabled=false;showBanner('⚽ Test minuteur','Notification déclenchée !')}else{lbl.textContent='🕐 '+rem+'s…'}}
+tick();_idxTimer=setInterval(tick,500)}
+document.addEventListener('visibilitychange',function(){
+if(document.visibilityState!=='visible')return;
+var t=parseInt(localStorage.getItem('idx_notif_test_target')||'0');
+if(t&&Date.now()>=t){localStorage.removeItem('idx_notif_test_target');showBanner('⚽ Test minuteur','Notification au retour dans l\'app !')}});
 
 // ── FCM Push (index) ──
 const VAPID_KEY_IDX='BG6Keb2AlSIZsLkJ8ht97glPihiS-8nfM3I9n_9-QImKC21uVBR-12RGpBzr_wYsVpeWwbBsGJH9TxWtOSyjAkE';
 var fcmIdxToken=null;
 
 async function initFCMIndex(){
+hideIdxFCMBanner(); // Cacher immédiatement
 if(!db)return;
 try{
 if(!('serviceWorker'in navigator)||!('Notification'in window))return;
@@ -815,7 +860,6 @@ var key=btoa(token).replace(/[^a-zA-Z0-9]/g,'').substring(0,28);
 db.ref('foot_fcm_tokens/'+key).set({token:token,source:'index',teams:{},updatedAt:Date.now()});
 msg.onMessage(function(p){showBanner((p.notification&&p.notification.title)||'📢',(p.notification&&p.notification.body)||'')});
 localStorage.setItem('idx_fcm_asked','1');
-hideIdxFCMBanner();
 }catch(e){console.warn('FCM index:',e)}}
 
 function showIdxFCMBanner(){
