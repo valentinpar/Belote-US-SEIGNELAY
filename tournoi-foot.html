@@ -192,8 +192,21 @@ if(av&&!T.el)h+='<div class="card" style="text-align:center"><h2 style="justify-
 function ssG(ti,mid,eq,v){if(!T||!T.tours)return;var tour=T.tours[ti];if(!tour||tour.ok)return;var m=tour.ms.find(function(x){return x.id===mid});if(!m)return;if(eq===1)m.s1=v===''?'':+v;else m.s2=v===''?'':+v;m.j=m.s1!==''&&m.s2!=='';var poule=T.ps.find(function(p){return p.nm===tour.poule});if(poule){var pm=poule.ms.find(function(x){return x.id===mid});if(pm){pm.s1=m.s1;pm.s2=m.s2;pm.j=m.j}}save();rPoules()}
 function vG(ti){if(!T||!T.tours)return;var tour=T.tours[ti];if(!tour||tour.ok)return;if(!tour.ms.every(function(m){return m.j}))return;var poule=T.ps.find(function(p){return p.nm===tour.poule});if(!poule)return;tour.ms.forEach(function(m){var s1=+m.s1,s2=+m.s2,a=poule.st[m.e1.id],b=poule.st[m.e2.id];a.j++;b.j++;a.bp+=s1;a.bc+=s2;b.bp+=s2;b.bc+=s1;if(s1>s2){a.v++;a.p+=C.pV;b.d++;b.p+=C.pD}else if(s2>s1){b.v++;b.p+=C.pV;a.d++;a.p+=C.pD}else{a.n++;a.p+=C.pN;b.n++;b.p+=C.pN}});tour.ok=true;
 var toutesOk=T.tours.every(function(t){return t.ok});
-if(toutesOk){T.ps.forEach(function(p){p.ok=true});notify('✅ Poules terminées !','Toutes les poules sont jouées. Prêt pour les éliminatoires !')}
-else{notify('✅ Tour '+tour.num+' Poule '+tour.poule+' validé','Prochain tour disponible.')}
+if(toutesOk){
+T.ps.forEach(function(p){p.ok=true});
+notify('✅ Poules terminées !','Toutes les poules sont jouées. Prêt pour les éliminatoires !');
+// Notifier toutes les équipes abonnées
+E.forEach(function(e){notifEq(e.id,'✅ Poules terminées !','Restez attentif pour les éliminatoires !')});
+}else{
+notify('✅ Tour '+tour.num+' Poule '+tour.poule+' validé','Prochain tour disponible.');
+// Notifier les équipes du prochain tour de cette poule
+var nextTour=T.tours.find(function(t){return t.poule===tour.poule&&!t.ok});
+if(nextTour){nextTour.ms.forEach(function(m){
+var adv1=m.e2,adv2=m.e1;
+notifEq(m.e1.id,'⚽ Prochain match — Tour '+nextTour.num,'vs '+adv1.nom+(m.heure?' à '+m.heure:'')+(m.terrain?' · '+m.terrain:''));
+notifEq(m.e2.id,'⚽ Prochain match — Tour '+nextTour.num,'vs '+adv2.nom+(m.heure?' à '+m.heure:'')+(m.terrain?' · '+m.terrain:''));
+})}
+}
 save();rPoules()}
 function lancerEl(){if(!T)return;var Q=C.qual||2;
 var ranked=T.ps.map(function(p){return{nm:p.nm,teams:clP(p).map(function(e,idx){return{eq:e,pos:idx+1,st:p.st[e.id]}})}});
@@ -239,12 +252,20 @@ if(r.type==='petite'){var pm=r.ms[0];if(pm.e1&&pm.e2)c.troisieme=mWinner(pm);
 notify('🥉 Petite finale '+c.icon+' terminée','3e place : '+(c.troisieme?c.troisieme.nom:'—'));
 save();rElim();rRes();return}
 if(r.level===finaleLevel){var fm=r.ms[0];c.champion=mWinner(fm);c.second=mLoser(fm);if(c.key==='P')T.fin=true;
-if(c.key==='P')notify('🏆 Champion du tournoi !',c.champion?c.champion.nom+' remporte le tournoi !':'');
-else notify('🛡️ Vainqueur consolation',c.champion?c.champion.nom+' remporte la coupe de consolation !':'');
+if(c.key==='P'){notify('🏆 Champion du tournoi !',c.champion?c.champion.nom+' remporte le tournoi !':'');
+if(c.champion)notifEq(c.champion.id,'🏆 Vous êtes Champions !','Félicitations, '+c.champion.nom+' remporte le tournoi !');
+if(c.second)notifEq(c.second.id,'🥈 Finaliste','Bravo pour cette finale, '+c.second.nom+' !');}
+else{notify('🛡️ Vainqueur consolation',c.champion?c.champion.nom+' remporte la coupe de consolation !':'');
+if(c.champion)notifEq(c.champion.id,'🛡️ Coupe de consolation','Bravo '+c.champion.nom+', vous remportez la consolation !');}
 save();rElim();rRes();return}
 var nextR=c.rs.find(function(x){return x.type==='bracket'&&x.level===r.level+1});
-r.ms.forEach(function(m,i){var w=mWinner(m);var tgt=nextR.ms[Math.floor(i/2)];if(i%2===0)tgt.e1=w;else tgt.e2=w});
-if(nextR.level===finaleLevel){var pet=c.rs.find(function(x){return x.type==='petite'});if(pet){var ls=r.ms.map(function(m){return mLoser(m)});pet.ms[0].e1=ls[0]||null;pet.ms[0].e2=ls[1]||null}}
+r.ms.forEach(function(m,i){var w=mWinner(m);var tgt=nextR.ms[Math.floor(i/2)];if(i%2===0)tgt.e1=w;else tgt.e2=w;
+// Notifier le qualifié
+if(w)notifEq(w.id,'✅ Qualifié — '+nextR.nm,c.icon+' Votre prochain match : '+nextR.nm);
+// Notifier l'éliminé si petite finale
+});
+if(nextR.level===finaleLevel){var pet=c.rs.find(function(x){return x.type==='petite'});if(pet){var ls=r.ms.map(function(m){return mLoser(m)});pet.ms[0].e1=ls[0]||null;pet.ms[0].e2=ls[1]||null;
+ls.forEach(function(loser){if(loser)notifEq(loser.id,'🥉 Petite finale','Vous jouez la petite finale pour la 3e place !')})}}
 resolveByesRound(nextR);
 notify(c.icon+' '+r.nm+' terminé',nextR.nm+' disponible — à vous de jouer !');
 save();rElim();rPlanningEditor()}
@@ -465,7 +486,9 @@ var eq=E.find(function(e){return e.id===selectedEqId});if(!eq){d.innerHTML='';re
 var poule=T.ps.find(function(p){return p.eq.some(function(e){return e.id===eq.id})});
 var h='';
 // Info poule
-if(poule){var st=poule.st[eq.id];h+='<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.7rem;flex-wrap:wrap"><span style="font-size:1.1rem;font-weight:700;color:var(--or)">'+eq.nom+'</span><span class="phase-tag phase-poules">Poule '+poule.nm+'</span></div>';
+if(poule){var st=poule.st[eq.id];
+var notifOn=!!notifTeams[eq.id];
+h+='<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.7rem;flex-wrap:wrap"><span style="font-size:1.1rem;font-weight:700;color:var(--or)">'+eq.nom+'</span><span class="phase-tag phase-poules">Poule '+poule.nm+'</span><button onclick="toggleNotifTeam(\''+eq.id+'\')" style="margin-left:auto;border:1px solid '+(notifOn?'var(--vert)':'var(--gris-moyen)')+';background:'+(notifOn?'rgba(34,197,94,.15)':'var(--gris-fonce)')+';color:'+(notifOn?'var(--vert-pale)':'var(--muted)')+';border-radius:20px;padding:.2rem .75rem;font-size:.75rem;font-weight:700;cursor:pointer">'+(notifOn?'🔔 Notifs activées':'🔕 Activer les notifs')+'</button></div>';
 if(st){h+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(70px,1fr));gap:.4rem;margin-bottom:.8rem;text-align:center">';
 h+='<div style="background:var(--gris-fonce);border-radius:5px;padding:.35rem"><div style="font-size:.65rem;color:var(--muted)">MATCHS</div><div style="font-size:1rem;font-weight:800;color:var(--or)">'+st.j+'</div></div>';
 h+='<div style="background:var(--gris-fonce);border-radius:5px;padding:.35rem"><div style="font-size:.65rem;color:var(--muted)">VICT.</div><div style="font-size:1rem;font-weight:800;color:var(--vert-pale)">'+st.v+'</div></div>';
@@ -500,7 +523,18 @@ h+='<span style="font-family:monospace;font-weight:800;color:'+(won?'var(--vert-
 else{h+='<span style="font-size:.75rem;color:var(--muted)">'+(m.heure||'—')+' · '+(m.terrain||'—')+'</span>'}
 h+='</div>'})}}
 d.innerHTML=h}
-// HISTORIQUE
+// ── Notifications par équipe ──
+var notifTeams=JSON.parse(localStorage.getItem('foot_notif_teams')||'{}');
+function saveNotifTeams(){localStorage.setItem('foot_notif_teams',JSON.stringify(notifTeams))}
+function toggleNotifTeam(id){
+if(!notifSupported()){alert('Votre navigateur ne supporte pas les notifications.');return}
+if(notifDenied()){alert('Les notifications sont bloquées dans votre navigateur. Autorisez-les dans les réglages puis réessayez.');return}
+function doToggle(){notifTeams[id]=!notifTeams[id];saveNotifTeams();renderEqDetail();
+if(notifTeams[id]){var eq=E.find(function(e){return e.id===id});notify('🔔 Notifications activées','Vous serez alerté pour les matchs de '+(eq?eq.nom:'votre équipe')+' !')}}
+if(!notifGranted())Notification.requestPermission().then(function(p){if(p==='granted')doToggle()});
+else doToggle()}
+function notifEq(eqId,title,body){if(notifTeams[eqId]&&notifGranted())notify(title,body)}
+
 var historique=JSON.parse(localStorage.getItem('foot_historique')||'[]');
 function saveHisto(){localStorage.setItem('foot_historique',JSON.stringify(historique));saveFB()}
 function archiverTournoi(){if(!T||!T.fin){alert('Le tournoi n\'est pas encore terminé.');return}
