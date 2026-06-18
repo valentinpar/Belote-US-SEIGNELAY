@@ -26,8 +26,9 @@ exports.sendPushNotification = functions.region('europe-west1').database
         // Visiteurs de la page d'accueil
         if (entry.source === 'index') validTokens.push(entry.token);
       } else if (target === 'tournoi') {
-        // Visiteurs du tournoi (sans filtre équipe)
-        if (entry.source === 'tournoi') validTokens.push(entry.token);
+        // Tournoi = source tournoi OU au moins une équipe abonnée
+        const hasTeam = entry.teams && Object.values(entry.teams).some(v => v === true);
+        if (entry.source === 'tournoi' || hasTeam) validTokens.push(entry.token);
       } else {
         // Équipe spécifique (teamId)
         if (entry.teams && entry.teams[target]) validTokens.push(entry.token);
