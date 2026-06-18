@@ -729,10 +729,41 @@ var sel=document.getElementById('bc-target');if(sel){while(sel.options.length>3)
 function rNotifs(){
 var d=document.getElementById('notifs-content');if(!d)return;
 var h='';
-// ── Section publique : juste activer le push ──
-if(!fcmToken){h+='<div class="card"><h2>🔔 Notifications push</h2>';
+
+// ── Section publique ──
+// Statut push + activation
+if(!fcmToken){
+h+='<div class="card"><h2>🔔 Notifications push</h2>';
 h+='<p style="font-size:.82rem;color:var(--muted);margin-bottom:.7rem">Activez les notifications pour recevoir les annonces même app fermée.</p>';
-h+='<button class="btn btn-primary btn-sm" onclick="initFCM(\'tournoi\').then(function(t){rNotifs();if(t)notify(\'✅ Push activé\',\'Vous recevrez les notifications !\')})">🔔 Activer les notifications</button></div>';}
+h+='<button class="btn btn-primary btn-sm" onclick="initFCM(\'tournoi\').then(function(t){rNotifs();if(t)notify(\'✅ Push activé\',\'Vous recevrez les notifications !\')})">🔔 Activer les notifications</button></div>';
+}
+
+// Abonnements de cet appareil
+var mesAbonnements=E.filter(function(e){return notifTeams[e.id]});
+h+='<div class="card"><h2>📋 Mes abonnements</h2>';
+if(!mesAbonnements.length){
+h+='<div style="color:var(--muted);font-size:.84rem;margin-bottom:.7rem">Vous n\'êtes abonné à aucune équipe.<br>Allez dans <strong style="color:var(--txt)">👤 Par équipe</strong> pour activer les notifications d\'une équipe.</div>';
+}else{
+h+='<div style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:.7rem">';
+mesAbonnements.forEach(function(e){
+h+='<div style="display:flex;align-items:center;gap:.6rem;background:var(--gris-fonce);border:1px solid rgba(34,197,94,.25);border-radius:8px;padding:.4rem .7rem">';
+h+='<span style="flex:1;font-weight:600;font-size:.88rem">'+e.nom+'</span>';
+h+='<span style="font-size:.72rem;color:var(--vert-pale)">🔔</span>';
+h+='<button onclick="meDesabonner(\''+e.id+'\')" style="border:none;cursor:pointer;background:rgba(239,68,68,.15);color:var(--rouge-clair);border-radius:6px;padding:.2rem .55rem;font-size:.75rem">Se désabonner</button>';
+h+='</div>';});
+h+='</div>';}
+if(fcmToken){h+='<div style="font-size:.75rem;color:var(--vert-pale);margin-bottom:.3rem">✅ Notifications push activées sur cet appareil</div>';}
+if(fcmToken||mesAbonnements.length){h+='<button class="btn btn-danger btn-sm" onclick="toutDesabonner()">🔕 Tout désactiver sur cet appareil</button>';}
+h+='</div>';
+
+// Guide installation
+h+='<div class="card" style="background:linear-gradient(135deg,rgba(13,51,24,.8),rgba(26,92,42,.4));border-color:rgba(134,239,172,.25)"><h2 style="color:var(--vert-pale)">📲 Recevoir les notifs hors app</h2>';
+h+='<p style="font-size:.8rem;color:var(--muted);margin-bottom:.8rem">Pour recevoir les notifications même quand l\'app est fermée, ajoutez-la à votre écran d\'accueil :</p>';
+h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem">';
+h+='<div style="background:rgba(0,0,0,.3);border-radius:8px;padding:.6rem .7rem"><div style="font-weight:700;font-size:.82rem;color:var(--txt);margin-bottom:.4rem">🍎 iPhone (Safari)</div><ol style="margin:0;padding-left:1.1rem;font-size:.76rem;color:var(--muted);line-height:1.7"><li>Ouvrir dans <strong style="color:var(--txt)">Safari</strong></li><li>Appuyer sur <strong style="color:var(--txt)">⎙ Partager</strong></li><li>Choisir <strong style="color:var(--txt)">Sur l&#39;écran d&#39;accueil</strong></li><li>Appuyer sur <strong style="color:var(--txt)">Ajouter</strong></li></ol></div>';
+h+='<div style="background:rgba(0,0,0,.3);border-radius:8px;padding:.6rem .7rem"><div style="font-weight:700;font-size:.82rem;color:var(--txt);margin-bottom:.4rem">🤖 Android (Chrome)</div><ol style="margin:0;padding-left:1.1rem;font-size:.76rem;color:var(--muted);line-height:1.7"><li>Ouvrir dans <strong style="color:var(--txt)">Chrome</strong></li><li>Appuyer sur <strong style="color:var(--txt)">⋮ Menu</strong></li><li>Choisir <strong style="color:var(--txt)">Ajouter a l&#39;écran d&#39;accueil</strong></li><li>Appuyer sur <strong style="color:var(--txt)">Ajouter</strong></li></ol></div>';
+h+='</div></div>';
+
 // ── Section admin ──
 if(deb){
 var abonnes=E.filter(function(e){return notifTeams[e.id]});
@@ -790,6 +821,18 @@ return '<div style="border-bottom:1px solid var(--gris-moyen);padding:.5rem 0"><
 function effacerHistoriqueNotifs(){cConfirm('Effacer tout l\'historique des annonces ?','🗑️').then(function(ok){if(!ok)return;if(fbOk&&db)db.ref('foot_notif_history').remove()})}
 function supprimerNotifHist(key){if(fbOk&&db)db.ref('foot_notif_history/'+key).remove()}
 function supprimerToken(key){cConfirm('Désabonner cet appareil ?','📵').then(function(ok){if(!ok)return;if(fbOk&&db)db.ref('foot_fcm_tokens/'+key).remove().then(function(){rNotifs()})})}
+function meDesabonner(id){
+notifTeams[id]=false;saveNotifTeams();updateFCMTeams();rNotifs();
+notify('🔕 Désabonné','Vous ne recevrez plus les notifications de cette équipe.')}
+function toutDesabonner(){
+cConfirm('Désactiver toutes les notifications sur cet appareil ?','🔕').then(function(ok){
+if(!ok)return;
+notifTeams={};saveNotifTeams();
+fcmToken=null;localStorage.removeItem('foot_fcm_token');localStorage.removeItem('foot_fcm_asked');
+if(fbOk&&db){var old=localStorage.getItem('foot_fcm_token_old');
+db.ref('foot_fcm_tokens').orderByChild('token').once('value',function(snap){
+snap.forEach(function(c){if(c.val().token===fcmToken)c.ref.remove()})});}
+rNotifs();notify('🔕 Désabonné','Toutes les notifications désactivées sur cet appareil.')})}
 function desabonnerEquipe(id){
 notifTeams[id]=false;saveNotifTeams();rNotifs();
 notify('🔕 Notifications désactivées','L\'équipe ne recevra plus d\'alertes.')}
