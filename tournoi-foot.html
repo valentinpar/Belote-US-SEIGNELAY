@@ -62,7 +62,7 @@
 <body>
 <div id="bandeau-firebase" style="display:none;background:#92400e;color:#fcd34d;padding:.4rem .8rem;font-size:.76rem;text-align:center">⚠️ <strong>Firebase non configuré</strong> — Sauvegarde locale.</div>
 <header><button id="btn-orga" onclick="ouvrirLogin()">🔐 Organisateur</button><button id="btn-lock" onclick="verrouiller()">🔒 Verrouiller</button><a href="index.html" style="position:absolute;top:1rem;right:1rem;z-index:10;background:rgba(26,92,42,.25);border:1px solid rgba(134,239,172,.35);color:#86efac;border-radius:6px;padding:.4rem .9rem;font-size:.82rem;font-weight:700;font-family:inherit;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem" onmouseover="this.style.background='rgba(26,92,42,.55)'" onmouseout="this.style.background='rgba(26,92,42,.25)'">🏠 Accueil</a><h1>⚽ Tournoi de <span>Football</span></h1><p>US Seignelay</p></header>
-<nav class="tabs"><button class="tab" id="tab-equipes" onclick="goTab('equipes',this)">👥 Équipes <span class="badge" id="badge-eq">0</span></button><button class="tab" id="tab-setup" onclick="goTab('setup',this)">⚙️ Config</button><button class="tab" id="tab-poules" onclick="goTab('poules',this)">📋 Poules</button><button class="tab" id="tab-elim" onclick="goTab('elim',this)">🏆 Élim.</button><button class="tab" id="tab-notifs" onclick="goTab('notifs',this)">🔔 Notifs</button><button class="tab visible active" id="tab-resultats" onclick="goTab('resultats',this)">📊 Résultats</button><button class="tab visible" id="tab-planning" onclick="goTab('planning',this)">🗓️ Planning</button><button class="tab visible" id="tab-parequipe" onclick="goTab('parequipe',this)">👤 Par équipe</button><button class="tab visible" id="tab-buvette" onclick="goTab('buvette',this)">🍺 Buvette</button><button class="tab visible" id="tab-reglement" onclick="goTab('reglement',this)">📋 Règlement</button><button class="tab visible" id="tab-qr" onclick="goTab('qr',this)">📱 QR</button><button class="tab visible" id="tab-historique" onclick="goTab('historique',this)">📜 Historique</button></nav>
+<nav class="tabs"><button class="tab" id="tab-equipes" onclick="goTab('equipes',this)">👥 Équipes <span class="badge" id="badge-eq">0</span></button><button class="tab" id="tab-setup" onclick="goTab('setup',this)">⚙️ Config</button><button class="tab" id="tab-poules" onclick="goTab('poules',this)">📋 Poules</button><button class="tab" id="tab-elim" onclick="goTab('elim',this)">🏆 Élim.</button><button class="tab visible" id="tab-notifs" onclick="goTab('notifs',this)">🔔 Notifs</button><button class="tab visible active" id="tab-resultats" onclick="goTab('resultats',this)">📊 Résultats</button><button class="tab visible" id="tab-planning" onclick="goTab('planning',this)">🗓️ Planning</button><button class="tab visible" id="tab-parequipe" onclick="goTab('parequipe',this)">👤 Par équipe</button><button class="tab visible" id="tab-buvette" onclick="goTab('buvette',this)">🍺 Buvette</button><button class="tab visible" id="tab-reglement" onclick="goTab('reglement',this)">📋 Règlement</button><button class="tab visible" id="tab-qr" onclick="goTab('qr',this)">📱 QR</button><button class="tab visible" id="tab-historique" onclick="goTab('historique',this)">📜 Historique</button></nav>
 <div class="modal-overlay" id="modal-pwd"><div class="modal-box"><div class="modal-icon">🔐</div><div class="modal-titre">Accès organisateur</div><div class="modal-sous">Mot de passe</div><div style="position:relative;margin-bottom:.6rem"><input type="password" id="pwd-input" placeholder="Mot de passe…" onkeydown="if(event.key==='Enter')checkPwd()" style="padding-right:2rem"><button style="position:absolute;right:.4rem;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer" onclick="toggleEye('pwd-input')">👁</button></div><div class="modal-error" id="pwd-error"></div><div class="flex gap-1" style="justify-content:center"><button class="btn btn-gold" onclick="checkPwd()">🔓 Entrer</button><button class="btn btn-ghost btn-sm" onclick="fermerModal()">Annuler</button></div><div class="modal-hint">Défaut : <strong style="color:var(--muted)">1234</strong></div><div style="margin-top:.5rem"><button style="background:none;border:none;color:var(--or);font-size:.76rem;cursor:pointer;text-decoration:underline;font-family:inherit" onclick="ouvrirRecup()">Mot de passe oublié ?</button></div></div></div>
 <div class="modal-overlay" id="modal-recup"><div class="modal-box"><div id="recup-etape1"><div class="modal-icon">🔮</div><div class="modal-titre">Récupération</div><div class="modal-sous">Répondez à votre question secrète</div><div style="margin-bottom:.7rem"><div style="background:var(--gris-fonce);border:1px solid var(--gris-moyen);border-radius:5px;padding:.6rem .8rem;color:var(--or);font-size:.9rem;font-weight:600;margin-bottom:.5rem" id="recup-question">Aucune question définie</div><input type="text" id="recup-reponse" placeholder="Votre réponse…" onkeydown="if(event.key==='Enter')checkRecup()"></div><div class="modal-error" id="recup-error"></div><div class="flex gap-1" style="justify-content:center"><button class="btn btn-gold" onclick="checkRecup()">✅ Valider</button><button class="btn btn-ghost btn-sm" onclick="fermerRecup()">Annuler</button></div></div><div id="recup-etape2" style="display:none"><div class="modal-icon">🔑</div><div class="modal-titre">Nouveau mot de passe</div><div class="modal-sous">Réponse correcte !</div><div style="position:relative;margin-bottom:.5rem"><input type="password" id="recup-new-pwd" placeholder="Nouveau…" onkeydown="if(event.key==='Enter')sauverNouveauMdp()"><button style="position:absolute;right:.4rem;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer" onclick="toggleEye('recup-new-pwd')">👁</button></div><div style="position:relative;margin-bottom:.6rem"><input type="password" id="recup-new-pwd2" placeholder="Confirmer…" onkeydown="if(event.key==='Enter')sauverNouveauMdp()"><button style="position:absolute;right:.4rem;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer" onclick="toggleEye('recup-new-pwd2')">👁</button></div><div class="modal-error" id="recup-error2"></div><div class="flex gap-1" style="justify-content:center"><button class="btn btn-gold" onclick="sauverNouveauMdp()">💾 Enregistrer</button><button class="btn btn-ghost btn-sm" onclick="fermerRecup()">Annuler</button></div></div></div></div>
 <main>
@@ -712,17 +712,18 @@ w.innerHTML='<div style="display:flex;flex-wrap:wrap;align-items:center;gap:.5re
 var sel=document.getElementById('bc-target');if(sel){while(sel.options.length>3)sel.remove(3);E.forEach(function(e){var o=document.createElement('option');o.value=e.id;o.textContent='👥 '+e.nom;sel.appendChild(o)})}}
 function rNotifs(){
 var d=document.getElementById('notifs-content');if(!d)return;
-var abonnes=E.filter(function(e){return notifTeams[e.id]});
 var h='';
-// ── Bannière test ──
-h+='<div class="card"><h2>🔔 État des notifications</h2>';
-var fcmStatus=fcmToken?'✅ Push activé (token enregistré)':'⚠️ Push non enregistré — appuie sur Réenregistrer';
+// ── État + bouton réenregistrer (visible par tous) ──
+h+='<div class="card"><h2>🔔 Notifications push</h2>';
+var fcmStatus=fcmToken?'✅ Push activé sur cet appareil':'⚠️ Push non activé';
 var fcmColor=fcmToken?'var(--vert-pale)':'#fcd34d';
-h+='<div style="font-size:.78rem;color:var(--vert-pale);margin-bottom:.4rem">✅ Bannières in-app actives</div>';
 h+='<div style="font-size:.78rem;color:'+fcmColor+';margin-bottom:.6rem">'+fcmStatus+'</div>';
-h+='<button class="btn btn-primary btn-sm" onclick="initFCM(\'tournoi\').then(function(t){rNotifs();if(t)notify(\'✅ Push enregistré\',\'Notifications activées !\')})">🔄 Réenregistrer le push</button>';
-h+='<div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap"><select id="test-delay" style="background:var(--gris-fonce);border:1px solid var(--gris-moyen);color:var(--txt);border-radius:6px;padding:.2rem .4rem;font-size:.8rem"><option value="5">5s</option><option value="10" selected>10s</option><option value="15">15s</option><option value="30">30s</option></select><button id="test-timer-btn" class="btn btn-primary btn-sm" onclick="startTestTimer()">▶ Test minuteur</button><span id="test-timer-lbl" style="font-size:.8rem;color:var(--or);font-weight:700;min-width:40px"></span><button class="btn btn-ghost btn-sm" onclick="testNotif()">Tester maintenant</button></div></div>';
-// ── Annonce ──
+h+='<div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.6rem">';
+h+='<button class="btn btn-primary btn-sm" onclick="initFCM(\'tournoi\').then(function(t){rNotifs();if(t)notify(\'✅ Push activé\',\'Vous recevrez les notifications !\')})">🔔 Activer les notifications push</button></div>';
+h+='<div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap"><select id="test-delay" style="background:var(--gris-fonce);border:1px solid var(--gris-moyen);color:var(--txt);border-radius:6px;padding:.2rem .4rem;font-size:.8rem"><option value="5">5s</option><option value="10" selected>10s</option><option value="15">15s</option><option value="30">30s</option></select><button id="test-timer-btn" class="btn btn-primary btn-sm" onclick="startTestTimer()">▶ Test minuteur</button><span id="test-timer-lbl" style="font-size:.8rem;color:var(--or);font-weight:700;min-width:40px"></span><button class="btn btn-ghost btn-sm" onclick="testNotif()">Tester</button></div></div>';
+// ── Section admin uniquement ──
+if(deb){
+var abonnes=E.filter(function(e){return notifTeams[e.id]});
 h+='<div class="card"><h2>📢 Envoyer une annonce</h2>';
 h+='<input type="text" id="bc-titre" placeholder="Titre (ex: Attention !)" style="width:100%;margin-bottom:.5rem">';
 h+='<textarea id="bc-body" placeholder="Message…" style="width:100%;height:70px;resize:vertical;background:var(--gris-fonce);border:1px solid var(--gris-moyen);color:var(--txt);border-radius:6px;padding:.4rem .6rem;font-family:inherit;font-size:.84rem"></textarea>';
@@ -731,24 +732,19 @@ h+='<select id="bc-target" style="flex:1;min-width:160px;background:var(--gris-f
 E.forEach(function(e){h+='<option value="'+e.id+'">👥 '+e.nom+'</option>'});
 h+='</select><button class="btn btn-gold" onclick="envoyerBroadcast()">📤 Envoyer</button></div>';
 h+='<div id="alert-bc" class="mt-1"></div></div>';
-// ── Abonnés ──
 h+='<div class="card"><h2>👥 Équipes abonnées</h2>';
-if(!abonnes.length){
-h+='<div style="color:var(--muted);font-size:.84rem">Aucune équipe n\'a activé les notifications pour le moment.</div>';
-}else{
-h+='<div style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:.8rem">';
+if(!abonnes.length){h+='<div style="color:var(--muted);font-size:.84rem">Aucune équipe abonnée.</div>';}
+else{h+='<div style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:.8rem">';
 abonnes.forEach(function(e){
 h+='<div style="display:flex;align-items:center;gap:.6rem;background:var(--gris-fonce);border:1px solid rgba(34,197,94,.25);border-radius:8px;padding:.4rem .7rem">';
 h+='<span style="flex:1;font-weight:600;font-size:.88rem">'+e.nom+'</span>';
 h+='<span style="font-size:.72rem;color:var(--vert-pale)">🔔 Abonné</span>';
 h+='<button onclick="desabonnerEquipe(\''+e.id+'\')" style="border:none;cursor:pointer;background:rgba(239,68,68,.15);color:var(--rouge-clair);border-radius:6px;padding:.2rem .55rem;font-size:.75rem">Désactiver</button>';
-h+='</div>';
-});
-h+='</div>';}
+h+='</div>';});h+='</div>';}
 h+='<div style="border-top:1px solid var(--gris-moyen);padding-top:.7rem;margin-top:.4rem">';
-h+='<div style="font-size:.8rem;color:var(--muted);margin-bottom:.5rem">Réinitialiser tous les abonnements (utile en début de saison) :</div>';
-h+='<button class="btn btn-danger btn-sm" onclick="resetTousAbonnements()">🗑️ Désactiver tous les abonnements</button>';
-h+='<div id="alert-reset-notif" class="mt-1"></div></div></div>';
+h+='<div style="font-size:.8rem;color:var(--muted);margin-bottom:.5rem">Réinitialiser tous les abonnements :</div>';
+h+='<button class="btn btn-danger btn-sm" onclick="resetTousAbonnements()">🗑️ Désactiver tous</button>';
+h+='<div id="alert-reset-notif" class="mt-1"></div></div></div>';}
 d.innerHTML=h}
 function desabonnerEquipe(id){
 notifTeams[id]=false;saveNotifTeams();rNotifs();
