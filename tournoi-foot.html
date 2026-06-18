@@ -488,6 +488,8 @@ function initFB(){try{firebase.initializeApp(fCfg);db=firebase.database();fbOk=t
 // Listener reset abonnements
 var _notifResetTs=parseInt(localStorage.getItem('foot_notif_reset_ts')||'0');
 db.ref('foot_notif_reset').on('value',function(snap){var d=snap.val();if(!d||!d.ts)return;if(d.ts>_notifResetTs){_notifResetTs=d.ts;localStorage.setItem('foot_notif_reset_ts',d.ts);notifTeams={};saveNotifTeams();notify('🔕 Notifications réinitialisées','Vos abonnements ont été réinitialisés par l\'organisateur.')}});
+// Listener buvette (sync temps réel entre appareils)
+db.ref('foot_buvette').on('value',function(snap){var d=snap.val();if(!d)return;buvette=Array.isArray(d)?d:Object.values(d);localStorage.setItem('foot_buvette',JSON.stringify(buvette));var sec=document.querySelector('#sec-buvette.active');if(sec)rBuvette()});
 var _lastBroadcastTs=Date.now();
 db.ref('foot_broadcast').on('value',function(snap){var d=snap.val();if(!d||!d.ts)return;if(d.ts<=_lastBroadcastTs)return;_lastBroadcastTs=d.ts;// Vérifier si ce message me concerne
 var target=d.target||'all';if(target==='all'){notify(d.title||'📢 Annonce',d.body||'')}else{// target = id équipe — afficher si l'équipe a activé ses notifs
@@ -567,7 +569,8 @@ var h='';
 // Info poule
 if(poule){var st=poule.st[eq.id];
 var notifOn=!!notifTeams[eq.id];
-h+='<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.7rem;flex-wrap:wrap"><span style="font-size:1.1rem;font-weight:700;color:var(--or)">'+eq.nom+'</span><span class="phase-tag phase-poules">Poule '+poule.nm+'</span><button onclick="toggleNotifTeam(\''+eq.id+'\')" style="margin-left:auto;border:1px solid '+(notifOn?'var(--vert)':'var(--gris-moyen)')+';background:'+(notifOn?'rgba(34,197,94,.15)':'var(--gris-fonce)')+';color:'+(notifOn?'var(--vert-pale)':'var(--muted)')+';border-radius:20px;padding:.2rem .75rem;font-size:.75rem;font-weight:700;cursor:pointer">'+(notifOn?'🔔 Notifs activées':'🔕 Activer les notifs')+'</button></div>';
+h+='<div style="display:flex;align-items:center;gap:.5rem;margin-bottom:'+(notifOn?'.7rem':'.4rem')+';flex-wrap:wrap"><span style="font-size:1.1rem;font-weight:700;color:var(--or)">'+eq.nom+'</span><span class="phase-tag phase-poules">Poule '+poule.nm+'</span><button onclick="toggleNotifTeam(\''+eq.id+'\')" style="margin-left:auto;border:1px solid '+(notifOn?'var(--vert)':'var(--gris-moyen)')+';background:'+(notifOn?'rgba(34,197,94,.15)':'var(--gris-fonce)')+';color:'+(notifOn?'var(--vert-pale)':'var(--muted)')+';border-radius:20px;padding:.2rem .75rem;font-size:.75rem;font-weight:700;cursor:pointer">'+(notifOn?'🔔 Notifs activées':'🔕 Activer les notifs')+'</button></div>';
+if(!notifOn){h+='<div style="background:rgba(212,160,23,.1);border:1px solid rgba(212,160,23,.3);border-radius:8px;padding:.45rem .6rem;font-size:.75rem;color:#fcd34d;margin-bottom:.7rem">⚠️ Pour recevoir les notifs app fermée, ajoutez d\'abord cette page à votre <strong>écran d\'accueil</strong> (onglet 🔔 Notifs).</div>';}
 if(st){h+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(70px,1fr));gap:.4rem;margin-bottom:.8rem;text-align:center">';
 h+='<div style="background:var(--gris-fonce);border-radius:5px;padding:.35rem"><div style="font-size:.65rem;color:var(--muted)">MATCHS</div><div style="font-size:1rem;font-weight:800;color:var(--or)">'+st.j+'</div></div>';
 h+='<div style="background:var(--gris-fonce);border-radius:5px;padding:.35rem"><div style="font-size:.65rem;color:var(--muted)">VICT.</div><div style="font-size:1rem;font-weight:800;color:var(--vert-pale)">'+st.v+'</div></div>';
@@ -734,7 +737,8 @@ var h='';
 // Statut push + activation
 if(!fcmToken){
 h+='<div class="card"><h2>🔔 Notifications push</h2>';
-h+='<p style="font-size:.82rem;color:var(--muted);margin-bottom:.7rem">Activez les notifications pour recevoir les annonces même app fermée.</p>';
+h+='<p style="font-size:.82rem;color:var(--muted);margin-bottom:.5rem">Recevez les annonces même quand l\'app est fermée.</p>';
+h+='<div style="background:rgba(212,160,23,.1);border:1px solid rgba(212,160,23,.3);border-radius:8px;padding:.5rem .7rem;font-size:.78rem;color:#fcd34d;margin-bottom:.7rem">⚠️ Pour que ça fonctionne, cette page doit être <strong>ajoutée à votre écran d\'accueil</strong> (voir guide ci-dessous).</div>';
 h+='<button class="btn btn-primary btn-sm" onclick="initFCM(\'tournoi\').then(function(t){rNotifs();if(t)notify(\'✅ Push activé\',\'Vous recevrez les notifications !\')})">🔔 Activer les notifications</button></div>';
 }
 
@@ -856,7 +860,9 @@ db.ref('foot_notif_history').push({title:titre||'📢 Annonce',body:body,target:
 flash(a,'success','✅ Annonce envoyée !');document.getElementById('bc-titre').value='';document.getElementById('bc-body').value=''}).catch(function(){flash(a,'warning','⚠️ Erreur envoi.')})}
 
 var buvette=JSON.parse(localStorage.getItem('foot_buvette')||'[]');
-function saveBuvette(){localStorage.setItem('foot_buvette',JSON.stringify(buvette));saveFB()}
+function saveBuvette(){
+localStorage.setItem('foot_buvette',JSON.stringify(buvette));
+if(fbOk&&db)db.ref('foot_buvette').set(buvette)}
 function rBuvette(){
 var d=document.getElementById('buvette-content');
 var h='';
