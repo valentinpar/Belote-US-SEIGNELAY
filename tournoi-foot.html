@@ -761,15 +761,15 @@ var el=document.getElementById('fcm-abonnes-list');if(!el)return;
 if(!list.length){el.innerHTML='<div style="color:var(--muted);font-size:.84rem">Aucun appareil enregistré.</div>';return}
 var html='<div style="font-size:.75rem;color:var(--muted);margin-bottom:.4rem">'+list.length+' appareil(s) enregistré(s)</div>';
 html+='<div style="display:flex;flex-direction:column;gap:.4rem">';
-list.forEach(function(t){
+Object.entries(tokens).forEach(function(entry){var tk=entry[0],t=entry[1];
 var src=t.source==='index'?'🏠 Accueil':'⚽ Tournoi';
 var teams=t.teams?Object.keys(t.teams).filter(function(k){return t.teams[k]}):[];
 var teamNames=teams.map(function(id){var eq=E.find(function(e){return e.id===id});return eq?eq.nom:id});
-var d2=t.updatedAt?new Date(t.updatedAt).toLocaleDateString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'';
+var d2=t.updatedAt?new Date(t.updatedAt).toLocaleDateString('fr-FR',{day:'numeric',month:'short'}):'';
 html+='<div style="background:var(--gris-fonce);border:1px solid var(--gris-moyen);border-radius:8px;padding:.4rem .6rem">';
-html+='<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:.8rem;font-weight:700;color:var(--txt)">'+src+'</span><span style="font-size:.68rem;color:var(--muted)">'+d2+'</span></div>';
+html+='<div style="display:flex;justify-content:space-between;align-items:center;gap:.4rem"><span style="font-size:.8rem;font-weight:700;color:var(--txt)">'+src+'</span><span style="font-size:.68rem;color:var(--muted)">'+d2+'</span><button onclick="supprimerToken(\''+tk+'\')" style="border:none;cursor:pointer;background:rgba(239,68,68,.15);color:var(--rouge-clair);border-radius:6px;padding:.15rem .45rem;font-size:.72rem;flex-shrink:0">✕</button></div>';
 if(teamNames.length)html+='<div style="font-size:.75rem;color:var(--vert-pale);margin-top:.2rem">🔔 '+teamNames.join(', ')+'</div>';
-else html+='<div style="font-size:.75rem;color:var(--muted);margin-top:.2rem">Notifs générales uniquement</div>';
+else html+='<div style="font-size:.75rem;color:var(--muted);margin-top:.2rem">Notifs générales</div>';
 html+='</div>';});
 html+='</div>';
 el.innerHTML=html;});}
@@ -778,16 +778,18 @@ if(fbOk&&db){
 // Couper l'ancien listener si existant
 if(window._histListener)db.ref('foot_notif_history').off('value',window._histListener);
 window._histListener=db.ref('foot_notif_history').orderByChild('ts').limitToLast(20).on('value',function(snap){
-var items=[];snap.forEach(function(c){items.unshift(c.val())});
+var items=[];snap.forEach(function(c){items.unshift({_key:c.key,...c.val()})});
 var card=document.getElementById('notif-history-card');if(!card)return;
 card.innerHTML='<h2>📋 Historique des annonces</h2>'+(items.length?'':'<div style="color:var(--muted);font-size:.84rem">Aucune annonce envoyée.</div>')+
 items.map(function(n){
 var dt=new Date(n.ts);
 var ds=dt.toLocaleDateString('fr-FR',{day:'numeric',month:'short'})+' à '+dt.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
 var tl=n.target==='all'?'📣 Tous':n.target==='index'?'🏠 Accueil':n.target==='tournoi'?'⚽ Tournoi':'👥 Équipe';
-return '<div style="border-bottom:1px solid var(--gris-moyen);padding:.5rem 0"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem"><div><div style="font-weight:700;font-size:.88rem;color:var(--txt)">'+n.title+'</div>'+(n.body?'<div style="font-size:.8rem;color:var(--muted);margin-top:.1rem">'+n.body+'</div>':'')+'</div><div style="text-align:right;flex-shrink:0"><div style="font-size:.7rem;color:var(--muted)">'+ds+'</div>'+(deb?'<div style="font-size:.66rem;color:var(--or)">'+tl+'</div>':'')+'</div></div></div>';
+return '<div style="border-bottom:1px solid var(--gris-moyen);padding:.5rem 0"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.4rem"><div style="flex:1"><div style="font-weight:700;font-size:.88rem;color:var(--txt)">'+n.title+'</div>'+(n.body?'<div style="font-size:.8rem;color:var(--muted);margin-top:.1rem">'+n.body+'</div>':'')+'</div><div style="text-align:right;flex-shrink:0"><div style="font-size:.7rem;color:var(--muted)">'+ds+'</div>'+(deb?'<div style="font-size:.66rem;color:var(--or)">'+tl+'</div>':'')+'<button onclick="supprimerNotifHist(\''+n._key+'\')" style="border:none;cursor:pointer;background:rgba(239,68,68,.15);color:var(--rouge-clair);border-radius:6px;padding:.15rem .45rem;font-size:.72rem;margin-top:.2rem">✕</button></div></div></div>';
 }).join('');})}}
 function effacerHistoriqueNotifs(){cConfirm('Effacer tout l\'historique des annonces ?','🗑️').then(function(ok){if(!ok)return;if(fbOk&&db)db.ref('foot_notif_history').remove()})}
+function supprimerNotifHist(key){if(fbOk&&db)db.ref('foot_notif_history/'+key).remove()}
+function supprimerToken(key){cConfirm('Désabonner cet appareil ?','📵').then(function(ok){if(!ok)return;if(fbOk&&db)db.ref('foot_fcm_tokens/'+key).remove().then(function(){rNotifs()})})}
 function desabonnerEquipe(id){
 notifTeams[id]=false;saveNotifTeams();rNotifs();
 notify('🔕 Notifications désactivées','L\'équipe ne recevra plus d\'alertes.')}
