@@ -744,23 +744,40 @@ h+='<select id="bc-target" style="flex:1;min-width:160px;background:var(--gris-f
 E.forEach(function(e){h+='<option value="'+e.id+'">👥 '+e.nom+'</option>'});
 h+='</select><button class="btn btn-gold" onclick="envoyerBroadcast()">📤 Envoyer</button></div>';
 h+='<div id="alert-bc" class="mt-1"></div></div>';
-h+='<div class="card"><h2>👥 Équipes abonnées</h2>';
-if(!abonnes.length){h+='<div style="color:var(--muted);font-size:.84rem">Aucune équipe abonnée.</div>';}
-else{h+='<div style="display:flex;flex-direction:column;gap:.4rem;margin-bottom:.8rem">';
-abonnes.forEach(function(e){
-h+='<div style="display:flex;align-items:center;gap:.6rem;background:var(--gris-fonce);border:1px solid rgba(34,197,94,.25);border-radius:8px;padding:.4rem .7rem">';
-h+='<span style="flex:1;font-weight:600;font-size:.88rem">'+e.nom+'</span>';
-h+='<span style="font-size:.72rem;color:var(--vert-pale)">🔔 Abonné</span>';
-h+='<button onclick="desabonnerEquipe(\''+e.id+'\')" style="border:none;cursor:pointer;background:rgba(239,68,68,.15);color:var(--rouge-clair);border-radius:6px;padding:.2rem .55rem;font-size:.75rem">Désactiver</button>';
-h+='</div>';});h+='</div>';}
-h+='<div style="border-top:1px solid var(--gris-moyen);padding-top:.7rem;margin-top:.4rem">';
+h+='<div class="card"><h2>👥 Abonnés aux notifications</h2>';
+h+='<div id="fcm-abonnes-list" style="margin-bottom:.7rem"><div style="color:var(--muted);font-size:.84rem">Chargement…</div></div>';
+h+='<div style="border-top:1px solid var(--gris-moyen);padding-top:.7rem">';
 h+='<div style="font-size:.8rem;color:var(--muted);margin-bottom:.5rem">Réinitialiser tous les abonnements :</div>';
 h+='<button class="btn btn-danger btn-sm" onclick="resetTousAbonnements()">🗑️ Désactiver tous</button>';
-h+='<div id="alert-reset-notif" class="mt-1"></div></div></div>';}
+h+='<div id="alert-reset-notif" class="mt-1"></div></div></div>'}
 h+='<div class="card" id="notif-history-card"><h2>📋 Historique des annonces</h2><div style="color:var(--muted);font-size:.84rem">Chargement…</div></div>';
+if(deb)h+='<div style="text-align:right;margin-top:-.4rem;margin-bottom:.8rem"><button class="btn btn-danger btn-sm" onclick="effacerHistoriqueNotifs()">🗑️ Effacer l\'historique</button></div>';
 d.innerHTML=h;
-// Charger l'historique depuis Firebase
-if(fbOk&&db){db.ref('foot_notif_history').orderByChild('ts').limitToLast(20).once('value',function(snap){
+// Charger les abonnés FCM depuis Firebase
+if(fbOk&&db&&deb){db.ref('foot_fcm_tokens').once('value',function(snap){
+var tokens=snap.val()||{};
+var list=Object.values(tokens);
+var el=document.getElementById('fcm-abonnes-list');if(!el)return;
+if(!list.length){el.innerHTML='<div style="color:var(--muted);font-size:.84rem">Aucun appareil enregistré.</div>';return}
+var html='<div style="font-size:.75rem;color:var(--muted);margin-bottom:.4rem">'+list.length+' appareil(s) enregistré(s)</div>';
+html+='<div style="display:flex;flex-direction:column;gap:.4rem">';
+list.forEach(function(t){
+var src=t.source==='index'?'🏠 Accueil':'⚽ Tournoi';
+var teams=t.teams?Object.keys(t.teams).filter(function(k){return t.teams[k]}):[];
+var teamNames=teams.map(function(id){var eq=E.find(function(e){return e.id===id});return eq?eq.nom:id});
+var d2=t.updatedAt?new Date(t.updatedAt).toLocaleDateString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'';
+html+='<div style="background:var(--gris-fonce);border:1px solid var(--gris-moyen);border-radius:8px;padding:.4rem .6rem">';
+html+='<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:.8rem;font-weight:700;color:var(--txt)">'+src+'</span><span style="font-size:.68rem;color:var(--muted)">'+d2+'</span></div>';
+if(teamNames.length)html+='<div style="font-size:.75rem;color:var(--vert-pale);margin-top:.2rem">🔔 '+teamNames.join(', ')+'</div>';
+else html+='<div style="font-size:.75rem;color:var(--muted);margin-top:.2rem">Notifs générales uniquement</div>';
+html+='</div>';});
+html+='</div>';
+el.innerHTML=html;});}
+
+if(fbOk&&db){
+// Couper l'ancien listener si existant
+if(window._histListener)db.ref('foot_notif_history').off('value',window._histListener);
+window._histListener=db.ref('foot_notif_history').orderByChild('ts').limitToLast(20).on('value',function(snap){
 var items=[];snap.forEach(function(c){items.unshift(c.val())});
 var card=document.getElementById('notif-history-card');if(!card)return;
 card.innerHTML='<h2>📋 Historique des annonces</h2>'+(items.length?'':'<div style="color:var(--muted);font-size:.84rem">Aucune annonce envoyée.</div>')+
@@ -770,6 +787,7 @@ var ds=dt.toLocaleDateString('fr-FR',{day:'numeric',month:'short'})+' à '+dt.to
 var tl=n.target==='all'?'📣 Tous':n.target==='index'?'🏠 Accueil':n.target==='tournoi'?'⚽ Tournoi':'👥 Équipe';
 return '<div style="border-bottom:1px solid var(--gris-moyen);padding:.5rem 0"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem"><div><div style="font-weight:700;font-size:.88rem;color:var(--txt)">'+n.title+'</div>'+(n.body?'<div style="font-size:.8rem;color:var(--muted);margin-top:.1rem">'+n.body+'</div>':'')+'</div><div style="text-align:right;flex-shrink:0"><div style="font-size:.7rem;color:var(--muted)">'+ds+'</div>'+(deb?'<div style="font-size:.66rem;color:var(--or)">'+tl+'</div>':'')+'</div></div></div>';
 }).join('');})}}
+function effacerHistoriqueNotifs(){cConfirm('Effacer tout l\'historique des annonces ?','🗑️').then(function(ok){if(!ok)return;if(fbOk&&db)db.ref('foot_notif_history').remove()})}
 function desabonnerEquipe(id){
 notifTeams[id]=false;saveNotifTeams();rNotifs();
 notify('🔕 Notifications désactivées','L\'équipe ne recevra plus d\'alertes.')}
@@ -815,7 +833,7 @@ h+='<div class="empty-state"><div class="icon">🍺</div><div>La carte de la buv
 h+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:.8rem;padding:.5rem">';
 buvette.forEach(function(it){
 h+='<div onclick="openLightbox(\''+it.id+'\')" style="border-radius:12px;overflow:hidden;background:var(--gris-fonce);box-shadow:0 2px 12px rgba(0,0,0,.4);cursor:pointer;transition:transform .15s" onmouseover="this.style.transform=\'scale(1.02)\'" onmouseout="this.style.transform=\'scale(1)\'">';
-h+='<img src="'+it.photo+'" style="width:100%;aspect-ratio:4/3;object-fit:cover;display:block">';
+h+='<img src="'+it.photo+'" style="width:100%;max-height:280px;object-fit:contain;display:block;background:rgba(0,0,0,.2)">';
 h+='</div>';
 });
 h+='</div>'}
