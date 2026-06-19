@@ -206,19 +206,15 @@ function vG(ti){if(!T||!T.tours)return;var tour=T.tours[ti];if(!tour||tour.ok)re
 var toutesOk=T.tours.every(function(t){return t.ok});
 if(toutesOk){
 T.ps.forEach(function(p){p.ok=true});
-notify('✅ Poules terminées !','Toutes les poules sont jouées. Prêt pour les éliminatoires !');
-if(fbOk&&db)db.ref('foot_broadcast').set({title:'✅ Poules terminées !',body:'Prêt pour les éliminatoires !',target:'all',ts:Date.now()});
-queuePush('✅ Poules terminées !','Prêt pour les éliminatoires !','all');
+autoNotif('poules_fin','✅ Poules terminées !','Prêt pour les éliminatoires !','all');
 E.forEach(function(e){notifEq(e.id,'✅ Poules terminées !','Restez attentif pour les éliminatoires !')});
 }else{
-notify('✅ Tour '+tour.num+' Poule '+tour.poule+' validé','Prochain tour disponible.');
-if(fbOk&&db)db.ref('foot_broadcast').set({title:'✅ Tour '+tour.num+' · Poule '+tour.poule,body:'Prochain tour disponible.',target:'all',ts:Date.now()});
-queuePush('✅ Tour '+tour.num+' · Poule '+tour.poule,'Prochain tour disponible.','all');
+autoNotif('tour_poule','✅ Tour '+tour.num+' · Poule '+tour.poule,'Prochain tour disponible.','all');
 var nextTour=T.tours.find(function(t){return t.poule===tour.poule&&!t.ok});
 if(nextTour){nextTour.ms.forEach(function(m){
 var adv1=m.e2,adv2=m.e1;
-notifEq(m.e1.id,'⚽ Prochain match — Tour '+nextTour.num,'vs '+adv1.nom+(m.heure?' à '+m.heure:'')+(m.terrain?' · '+m.terrain:''));
-notifEq(m.e2.id,'⚽ Prochain match — Tour '+nextTour.num,'vs '+adv2.nom+(m.heure?' à '+m.heure:'')+(m.terrain?' · '+m.terrain:''));
+notifEq(m.e1.id,'⚽ Prochain match — Tour '+nextTour.num,'vs '+adv1.nom+(m.heure?' à '+m.heure:'')+(m.terrain?' · '+m.terrain:''),'equipe_match');
+notifEq(m.e2.id,'⚽ Prochain match — Tour '+nextTour.num,'vs '+adv2.nom+(m.heure?' à '+m.heure:'')+(m.terrain?' · '+m.terrain:''),'equipe_match');
 })}
 }
 save();rPoules()}
@@ -232,9 +228,7 @@ var qSeeds=qualified.map(function(t){return t.eq}),cSeeds=conso.map(function(t){
 var cups=[buildCup(qSeeds,'P','Coupe principale','🏆',8)];
 if(cSeeds.length>=2)cups.push(buildCup(cSeeds,'C','Coupe de consolation','🛡️',2));
 T.el={cups:cups};T.ph='elim';T.fin=false;regenElimSlots();save();
-notify('🏆 Éliminatoires lancés !','Les quarts de finale démarrent. Bonne chance à tous !');
-if(fbOk&&db)db.ref('foot_broadcast').set({title:'🏆 Éliminatoires lancés !',body:'Les quarts de finale démarrent !',target:'all',ts:Date.now()});
-queuePush('🏆 Éliminatoires lancés !','Les quarts de finale démarrent. Bonne chance !','all');
+autoNotif('elim_lance','🏆 Éliminatoires lancés !','Les quarts de finale démarrent. Bonne chance !','all');
 goTab('elim',document.getElementById('tab-elim'))}
 function rElim(){var d=document.getElementById('elim-content');if(!T||!T.el||!T.el.cups){d.innerHTML='<div class="empty-state"><div class="icon">🏆</div>Terminez les poules</div>';return}var scrollY=window.scrollY;var h='';
 T.el.cups.forEach(function(c){if(c.champion)h+='<div class="champion-banner" style="margin-bottom:1rem"><div class="icon">'+c.icon+'</div><div class="nom">'+c.champion.nom+'</div><div class="label">'+(c.key==='P'?'Champion · ':'Vainqueur · ')+c.nom+'</div></div>'});
@@ -265,27 +259,24 @@ r.ok=true;
 var bracketRounds=c.rs.filter(function(x){return x.type==='bracket'});
 var finaleLevel=bracketRounds.reduce(function(mx,x){return Math.max(mx,x.level)},0);
 if(r.type==='petite'){var pm=r.ms[0];if(pm.e1&&pm.e2)c.troisieme=mWinner(pm);
-var titP='🥉 Petite finale '+c.icon+' terminée',bodP='3e place : '+(c.troisieme?c.troisieme.nom:'—');
-notify(titP,bodP);if(fbOk&&db)db.ref('foot_broadcast').set({title:titP,body:bodP,target:'all',ts:Date.now()});queuePush(titP,bodP,'all');
+var titP='🥉 Petite finale '+c.icon+' terminée',bodP='3e place : '+(c.troisieme?c.troisieme.nom:'—');autoNotif('round_elim',titP,bodP,'all');
 save();rElim();rRes();return}
 if(r.level===finaleLevel){var fm=r.ms[0];c.champion=mWinner(fm);c.second=mLoser(fm);if(c.key==='P')T.fin=true;
-if(c.key==='P'){var titC='🏆 Champion du tournoi !',bodC=c.champion?c.champion.nom+' remporte le tournoi !':'';
-notify(titC,bodC);if(fbOk&&db)db.ref('foot_broadcast').set({title:titC,body:bodC,target:'all',ts:Date.now()});queuePush(titC,bodC,'all');
+if(c.key==='P'){var titC='🏆 Champion du tournoi !',bodC=c.champion?c.champion.nom+' remporte le tournoi !':'';autoNotif('champion',titC,bodC,'all');
 if(c.champion)notifEq(c.champion.id,'🏆 Vous êtes Champions !','Félicitations, '+c.champion.nom+' remporte le tournoi !');
 if(c.second)notifEq(c.second.id,'🥈 Finaliste','Bravo pour cette finale, '+c.second.nom+' !');}
-else{var titV='🛡️ Vainqueur consolation',bodV=c.champion?c.champion.nom+' remporte la consolation !':'';
-notify(titV,bodV);queuePush(titV,bodV,'all');
+else{var titV='🛡️ Vainqueur consolation',bodV=c.champion?c.champion.nom+' remporte la consolation !':'';autoNotif('champion',titV,bodV,'all');
 if(c.champion)notifEq(c.champion.id,'🛡️ Coupe de consolation','Bravo '+c.champion.nom+', vous remportez la consolation !');}
 save();rElim();rRes();return}
 var nextR=c.rs.find(function(x){return x.type==='bracket'&&x.level===r.level+1});
 r.ms.forEach(function(m,i){var w=mWinner(m);var tgt=nextR.ms[Math.floor(i/2)];if(i%2===0)tgt.e1=w;else tgt.e2=w;
-if(w)notifEq(w.id,'✅ Qualifié — '+nextR.nm,c.icon+' Votre prochain match : '+nextR.nm);
+if(w)notifEq(w.id,'✅ Qualifié — '+nextR.nm,c.icon+' Votre prochain match : '+nextR.nm,'equipe_qualif');
 });
 if(nextR.level===finaleLevel){var pet=c.rs.find(function(x){return x.type==='petite'});if(pet){var ls=r.ms.map(function(m){return mLoser(m)});pet.ms[0].e1=ls[0]||null;pet.ms[0].e2=ls[1]||null;
-ls.forEach(function(loser){if(loser)notifEq(loser.id,'🥉 Petite finale','Vous jouez la petite finale pour la 3e place !')})}}
+ls.forEach(function(loser){if(loser)notifEq(loser.id,'🥉 Petite finale','Vous jouez la petite finale pour la 3e place !','equipe_qualif')})}}
 resolveByesRound(nextR);
 var titR=c.icon+' '+r.nm+' terminé',bodR=nextR.nm+' disponible !';
-notify(titR,bodR);if(fbOk&&db)db.ref('foot_broadcast').set({title:titR,body:bodR,target:'all',ts:Date.now()});queuePush(titR,bodR,'all');
+autoNotif('round_elim',titR,bodR,'all');
 save();rElim();rPlanningEditor()}
 function rFin(d){rElim()}
 function rRes(){const d=document.getElementById('resultats-content');if(!T){d.innerHTML='<div class="empty-state"><div class="icon">📊</div>Lancez le tournoi</div>';return}let h='';
@@ -573,8 +564,9 @@ localStorage.setItem('foot_fcm_asked','1');
 var b=document.getElementById('fcm-banner-prompt');if(b)b.remove()}
 if(localStorage.getItem('foot_session')==='1'){deb=true;['tab-equipes','tab-setup','tab-poules','tab-elim','tab-notifs'].forEach(t=>document.getElementById(t).classList.add('visible'));document.getElementById('btn-orga').style.display='none';document.getElementById('btn-lock').style.display='block';document.getElementById('regl-btn-edit-wrap').style.display=''}
 initFB();if(T)rRes();renderReglement();rNotifBtn();
-// Auto-register FCM si permission déjà accordée
+// Auto-register FCM + charger settings
 setTimeout(function(){
+loadNotifSettings();
 if('Notification'in window&&Notification.permission==='granted'&&fbOk){
 initFCM('tournoi').then(function(t){if(t)console.log('FCM ok',t.substring(0,20))});}
 else{showFCMBanner();}
@@ -657,11 +649,29 @@ demanderNomFCM(function(){
 notify('🔔 Notifications activées','Vous serez alerté pour les matchs de '+(eq?eq.nom:'votre équipe')+' !');
 initFCM('tournoi').then(function(){updateFCMTeams()})});
 }else{updateFCMTeams()}}
-function notifEq(eqId,title,body){
+function notifEq(eqId,title,body,settingKey){
+var key=settingKey||'equipe_match';
+if(!notifSettings[key])return;
 if(notifTeams[eqId])notify(title,body);
-queuePush(title,body,eqId)}
+queuePush(title,body,eqId);
+logNotif(title,body,eqId,'auto')}
 
-var historique=JSON.parse(localStorage.getItem('foot_historique')||'[]');
+// ── Paramètres notifications automatiques ──
+var notifSettings={tour_poule:true,poules_fin:true,elim_lance:true,round_elim:true,champion:true,equipe_match:true,equipe_qualif:true};
+function loadNotifSettings(){if(fbOk&&db)db.ref('foot_notif_settings').once('value',function(s){var d=s.val();if(d)Object.assign(notifSettings,d)})}
+function saveNotifSettings(){if(fbOk&&db)db.ref('foot_notif_settings').set(notifSettings)}
+function toggleNotifSetting(key){notifSettings[key]=!notifSettings[key];saveNotifSettings();rNotifs()}
+
+function logNotif(title,body,target,type){
+if(!fbOk||!db)return;
+db.ref('foot_notif_history').push({title:title,body:body||'',target:target||'all',type:type||'auto',ts:Date.now()})}
+
+function autoNotif(settingKey,title,body,target){
+if(!notifSettings[settingKey])return;
+notify(title,body);
+if(fbOk&&db)db.ref('foot_broadcast').set({title:title,body:body,target:target||'all',ts:Date.now()});
+queuePush(title,body,target||'all');
+logNotif(title,body,target||'all','auto')}
 function saveHisto(){localStorage.setItem('foot_historique',JSON.stringify(historique));saveFB()}
 function archiverTournoi(){if(!T||!T.fin){cAlert('Le tournoi n\'est pas encore terminé.','⏳');return}
 var cup=T.el&&T.el.cups?T.el.cups[0]:null;
@@ -720,9 +730,6 @@ requestAnimationFrame(function(){el.style.transform='translateX(-50%) translateY
 // Son discret via AudioContext
 try{var ac=new(window.AudioContext||window.webkitAudioContext)();var o=ac.createOscillator();var g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.setValueAtTime(880,ac.currentTime);o.frequency.exponentialRampToValueAtTime(660,ac.currentTime+.12);g.gain.setValueAtTime(.18,ac.currentTime);g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+.3);o.start();o.stop(ac.currentTime+.3)}catch(e){}
 setTimeout(function(){el.style.transform='translateX(-50%) translateY(-120%)';setTimeout(_notifNext,400)},3200)}
-function notifEq(eqId,title,body){
-if(notifTeams[eqId])notify(title,body);
-queuePush(title,body,eqId)}
 function testNotif(){notify('⚽ Test notification','Les notifications fonctionnent !')}
 var _testTimer=null;
 function startTestTimer(){
@@ -809,7 +816,24 @@ E.forEach(function(e){h+='<label style="display:flex;align-items:center;gap:.3re
 h+='</div>';
 h+='<button class="btn btn-gold" onclick="envoyerBroadcast()">📤 Envoyer</button></div>';
 h+='<div id="alert-bc" class="mt-1"></div></div>';
-h+='<div class="card"><h2>👥 Abonnés aux notifications</h2>';
+h+='<div class="card"><h2>⚙️ Notifications automatiques</h2>';
+h+='<p style="font-size:.8rem;color:var(--muted);margin-bottom:.7rem">Activez ou désactivez les notifications envoyées automatiquement lors des événements du tournoi.</p>';
+var settings=[
+{key:'tour_poule',label:'✅ Tour de poule validé',desc:'Envoyée à chaque tour'},
+{key:'poules_fin',label:'🏁 Poules terminées',desc:'Quand toutes les poules sont jouées'},
+{key:'elim_lance',label:'🏆 Éliminatoires lancés',desc:'Au démarrage des éliminatoires'},
+{key:'round_elim',label:'⚔️ Round éliminatoire validé',desc:'Après chaque quart, demi, finale'},
+{key:'champion',label:'🥇 Champion couronné',desc:'À la fin de la finale'},
+{key:'equipe_match',label:'⚽ Prochain match équipe',desc:'Notifie chaque équipe de son prochain match'},
+{key:'equipe_qualif',label:'🎯 Qualifications équipe',desc:'Notifie chaque équipe quand elle est qualifiée'},
+];
+settings.forEach(function(s){
+var on=notifSettings[s.key]!==false;
+h+='<div style="display:flex;align-items:center;gap:.6rem;padding:.45rem 0;border-bottom:1px solid var(--gris-moyen)">';
+h+='<div style="flex:1"><div style="font-size:.84rem;font-weight:600;color:var(--txt)">'+s.label+'</div><div style="font-size:.72rem;color:var(--muted)">'+s.desc+'</div></div>';
+h+='<button onclick="toggleNotifSetting(\''+s.key+'\')" style="border:none;cursor:pointer;border-radius:20px;padding:.2rem .7rem;font-size:.75rem;font-weight:700;background:'+(on?'rgba(34,197,94,.2)':'rgba(239,68,68,.15)')+';color:'+(on?'var(--vert-pale)':'var(--rouge-clair)')+'">'+( on?'✅ Actif':'❌ Désactivé')+'</button>';
+h+='</div>';});
+h+='</div>';
 h+='<div id="fcm-abonnes-list" style="margin-bottom:.7rem"><div style="color:var(--muted);font-size:.84rem">Chargement…</div></div>';
 h+='<div style="border-top:1px solid var(--gris-moyen);padding-top:.7rem">';
 h+='<div style="font-size:.8rem;color:var(--muted);margin-bottom:.5rem">Réinitialiser tous les abonnements :</div>';
@@ -850,8 +874,15 @@ card.innerHTML='<h2>📋 Historique des annonces</h2>'+(items.length?'':'<div st
 items.map(function(n){
 var dt=new Date(n.ts);
 var ds=dt.toLocaleDateString('fr-FR',{day:'numeric',month:'short'})+' à '+dt.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
-var tl=n.target==='all'?'📣 Tous':n.target==='index'?'🏠 Accueil':n.target==='tournoi'?'⚽ Tournoi':'👥 Équipe';
-return '<div style="border-bottom:1px solid var(--gris-moyen);padding:.5rem 0"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.4rem"><div style="flex:1"><div style="font-weight:700;font-size:.88rem;color:var(--txt)">'+n.title+'</div>'+(n.body?'<div style="font-size:.8rem;color:var(--muted);margin-top:.1rem">'+n.body+'</div>':'')+'</div><div style="text-align:right;flex-shrink:0"><div style="font-size:.7rem;color:var(--muted)">'+ds+'</div>'+(deb?'<div style="font-size:.66rem;color:var(--or)">'+tl+'</div><button onclick="supprimerNotifHist(\''+n._key+'\')" style="border:none;cursor:pointer;background:rgba(239,68,68,.15);color:var(--rouge-clair);border-radius:6px;padding:.15rem .45rem;font-size:.72rem;margin-top:.2rem">✕</button>':'')+'</div></div></div>';
+var rawTargets=(n.target||'all').split(',');
+var targetLabels=rawTargets.map(function(t){
+if(t==='all')return'📣 Tous';
+if(t==='index')return'🏠 Accueil';
+if(t==='tournoi')return'⚽ Tournoi';
+var eq=E.find(function(e){return e.id===t});
+return eq?'👥 '+eq.nom:'👥 ?'}).join(', ');
+var typeLabel=n.type==='manual'?'<span style="font-size:.62rem;background:rgba(212,160,23,.2);color:var(--or);border-radius:4px;padding:.1rem .3rem">Manuel</span>':'<span style="font-size:.62rem;background:rgba(99,102,241,.2);color:#a5b4fc;border-radius:4px;padding:.1rem .3rem">Auto</span>';
+return '<div style="border-bottom:1px solid var(--gris-moyen);padding:.5rem 0"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.4rem"><div style="flex:1"><div style="display:flex;align-items:center;gap:.3rem;margin-bottom:.1rem">'+typeLabel+'<span style="font-weight:700;font-size:.88rem;color:var(--txt)">'+n.title+'</span></div>'+(n.body?'<div style="font-size:.8rem;color:var(--muted)">'+n.body+'</div>':'')+'</div><div style="text-align:right;flex-shrink:0"><div style="font-size:.7rem;color:var(--muted)">'+ds+'</div>'+(deb?'<div style="font-size:.66rem;color:var(--or)">'+targetLabels+'</div><button onclick="supprimerNotifHist(\''+n._key+'\')" style="border:none;cursor:pointer;background:rgba(239,68,68,.15);color:var(--rouge-clair);border-radius:6px;padding:.15rem .45rem;font-size:.72rem;margin-top:.2rem">✕</button>':'<div style="font-size:.66rem;color:var(--muted)">'+targetLabels+'</div>')+'</div></div></div>';
 }).join('');})}}
 function _resetNotifLocal(){
 notifTeams={};saveNotifTeams();
@@ -905,7 +936,7 @@ var t=titre||'📢 Annonce';
 var targetStr=checks.join(',');
 db.ref('foot_broadcast').set({title:t,body:body,target:checks[0],ts:Date.now()}).then(function(){
 db.ref('foot_push_queue').push({title:t,body:body,targets:checks,ts:Date.now()});
-db.ref('foot_notif_history').push({title:t,body:body,target:targetStr,ts:Date.now()});
+db.ref('foot_notif_history').push({title:t,body:body,target:targetStr,type:'manual',ts:Date.now()});
 flash(a,'success','✅ Annonce envoyée !');
 document.getElementById('bc-titre').value='';document.getElementById('bc-body').value='';
 document.querySelectorAll('#bc-targets input').forEach(function(c){c.checked=false})
