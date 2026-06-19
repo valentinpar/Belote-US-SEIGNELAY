@@ -333,21 +333,23 @@ function rRes(){const d=document.getElementById('resultats-content');if(!T){d.in
 // Podium si terminé
 if(T.fin&&T.el&&T.el.cups){var pc=T.el.cups[0];if(pc&&pc.champion){h+='<div class="champion-banner"><div class="icon">🏆</div><div class="nom">'+pc.champion.nom+'</div><div class="label">Champion du tournoi !</div></div>'}}
 if(T.fin)h+='<div class="alert alert-success">🏁 Tournoi terminé !</div>';else if(T.ph==='elim')h+='<div class="alert alert-info">🏆 Éliminatoires en cours</div>';else h+='<div class="alert alert-info">📋 Phase de poules en cours</div>';
-// CLASSEMENT GÉNÉRAL — toutes équipes confondues
+// PALMARÈS EN PREMIER si dispo
+if(T.el&&T.el.cups){
+var anyChamp=T.el.cups.some(function(c){return c.champion});
+if(anyChamp){h+='<div class="card"><h2>🏅 Palmarès</h2>';T.el.cups.forEach(function(c){if(!c.champion)return;h+='<div style="margin-bottom:.6rem"><div style="font-weight:700;color:var(--or);margin-bottom:.2rem">'+c.icon+' '+c.nom+'</div><div style="font-size:.92rem;line-height:1.8">🥇 <strong style="color:var(--or)">'+c.champion.nom+'</strong>'+(c.second?'<br>🥈 <strong>'+c.second.nom+'</strong>':'')+(c.troisieme?'<br>🥉 <strong>'+c.troisieme.nom+'</strong>':'')+'</div></div>'});h+='</div>'}}
+// CLASSEMENT GÉNÉRAL
 var allEq=[];T.ps.forEach(function(p){p.eq.forEach(function(e){var s=p.st[e.id];if(s)allEq.push({nom:e.nom,poule:p.nm,j:s.j,v:s.v,n:s.n,d:s.d,bp:s.bp,bc:s.bc,pts:s.p})})});
 allEq.sort(function(a,b){if(b.pts!==a.pts)return b.pts-a.pts;var da=a.bp-a.bc,db=b.bp-b.bc;if(db!==da)return db-da;return b.bp-a.bp});
 var medals=['🥇','🥈','🥉'];
 h+='<div class="card"><h2>📊 Classement général</h2><div style="overflow-x:auto"><table><thead><tr><th>#</th><th>Équipe</th><th>Poule</th><th>J</th><th>V</th><th>N</th><th>D</th><th>BP</th><th>BC</th><th>+/-</th><th>Pts</th></tr></thead><tbody>';
 allEq.forEach(function(e,i){var df=e.bp-e.bc;h+='<tr class="'+(i<3?'p'+(i+1):'')+'"><td>'+(medals[i]||(i+1))+'</td><td class="font-bold">'+e.nom+'</td><td><span class="phase-tag phase-poules" style="font-size:.6rem;padding:.1rem .4rem">'+e.poule+'</span></td><td>'+e.j+'</td><td>'+e.v+'</td><td>'+e.n+'</td><td>'+e.d+'</td><td>'+e.bp+'</td><td>'+e.bc+'</td><td style="color:'+(df>0?'var(--vert-pale)':df<0?'var(--rouge-clair)':'var(--muted)')+'">'+(df>0?'+':'')+df+'</td><td class="pts-cell">'+e.pts+'</td></tr>'});
 h+='</tbody></table></div></div>';
-// TOUS LES MATCHS — poules
+// MATCHS DE POULES
 h+='<div class="card"><h2>📋 Matchs de poules</h2>';
 T.ps.forEach(function(p){var joues=p.ms.filter(function(m){return m.j});if(!joues.length)return;h+='<div style="margin-bottom:.7rem"><div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem"><span class="phase-tag phase-poules">Poule '+p.nm+'</span>'+(p.ok?' ✅':'')+'</div>';joues.forEach(function(m){var w1=+m.s1>+m.s2,w2=+m.s2>+m.s1;h+='<div style="display:flex;justify-content:space-between;align-items:center;background:var(--gris-fonce);padding:.35rem .7rem;border-radius:4px;margin-bottom:.15rem;font-size:.82rem"><span style="flex:1;color:'+(w1?'var(--vert-pale)':'var(--muted)')+';font-weight:'+(w1?'700':'400')+'">'+m.e1.nom+'</span><span style="color:var(--or);font-weight:800;font-family:monospace;min-width:50px;text-align:center">'+m.s1+' — '+m.s2+'</span><span style="flex:1;text-align:right;color:'+(w2?'var(--vert-pale)':'var(--muted)')+';font-weight:'+(w2?'700':'400')+'">'+m.e2.nom+'</span></div>'});h+='</div>'});
 h+='</div>';
 // MATCHS ÉLIMINATOIRES
 if(T.el&&T.el.cups){
-var anyChamp=T.el.cups.some(function(c){return c.champion});
-if(anyChamp){h+='<div class="card"><h2>🏅 Palmarès</h2>';T.el.cups.forEach(function(c){if(!c.champion)return;h+='<div style="margin-bottom:.6rem"><div style="font-weight:700;color:var(--or);margin-bottom:.2rem">'+c.icon+' '+c.nom+'</div><div style="font-size:.92rem;line-height:1.8">🥇 <strong style="color:var(--or)">'+c.champion.nom+'</strong>'+(c.second?'<br>🥈 <strong>'+c.second.nom+'</strong>':'')+(c.troisieme?'<br>🥉 <strong>'+c.troisieme.nom+'</strong>':'')+'</div></div>'});h+='</div>'}
 var hasResults=T.el.cups.some(function(c){return c.rs.some(function(r){return r.ms.some(function(m){return m.j})})});
 if(hasResults){h+='<div class="card"><h2>🏆 Matchs éliminatoires</h2>';
 T.el.cups.forEach(function(c){var cupHas=c.rs.some(function(r){return r.ms.some(function(m){return m.j})});if(!cupHas)return;h+='<div style="margin:.2rem 0 .5rem;font-weight:800;color:var(--or);font-size:.95rem">'+c.icon+' '+c.nom+'</div>';
