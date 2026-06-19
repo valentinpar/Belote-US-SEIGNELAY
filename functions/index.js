@@ -9,34 +9,32 @@ exports.sendPushNotification = functions.region('europe-west1').database
     await snap.ref.remove();
     if (!data || !data.ts) return null;
 
-    const target = data.target || 'all';
-    const title  = data.title  || '📢 US Seignelay';
-    const body   = data.body   || '';
+    // Supporte targets (tableau) ou target (string)
+    const targets = data.targets || (data.target ? [data.target] : ['all']);
+    const title = data.title || '📢 US Seignelay';
+    const body  = data.body  || '';
 
     const tokensSnap = await admin.database().ref('foot_fcm_tokens').once('value');
     const tokensData = tokensSnap.val() || {};
 
-    const validTokens = [];
+    // Collecter les tokens qui correspondent à au moins une cible
+    const tokenSet = new Set();
     Object.values(tokensData).forEach(entry => {
       if (!entry || !entry.token) return;
-      if (target === 'all') {
-        // Tout le monde
-        validTokens.push(entry.token);
-      } else if (target === 'index') {
-        // Visiteurs de la page d'accueil
-        if (entry.source === 'index') validTokens.push(entry.token);
-      } else if (target === 'tournoi') {
-        // Tournoi = source tournoi OU au moins une équipe abonnée
-        const hasTeam = entry.teams && Object.values(entry.teams).some(v => v === true);
-        if (entry.source === 'tournoi' || hasTeam) validTokens.push(entry.token);
-      } else {
-        // Équipe spécifique (teamId)
-        if (entry.teams && entry.teams[target]) validTokens.push(entry.token);
-      }
+      const matches = targets.some(target => {
+        if (target === 'all') return true;
+        if (target === 'index') return entry.source === 'index';
+        if (target === 'tournoi') {
+          const hasTeam = entry.teams && Object.values(entry.teams).some(v => v === true);
+          return entry.source === 'tournoi' || hasTeam;
+        }
+        return entry.teams && entry.teams[target] === true;
+      });
+      if (matches) tokenSet.add(entry.token);
     });
 
-    if (!validTokens.length) return null;
-    const tokens = [...new Set(validTokens)];
+    const tokens = [...tokenSet];
+    if (!tokens.length) return null;
 
     const batchSize = 500;
     const batches = [];
