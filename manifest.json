@@ -1,6 +1,6 @@
 {
-  "name": "Tournoi Football US Seignelay",
-  "short_name": "Tournoi Foot",
+  "name": "US Seignelay",
+  "short_name": "US Seignelay",
   "description": "Gestion du tournoi de football US Seignelay",
   "start_url": "./tournoi-foot.html",
   "display": "standalone",
