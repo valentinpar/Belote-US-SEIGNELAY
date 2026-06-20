@@ -244,13 +244,13 @@ nextItems.push({m:m,t:nextTourSuiv})})}}
 // Envoyer notifications + logger dans l'historique
 nextItems.forEach(function(item){
 var m=item.m,t=item.t;
-notifEq(m.e1.id,{tour:'Tour '+t.num,adversaire:m.e2.nom,heure:m.heure?' à '+m.heure:'',terrain:m.terrain?' · '+m.terrain:''},'equipe_match');
-notifEq(m.e2.id,{tour:'Tour '+t.num,adversaire:m.e1.nom,heure:m.heure?' à '+m.heure:'',terrain:m.terrain?' · '+m.terrain:''},'equipe_match')});
+notifEq(m.e1.id,{tour:'Tour '+t.num,equipe:m.e1.nom,adversaire:m.e2.nom,heure:m.heure?' à '+m.heure:'',terrain:m.terrain?' · '+m.terrain:''},'equipe_match');
+notifEq(m.e2.id,{tour:'Tour '+t.num,equipe:m.e2.nom,adversaire:m.e1.nom,heure:m.heure?' à '+m.heure:'',terrain:m.terrain?' · '+m.terrain:''},'equipe_match')});
 if(nextItems.length){
 var first=nextItems[0];
 var logTitle='📢 Prochain match annoncé — Tour '+first.t.num;
 var logBody=nextItems.map(function(x){return x.m.e1.nom+' vs '+x.m.e2.nom+(x.m.heure?' à '+x.m.heure:'')+(x.m.terrain?' · '+x.m.terrain:'')}).join(' | ');
-logNotif(logTitle,logBody,'all','auto');notify(logTitle,logBody);}}
+logNotif(logTitle,logBody,'all','auto');}}
 
 function vG(ti){if(!T||!T.tours)return;var tour=T.tours[ti];if(!tour||tour.ok)return;if(!tour.ms.every(function(m){return m.j}))return;var poule=T.ps.find(function(p){return p.nm===tour.poule});if(!poule)return;tour.ms.forEach(function(m){var s1=+m.s1,s2=+m.s2,a=poule.st[m.e1.id],b=poule.st[m.e2.id];a.j++;b.j++;a.bp+=s1;a.bc+=s2;b.bp+=s2;b.bc+=s1;if(s1>s2){a.v++;a.p+=C.pV;b.d++;b.p+=C.pD}else if(s2>s1){b.v++;b.p+=C.pV;a.d++;a.p+=C.pD}else{a.n++;a.p+=C.pN;b.n++;b.p+=C.pN}});tour.ok=true;
 var toutesOk=T.tours.every(function(t){return t.ok});
@@ -263,8 +263,8 @@ autoNotif('tour_poule',{num:tour.num,poule:tour.poule},'all');
 var nextTour=T.tours.find(function(t){return t.poule===tour.poule&&!t.ok});
 if(nextTour){nextTour.ms.forEach(function(m){
 var adv1=m.e2,adv2=m.e1;
-notifEq(m.e1.id,{tour:'Tour '+nextTour.num,adversaire:adv1.nom,heure:m.heure?' à '+m.heure:'',terrain:m.terrain?' · '+m.terrain:''},'equipe_match');
-notifEq(m.e2.id,{tour:'Tour '+nextTour.num,adversaire:adv2.nom,heure:m.heure?' à '+m.heure:'',terrain:m.terrain?' · '+m.terrain:''},'equipe_match');
+notifEq(m.e1.id,{tour:'Tour '+nextTour.num,equipe:m.e1.nom,adversaire:adv1.nom,heure:m.heure?' à '+m.heure:'',terrain:m.terrain?' · '+m.terrain:''},'equipe_match');
+notifEq(m.e2.id,{tour:'Tour '+nextTour.num,equipe:m.e2.nom,adversaire:m.e1.nom,heure:m.heure?' à '+m.heure:'',terrain:m.terrain?' · '+m.terrain:''},'equipe_match');
 })}
 }
 save();rPoules()}
@@ -722,7 +722,7 @@ round_elim:{title:'{icon} {round} terminé',body:'{next} disponible !'},
 champion:{title:'🥇 Champion du tournoi !',body:'{equipe} remporte le tournoi !'},
 consolation:{title:'🛡️ Vainqueur consolation',body:'{equipe} remporte la consolation !'},
 petite_finale:{title:'🥉 Petite finale terminée',body:'3e place : {equipe}'},
-equipe_match:{title:'⚽ Prochain match — {tour}',body:'vs {adversaire}{heure}{terrain}'},
+equipe_match:{title:'⚽ {equipe} vs {adversaire}',body:'{tour}{heure}{terrain}'},
 equipe_qualif:{title:'✅ Qualifié — {round}',body:'{icon} Votre prochain match !'},
 equipe_loser:{title:'🥉 Petite finale',body:'Vous jouez pour la 3e place !'}};
 var quickNotifs=[];
