@@ -249,7 +249,14 @@ var tour=T.tours[ti];if(!tour||tour.ok)return;
 var m=tour.ms.find(function(x){return x.id===mid});
 if(!m||!m.j)return;
 m.ok=true;
-notifResultatMatch(ti,mid);
+// Notification résultat
+if(notifSettings.resultat_match!==false&&m.e1&&m.e2){
+var w1=+m.s1>+m.s2,draw=+m.s1===+m.s2;
+var vic=draw?' (nul)':' · Victoire '+(w1?m.e1.nom:m.e2.nom);
+var titR='⚽ '+m.e1.nom+' '+m.s1+'–'+m.s2+' '+m.e2.nom;
+var bodR='Tour '+tour.num+' · Poule '+tour.poule+vic;
+queuePush(titR,bodR,'all');
+logNotif(titR,bodR,'all','auto');}
 _s=true;save();setTimeout(function(){_s=false},1000);rPoules()}
 
 function notifyMatchSuivant(currentM,currentTour){
@@ -280,7 +287,14 @@ logNotif(logTitle,logBody,'auto','auto')}}
 
 function vG(ti){if(!T||!T.tours)return;var tour=T.tours[ti];if(!tour||tour.ok)return;if(!tour.ms.every(function(m){return m.j}))return;var poule=T.ps.find(function(p){return p.nm===tour.poule});if(!poule)return;tour.ms.forEach(function(m){var s1=+m.s1,s2=+m.s2,a=poule.st[m.e1.id],b=poule.st[m.e2.id];a.j++;b.j++;a.bp+=s1;a.bc+=s2;b.bp+=s2;b.bc+=s1;if(s1>s2){a.v++;a.p+=C.pV;b.d++;b.p+=C.pD}else if(s2>s1){b.v++;b.p+=C.pV;a.d++;a.p+=C.pD}else{a.n++;a.p+=C.pN;b.n++;b.p+=C.pN}});tour.ok=true;
 var toutesOk=T.tours.every(function(t){return t.ok});
-try{notifResultatTour(ti);}catch(e){console.warn('notifResultatTour:',e)}
+// Notification résultats tour
+if(notifSettings.resultat_tour!==false){
+var joues=tour.ms.filter(function(m){return m.j&&m.e1&&m.e2});
+if(joues.length){
+var titT='📊 Tour '+tour.num+' · Poule '+tour.poule;
+var bodT=joues.map(function(m){return m.e1.nom+' '+m.s1+'–'+m.s2+' '+m.e2.nom}).join(' | ');
+queuePush(titT,bodT,'all');
+logNotif(titT,bodT,'all','auto');}}
 if(toutesOk){
 T.ps.forEach(function(p){p.ok=true});
 autoNotif('poules_fin',{},'all');
@@ -619,7 +633,6 @@ await db.ref('foot_fcm_tokens/'+key).set({token:token,source:source,teams:notifT
 // Brancher le listener reset individuel
 db.ref('foot_token_reset/'+key).on('value',function(snap){if(snap.val()){_resetNotifLocal();db.ref('foot_token_reset/'+key).remove();notify('🔕 Désabonné','L\'organisateur vous a retiré des notifications.')}});
 fcmMessaging.onMessage(function(payload){
-if(Date.now()-_lastNotifWriteTs<5000)return; // éviter doublon avec foot_broadcast
 var t=(payload.notification&&payload.notification.title)||(payload.data&&payload.data.title)||'📢';
 var b=(payload.notification&&payload.notification.body)||(payload.data&&payload.data.body)||'';
 notify(t,b)});
