@@ -728,7 +728,8 @@ equipe_loser:{title:'🥉 Petite finale',body:'Vous jouez pour la 3e place !'}};
 var quickNotifs=[];
 function loadNotifSettings(){if(!fbOk||!db)return;
 db.ref('foot_notif_settings').once('value',function(s){var d=s.val();if(d)Object.assign(notifSettings,d)});
-db.ref('foot_notif_templates').once('value',function(s){var d=s.val();if(d)Object.assign(notifTemplates,d)});
+db.ref('foot_notif_templates').once('value',function(s){var d=s.val();if(d){Object.assign(notifTemplates,d);// Migrer l'ancien template equipe_match si nécessaire
+if(notifTemplates.equipe_match&&notifTemplates.equipe_match.title&&notifTemplates.equipe_match.title.indexOf('{equipe}')===-1){notifTemplates.equipe_match={title:'⚽ {equipe} vs {adversaire}',body:'{tour}{heure}{terrain}'};saveNotifTemplates()}}});
 db.ref('foot_notif_quick').on('value',function(s){var d=s.val();quickNotifs=d?Object.values(d):[];var el=document.getElementById('quick-notifs-list');if(el)renderQuickNotifsList()})}
 function saveNotifSettings(){if(fbOk&&db)db.ref('foot_notif_settings').set(notifSettings)}
 function saveNotifTemplates(){if(fbOk&&db)db.ref('foot_notif_templates').set(notifTemplates)}
@@ -1053,8 +1054,8 @@ var a=document.getElementById('alert-tmpl-'+idx);
 if(a){a.innerHTML='<span style="color:var(--vert-pale)">✅ Sauvegardé !</span>';setTimeout(function(){a.innerHTML=''},2000)}}
 function resetTemplate(key,idx,td){
 notifTemplates[key]={
-title:({tour_poule:'✅ Tour {num} · Poule {poule}',poules_fin:'🏁 Poules terminées !',elim_lance:'🏆 Éliminatoires lancés !',round_elim:'{icon} {round} terminé',champion:'🥇 Champion du tournoi !',consolation:'🛡️ Vainqueur consolation',petite_finale:'🥉 Petite finale terminée',equipe_match:'⚽ Prochain match — {tour}',equipe_qualif:'✅ Qualifié — {round}',equipe_loser:'🥉 Petite finale'})[key]||'',
-body:({tour_poule:'Prochain tour disponible.',poules_fin:'Prêt pour les éliminatoires !',elim_lance:'Les quarts de finale démarrent. Bonne chance !',round_elim:'{next} disponible !',champion:'{equipe} remporte le tournoi !',consolation:'{equipe} remporte la consolation !',petite_finale:'3e place : {equipe}',equipe_match:'vs {adversaire}{heure}{terrain}',equipe_qualif:'{icon} Votre prochain match !',equipe_loser:'Vous jouez pour la 3e place !'})[key]||''};
+title:({tour_poule:'✅ Tour {num} · Poule {poule}',poules_fin:'🏁 Poules terminées !',elim_lance:'🏆 Éliminatoires lancés !',round_elim:'{icon} {round} terminé',champion:'🥇 Champion du tournoi !',consolation:'🛡️ Vainqueur consolation',petite_finale:'🥉 Petite finale terminée',equipe_match:'⚽ {equipe} vs {adversaire}',equipe_qualif:'✅ Qualifié — {round}',equipe_loser:'🥉 Petite finale'})[key]||'',
+body:({tour_poule:'Prochain tour disponible.',poules_fin:'Prêt pour les éliminatoires !',elim_lance:'Les quarts de finale démarrent. Bonne chance !',round_elim:'{next} disponible !',champion:'{equipe} remporte le tournoi !',consolation:'{equipe} remporte la consolation !',petite_finale:'3e place : {equipe}',equipe_match:'{tour}{heure}{terrain}',equipe_qualif:'{icon} Votre prochain match !',equipe_loser:'Vous jouez pour la 3e place !'})[key]||''};
 saveNotifTemplates();
 var ti=document.getElementById('tmpl-t-'+key);if(ti)ti.value=notifTemplates[key].title;
 var bi=document.getElementById('tmpl-b-'+key);if(bi)bi.value=notifTemplates[key].body;
