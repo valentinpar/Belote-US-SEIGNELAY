@@ -255,8 +255,12 @@ var w1=+m.s1>+m.s2,draw=+m.s1===+m.s2;
 var vic=draw?' (nul)':' · Victoire '+(w1?m.e1.nom:m.e2.nom);
 var titR='⚽ '+m.e1.nom+' '+m.s1+'–'+m.s2+' '+m.e2.nom;
 var bodR='Tour '+tour.num+' · Poule '+tour.poule+vic;
-queuePush(titR,bodR,'all');
-logNotif(titR,bodR,'all','auto');}
+notify(titR,bodR);
+if(fbOk&&db){
+var _tsR=Date.now()+(++_bcCounter);_lastNotifWriteTs=_tsR;
+db.ref('foot_broadcast').set({title:titR,body:bodR,target:'all',ts:_tsR});
+db.ref('foot_push_queue').push({title:titR,body:bodR,targets:['all'],ts:Date.now()});
+logNotif(titR,bodR,'all','auto');}}
 _s=true;save();setTimeout(function(){_s=false},1000);rPoules()}
 
 function notifyMatchSuivant(currentM,currentTour){
@@ -293,8 +297,12 @@ var joues=tour.ms.filter(function(m){return m.j&&m.e1&&m.e2});
 if(joues.length){
 var titT='📊 Tour '+tour.num+' · Poule '+tour.poule;
 var bodT=joues.map(function(m){return m.e1.nom+' '+m.s1+'–'+m.s2+' '+m.e2.nom}).join(' | ');
-queuePush(titT,bodT,'all');
-logNotif(titT,bodT,'all','auto');}}
+notify(titT,bodT);
+if(fbOk&&db){
+var _tsT=Date.now()+(++_bcCounter);_lastNotifWriteTs=_tsT;
+db.ref('foot_broadcast').set({title:titT,body:bodT,target:'all',ts:_tsT});
+db.ref('foot_push_queue').push({title:titT,body:bodT,targets:['all'],ts:Date.now()});
+logNotif(titT,bodT,'all','auto');}}}
 if(toutesOk){
 T.ps.forEach(function(p){p.ok=true});
 autoNotif('poules_fin',{},'all');
@@ -635,7 +643,7 @@ db.ref('foot_token_reset/'+key).on('value',function(snap){if(snap.val()){_resetN
 fcmMessaging.onMessage(function(payload){
 var t=(payload.notification&&payload.notification.title)||(payload.data&&payload.data.title)||'📢';
 var b=(payload.notification&&payload.notification.body)||(payload.data&&payload.data.body)||'';
-notify(t,b)});
+if(Date.now()-_lastNotifWriteTs>3000)notify(t,b)});
 return token;
 }catch(e){console.error('FCM error:',e);return null}}
 
