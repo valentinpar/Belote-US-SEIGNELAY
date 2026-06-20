@@ -187,9 +187,14 @@ else{h+='<button class="btn btn-green btn-sm mt-1" onclick="vG('+ti+')" '+(jOk&&
 h+='</div>'});h+='</div>'}
 if(av&&!T.el)h+='<div class="card" style="text-align:center"><h2 style="justify-content:center">🏆 Poules terminées !</h2><button class="btn btn-gold" onclick="lancerEl()">🚀 Éliminatoires</button></div>';d.innerHTML=h;window.scrollTo(0,scrollY)}
 function ssG(ti,mid,eq,v){if(!T||!T.tours)return;var tour=T.tours[ti];if(!tour||tour.ok)return;var m=tour.ms.find(function(x){return x.id===mid});if(!m)return;if(eq===1)m.s1=v===''?'':+v;else m.s2=v===''?'':+v;m.j=m.s1!==''&&m.s2!=='';var poule=T.ps.find(function(p){return p.nm===tour.poule});if(poule){var pm=poule.ms.find(function(x){return x.id===mid});if(pm){pm.s1=m.s1;pm.s2=m.s2;pm.j=m.j}}_s=true;save();setTimeout(function(){_s=false},1500);
-// Mise à jour ciblée du bouton sans reconstruire le DOM
-var row=document.querySelector('[data-match-id="'+mid+'"]');
-if(row){var btn=row.querySelector('.btn-valider-match');if(btn){btn.disabled=!(m.j&&!m.ok);btn.style.opacity=(m.j&&!m.ok)?'1':'0.4';btn.style.cursor=(m.j&&!m.ok)?'pointer':'not-allowed'}}}
+// Debounce rPoules pour éviter le scroll pendant la frappe
+clearTimeout(window._ssGTimer);
+window._ssGTimer=setTimeout(function(){
+var sc=window.scrollY;
+rPoules();
+// Restaurer le scroll ET le focus
+requestAnimationFrame(function(){window.scrollTo(0,sc)});
+},600)}
 function notifResultatMatch(ti,mid){
 if(!T||!T.tours)return;
 if(!notifSettings.resultat_match)return;
@@ -227,7 +232,7 @@ var tour=T.tours[ti];if(!tour||tour.ok)return;
 var m=tour.ms.find(function(x){return x.id===mid});
 if(!m||!m.j)return;
 m.ok=true;
-notifResultatMatch(ti,mid);
+try{notifResultatMatch(ti,mid);}catch(e){console.warn('notifResultatMatch:',e)}
 _s=true;save();setTimeout(function(){_s=false},1000);rPoules()}
 
 function notifyMatchSuivant(currentM,currentTour){
@@ -258,7 +263,7 @@ logNotif(logTitle,logBody,'auto','auto')}}
 
 function vG(ti){if(!T||!T.tours)return;var tour=T.tours[ti];if(!tour||tour.ok)return;if(!tour.ms.every(function(m){return m.j}))return;var poule=T.ps.find(function(p){return p.nm===tour.poule});if(!poule)return;tour.ms.forEach(function(m){var s1=+m.s1,s2=+m.s2,a=poule.st[m.e1.id],b=poule.st[m.e2.id];a.j++;b.j++;a.bp+=s1;a.bc+=s2;b.bp+=s2;b.bc+=s1;if(s1>s2){a.v++;a.p+=C.pV;b.d++;b.p+=C.pD}else if(s2>s1){b.v++;b.p+=C.pV;a.d++;a.p+=C.pD}else{a.n++;a.p+=C.pN;b.n++;b.p+=C.pN}});tour.ok=true;
 var toutesOk=T.tours.every(function(t){return t.ok});
-notifResultatTour(ti);
+try{notifResultatTour(ti);}catch(e){console.warn('notifResultatTour:',e)}
 if(toutesOk){
 T.ps.forEach(function(p){p.ok=true});
 autoNotif('poules_fin',{},'all');
