@@ -963,7 +963,7 @@ h+='</div></div>';
 if(deb){
 var abonnes=E.filter(function(e){return notifTeams[e.id]});
 h+='<div class="card"><h2>📢 Envoyer une annonce</h2>';
-h+='<input type="text" id="bc-titre" placeholder="Titre (ex: Attention !)" style="width:100%;margin-bottom:.5rem">';
+h+='<input type="text" id="bc-titre" value="US Seignelay" placeholder="Titre (ex: Attention !)" style="width:100%;margin-bottom:.5rem">';
 h+='<textarea id="bc-body" placeholder="Message…" style="width:100%;height:70px;resize:vertical;background:var(--gris-fonce);border:1px solid var(--gris-moyen);color:var(--txt);border-radius:6px;padding:.4rem .6rem;font-family:inherit;font-size:.84rem"></textarea>';
 h+='<div style="display:flex;align-items:center;gap:.5rem;margin-top:.5rem;flex-wrap:wrap">';
 h+='<div id="bc-targets" style="display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.5rem">';
@@ -1242,8 +1242,8 @@ db.ref('foot_notif_history').push({title:t,body:body,target:checks.join(','),typ
 var _bt=Date.now()+(++_bcCounter);_lastNotifWriteTs=_bt;
 db.ref('foot_broadcast').set({title:t,body:body,target:checks[0],ts:_bt});
 // Confirmation immédiate
-notify('✅ '+t,body||'Annonce envoyée !');
-elTitre.value='';elBody.value='';
+cAlert('Envoyé à : '+checks.join(', ')+'\n\n'+t+(body?'\n'+body:''),'📤 Annonce envoyée !');
+elTitre.value='US Seignelay';elBody.value='';
 document.querySelectorAll('#bc-targets input').forEach(function(c){c.checked=false})}
 
 var buvette=JSON.parse(localStorage.getItem('foot_buvette')||'[]');
