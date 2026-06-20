@@ -9,15 +9,13 @@ exports.sendPushNotification = functions.region('europe-west1').database
     await snap.ref.remove();
     if (!data || !data.ts) return null;
 
-    // Supporte targets (tableau) ou target (string)
     const targets = data.targets || (data.target ? [data.target] : ['all']);
-    const title = data.title || '📢 US Seignelay';
-    const body  = data.body  || '';
+    const title   = data.title || 'US Seignelay';
+    const body    = data.body  || '';
 
     const tokensSnap = await admin.database().ref('foot_fcm_tokens').once('value');
     const tokensData = tokensSnap.val() || {};
 
-    // Collecter les tokens qui correspondent à au moins une cible
     const tokenSet = new Set();
     Object.values(tokensData).forEach(entry => {
       if (!entry || !entry.token) return;
@@ -46,13 +44,13 @@ exports.sendPushNotification = functions.region('europe-west1').database
       batches.map(batch =>
         admin.messaging().sendEachForMulticast({
           tokens: batch,
-          notification: { title, body },
+          // ⚠️ PAS de champ "notification" → évite l'affichage automatique par iOS
+          // Le service worker gère l'affichage via onBackgroundMessage
+          data: {
+            title: title,
+            body:  body
+          },
           webpush: {
-            notification: {
-              icon:  'https://valentinpar.github.io/Belote-US-SEIGNELAY/logo-192.png',
-              badge: 'https://valentinpar.github.io/Belote-US-SEIGNELAY/logo-192.png',
-              vibrate: [200, 100, 200]
-            },
             fcm_options: {
               link: 'https://valentinpar.github.io/Belote-US-SEIGNELAY/tournoi-foot.html'
             }
