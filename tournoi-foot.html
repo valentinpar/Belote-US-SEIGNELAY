@@ -250,7 +250,7 @@ if(nextItems.length){
 var first=nextItems[0];
 var logTitle='📢 Prochain match annoncé — Tour '+first.t.num;
 var logBody=nextItems.map(function(x){return x.m.e1.nom+' vs '+x.m.e2.nom+(x.m.heure?' à '+x.m.heure:'')+(x.m.terrain?' · '+x.m.terrain:'')}).join(' | ');
-logNotif(logTitle,logBody,'all','auto');}}
+logNotif(logTitle,logBody,'all','auto');notify(logTitle,logBody);}}
 
 function vG(ti){if(!T||!T.tours)return;var tour=T.tours[ti];if(!tour||tour.ok)return;if(!tour.ms.every(function(m){return m.j}))return;var poule=T.ps.find(function(p){return p.nm===tour.poule});if(!poule)return;tour.ms.forEach(function(m){var s1=+m.s1,s2=+m.s2,a=poule.st[m.e1.id],b=poule.st[m.e2.id];a.j++;b.j++;a.bp+=s1;a.bc+=s2;b.bp+=s2;b.bc+=s1;if(s1>s2){a.v++;a.p+=C.pV;b.d++;b.p+=C.pD}else if(s2>s1){b.v++;b.p+=C.pV;a.d++;a.p+=C.pD}else{a.n++;a.p+=C.pN;b.n++;b.p+=C.pN}});tour.ok=true;
 var toutesOk=T.tours.every(function(t){return t.ok});
@@ -537,7 +537,7 @@ var _myTokenKey=localStorage.getItem('foot_fcm_key')||null;
 if(_myTokenKey){db.ref('foot_token_reset/'+_myTokenKey).on('value',function(snap){if(snap.val()){_resetNotifLocal();db.ref('foot_token_reset/'+_myTokenKey).remove();notify('🔕 Désabonné','L\'organisateur vous a retiré des notifications.')}})}
 // Listener buvette (sync temps réel entre appareils)
 db.ref('foot_buvette').on('value',function(snap){var d=snap.val();if(!d)return;buvette=Array.isArray(d)?d:Object.values(d);localStorage.setItem('foot_buvette',JSON.stringify(buvette));var sec=document.querySelector('#sec-buvette.active');if(sec)rBuvette()});
-var _lastBroadcastTs=Date.now();var _lastNotifWriteTs=0;
+var _lastBroadcastTs=Date.now();var _lastNotifWriteTs=0;var _bcCounter=0;
 db.ref('foot_broadcast').on('value',function(snap){var d=snap.val();if(!d||!d.ts)return;if(d.ts<=_lastBroadcastTs)return;_lastBroadcastTs=d.ts;if(d.ts===_lastNotifWriteTs)return;if(Date.now()-d.ts>30000)return;// Ne pas réafficher si déjà reçu en push// Vérifier si ce message me concerne
 var target=d.target||'all';if(target==='all'){notify(d.title||'📢 Annonce',d.body||'')}else{// target = id équipe — afficher si l'équipe a activé ses notifs
 if(notifTeams[target])notify(d.title||'📢',d.body||'');}});
@@ -742,7 +742,7 @@ if(!notifSettings[settingKey])return;
 var tmpl=notifTemplates[settingKey]||{title:'📢',body:''};
 var title=fillT(tmpl.title,vars);
 var body=fillT(tmpl.body,vars);
-if(fbOk&&db){_lastNotifWriteTs=Date.now();db.ref('foot_broadcast').set({title:title,body:body,target:target||'all',ts:_lastNotifWriteTs});}
+if(fbOk&&db){_lastNotifWriteTs=Date.now()+(++_bcCounter);db.ref('foot_broadcast').set({title:title,body:body,target:target||'all',ts:_lastNotifWriteTs});}
 else notify(title,body); // fallback si pas Firebase
 queuePush(title,body,target||'all');
 logNotif(title,body,target||'all','auto')}
@@ -1094,7 +1094,7 @@ h+='</div>';el.innerHTML=h}
 function envoyerQuickNotif(id){
 var q=quickNotifs.find(function(x){return x&&x.id===id});if(!q)return;
 if(!fbOk||!db)return;
-db.ref('foot_broadcast').set({title:q.title,body:q.body||'',target:q.target||'all',ts:Date.now()});
+var _qt=Date.now()+(++_bcCounter);_lastNotifWriteTs=_qt;db.ref('foot_broadcast').set({title:q.title,body:q.body||'',target:q.target||'all',ts:_qt});
 db.ref('foot_push_queue').push({title:q.title,body:q.body||'',targets:[q.target||'all'],ts:Date.now()});
 logNotif(q.title,q.body||'',q.target||'all','manual');
 notify(q.title,q.body||'')}
@@ -1142,7 +1142,7 @@ if(!checks.length){flash(a,'warning','⚠️ Sélectionne au moins une cible.');
 if(!fbOk||!db){flash(a,'warning','⚠️ Firebase non connecté.');return}
 var t=titre||'📢 Annonce';
 var targetStr=checks.join(',');
-db.ref('foot_broadcast').set({title:t,body:body,target:checks[0],ts:Date.now()}).then(function(){
+var _bt=Date.now()+(++_bcCounter);_lastNotifWriteTs=_bt;db.ref('foot_broadcast').set({title:t,body:body,target:checks[0],ts:_bt}).then(function(){
 db.ref('foot_push_queue').push({title:t,body:body,targets:checks,ts:Date.now()});
 db.ref('foot_notif_history').push({title:t,body:body,target:targetStr,type:'manual',ts:Date.now()});
 flash(a,'success','✅ Annonce envoyée !');
