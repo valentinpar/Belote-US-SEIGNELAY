@@ -15,9 +15,11 @@ const messaging = firebase.messaging();
 
 // Notification reçue quand l'app est en arrière-plan ou fermée
 messaging.onBackgroundMessage(function(payload) {
-  const title = (payload.notification && payload.notification.title) || (payload.data && payload.data.title) || '📢 US Seignelay';
+  const title = 'US Seignelay';
+  var msgTitle=(payload.notification&&payload.notification.title)||(payload.data&&payload.data.title)||'';
+  var msgBody=(payload.notification&&payload.notification.body)||(payload.data&&payload.data.body)||'';
   const options = {
-    body: (payload.notification && payload.notification.body) || (payload.data && payload.data.body) || '',
+    body: msgTitle?(msgTitle+(msgBody?'\n'+msgBody:'')):msgBody,
     icon: '/Belote-US-SEIGNELAY/logo-192.png',
     badge: '/Belote-US-SEIGNELAY/logo-192.png',
     vibrate: [200, 100, 200],
