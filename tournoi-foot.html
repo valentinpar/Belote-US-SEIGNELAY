@@ -196,27 +196,44 @@ rPoules();
 requestAnimationFrame(function(){window.scrollTo(0,sc)});
 },600)}
 function notifResultatMatch(ti,mid){
+try{
 if(!T||!T.tours)return;
-if(!notifSettings.resultat_match)return;
 var tour=T.tours[ti];if(!tour)return;
-var m=tour.ms.find(function(x){return x.id===mid});if(!m||!m.j)return;
-var w1=+m.s1>+m.s2,w2=+m.s2>+m.s1,draw=+m.s1===+m.s2;
-var victoire=draw?'':' · Victoire '+(w1?m.e1.nom:m.e2.nom);
-var title=fillT((notifTemplates.resultat_match||{title:'⚽ Résultat · {tour} · Poule {poule}'}).title,{tour:'Tour '+tour.num,poule:tour.poule,e1:m.e1.nom,s1:m.s1,s2:m.s2,e2:m.e2.nom,victoire:victoire});
-var body=fillT((notifTemplates.resultat_match||{body:'{e1} {s1}–{s2} {e2}{victoire}'}).body,{tour:'Tour '+tour.num,poule:tour.poule,e1:m.e1.nom,s1:m.s1,s2:m.s2,e2:m.e2.nom,victoire:victoire});
-if(fbOk&&db){_lastNotifWriteTs=Date.now()+(++_bcCounter);db.ref('foot_broadcast').set({title:title,body:body,target:'all',ts:_lastNotifWriteTs});}
-queuePush(title,body,'all');logNotif(title,body,'all','manual');notify(title,body)}
+var m=tour.ms.find(function(x){return x.id===mid});
+if(!m||m.s1===''||m.s2===''||m.s1===undefined||m.s2===undefined)return;
+if(notifSettings.resultat_match===false)return;
+var w1=+m.s1>+m.s2,draw=+m.s1===+m.s2;
+var vic=draw?' (nul)':' · Victoire '+(w1?(m.e1&&m.e1.nom||'?'):(m.e2&&m.e2.nom||'?'));
+var e1n=m.e1&&m.e1.nom||'?',e2n=m.e2&&m.e2.nom||'?';
+var tmpl=notifTemplates.resultat_match||{title:'⚽ Résultat · Tour {num} · Poule {poule}',body:'{e1} {s1}–{s2} {e2}{victoire}'};
+var title=fillT(tmpl.title,{tour:'Tour '+tour.num,num:tour.num,poule:tour.poule,e1:e1n,s1:String(m.s1),s2:String(m.s2),e2:e2n,victoire:vic});
+var body=fillT(tmpl.body,{tour:'Tour '+tour.num,num:tour.num,poule:tour.poule,e1:e1n,s1:String(m.s1),s2:String(m.s2),e2:e2n,victoire:vic});
+notify(title,body);
+if(fbOk&&db){
+_lastNotifWriteTs=Date.now()+(++_bcCounter);
+db.ref('foot_broadcast').set({title:title,body:body,target:'all',ts:_lastNotifWriteTs});
+db.ref('foot_push_queue').push({title:title,body:body,targets:['all'],ts:Date.now()});
+logNotif(title,body,'all','auto');}
+}catch(err){console.error('notifResultatMatch error:',err)}}
 
 function notifResultatTour(ti){
+try{
 if(!T||!T.tours)return;
-if(!notifSettings.resultat_tour)return;
 var tour=T.tours[ti];if(!tour)return;
-var joues=tour.ms.filter(function(m){return m.j});if(!joues.length)return;
-var resultats=joues.map(function(m){return m.e1.nom+' '+m.s1+'–'+m.s2+' '+m.e2.nom}).join(' | ');
-var title=fillT((notifTemplates.resultat_tour||{title:'📊 Résultats · {tour} · Poule {poule}'}).title,{tour:'Tour '+tour.num,poule:tour.poule,resultats:resultats});
-var body=fillT((notifTemplates.resultat_tour||{body:'{resultats}'}).body,{tour:'Tour '+tour.num,poule:tour.poule,resultats:resultats});
-if(fbOk&&db){_lastNotifWriteTs=Date.now()+(++_bcCounter);db.ref('foot_broadcast').set({title:title,body:body,target:'all',ts:_lastNotifWriteTs});}
-queuePush(title,body,'all');logNotif(title,body,'all','manual');notify(title,body)}
+if(notifSettings.resultat_tour===false)return;
+var joues=tour.ms.filter(function(m){return m.j&&m.s1!==''&&m.s2!==''});
+if(!joues.length)return;
+var resultats=joues.map(function(m){return (m.e1&&m.e1.nom||'?')+' '+m.s1+'–'+m.s2+' '+(m.e2&&m.e2.nom||'?')}).join(' | ');
+var tmpl=notifTemplates.resultat_tour||{title:'📊 Résultats · Tour {num} · Poule {poule}',body:'{resultats}'};
+var title=fillT(tmpl.title,{tour:'Tour '+tour.num,num:tour.num,poule:tour.poule,resultats:resultats});
+var body=fillT(tmpl.body,{tour:'Tour '+tour.num,num:tour.num,poule:tour.poule,resultats:resultats});
+notify(title,body);
+if(fbOk&&db){
+_lastNotifWriteTs=Date.now()+(++_bcCounter);
+db.ref('foot_broadcast').set({title:title,body:body,target:'all',ts:_lastNotifWriteTs});
+db.ref('foot_push_queue').push({title:title,body:body,targets:['all'],ts:Date.now()});
+logNotif(title,body,'all','auto');}
+}catch(err){console.error('notifResultatTour error:',err)}}
 
 function devaliderMatch(ti,mid){
 if(!deb||!T||!T.tours)return;
@@ -232,7 +249,7 @@ var tour=T.tours[ti];if(!tour||tour.ok)return;
 var m=tour.ms.find(function(x){return x.id===mid});
 if(!m||!m.j)return;
 m.ok=true;
-try{notifResultatMatch(ti,mid);}catch(e){console.warn('notifResultatMatch:',e)}
+notifResultatMatch(ti,mid);
 _s=true;save();setTimeout(function(){_s=false},1000);rPoules()}
 
 function notifyMatchSuivant(currentM,currentTour){
