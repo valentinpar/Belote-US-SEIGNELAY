@@ -1225,22 +1225,26 @@ if(fbOk&&db)db.ref('foot_notif_reset').set({ts:Date.now()});
 rNotifs();flash(document.getElementById('alert-reset-notif'),'success','✅ Tous les abonnements réinitialisés.')})}
 
 function envoyerBroadcast(){
-var titre=document.getElementById('bc-titre').value.trim();
-var body=document.getElementById('bc-body').value.trim();
+var elTitre=document.getElementById('bc-titre');
+var elBody=document.getElementById('bc-body');
+if(!elTitre||!elBody){cAlert('Formulaire introuvable. Rechargez la page.','⚠️');return}
+var titre=elTitre.value.trim();
+var body=elBody.value.trim();
 var checks=Array.from(document.querySelectorAll('#bc-targets input:checked')).map(function(c){return c.value});
 if(!titre&&!body){cAlert('Écris un titre ou un message.','⚠️');return}
-if(!checks.length){cAlert('Sélectionne au moins une cible (📣 Tous, 🏠 Accueil ou une équipe).','⚠️');return}
-if(!fbOk||!db){cAlert('Firebase non connecté.','⚠️');return}
+if(!checks.length){cAlert('Coche au moins une cible (📣 Tous, 🏠 Accueil ou une équipe).','⚠️');return}
+if(!fbOk||!db){cAlert('Firebase non connecté. Recharge la page.','⚠️');return}
 var t=titre||'📢 Annonce';
-var targetStr=checks.join(',');
-var _bt=Date.now()+(++_bcCounter);_lastNotifWriteTs=_bt;
-db.ref('foot_broadcast').set({title:t,body:body,target:checks[0],ts:_bt}).then(function(){
+// Envoi push direct
 db.ref('foot_push_queue').push({title:t,body:body,targets:checks,ts:Date.now()});
-db.ref('foot_notif_history').push({title:t,body:body,target:targetStr,type:'manual',ts:Date.now()});
-notify('✅ Annonce envoyée !',t);
-document.getElementById('bc-titre').value='';document.getElementById('bc-body').value='';
-document.querySelectorAll('#bc-targets input').forEach(function(c){c.checked=false})
-}).catch(function(e){cAlert('Erreur envoi : '+e.message,'❌')})}
+db.ref('foot_notif_history').push({title:t,body:body,target:checks.join(','),type:'manual',ts:Date.now()});
+// Bannière pour appareils connectés
+var _bt=Date.now()+(++_bcCounter);_lastNotifWriteTs=_bt;
+db.ref('foot_broadcast').set({title:t,body:body,target:checks[0],ts:_bt});
+// Confirmation immédiate
+notify('✅ '+t,body||'Annonce envoyée !');
+elTitre.value='';elBody.value='';
+document.querySelectorAll('#bc-targets input').forEach(function(c){c.checked=false})}
 
 var buvette=JSON.parse(localStorage.getItem('foot_buvette')||'[]');
 function saveBuvette(){
