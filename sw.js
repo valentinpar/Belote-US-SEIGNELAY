@@ -13,24 +13,22 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// Notification reçue quand l'app est en arrière-plan ou fermée
+// Reçoit uniquement les messages "data only" (pas de doublon avec notification auto)
 messaging.onBackgroundMessage(function(payload) {
-  const title = 'US Seignelay';
-  var msgTitle=(payload.notification&&payload.notification.title)||(payload.data&&payload.data.title)||'';
-  var msgBody=(payload.notification&&payload.notification.body)||(payload.data&&payload.data.body)||'';
-  const options = {
-    body: msgTitle?(msgTitle+(msgBody?'\n'+msgBody:'')):msgBody,
-    icon: '/Belote-US-SEIGNELAY/logo-192.png',
-    badge: '/Belote-US-SEIGNELAY/logo-192.png',
+  var title = (payload.data && payload.data.title) || 'US Seignelay';
+  var body  = (payload.data && payload.data.body)  || '';
+  return self.registration.showNotification(title, {
+    body:    body,
+    icon:    '/Belote-US-SEIGNELAY/logo-192.png',
+    badge:   '/Belote-US-SEIGNELAY/logo-192.png',
     vibrate: [200, 100, 200],
-    data: { url: 'https://valentinpar.github.io/Belote-US-SEIGNELAY/tournoi-foot.html' }
-  };
-  return self.registration.showNotification(title, options);
+    data:    { url: 'https://valentinpar.github.io/Belote-US-SEIGNELAY/tournoi-foot.html' }
+  });
 });
 
-// Clic sur la notification → ouvre l'app
 self.addEventListener('notificationclick', function(event) {
   event.notification.close();
-  var url = (event.notification.data && event.notification.data.url) || 'https://valentinpar.github.io/Belote-US-SEIGNELAY/tournoi-foot.html';
+  var url = (event.notification.data && event.notification.data.url)
+    || 'https://valentinpar.github.io/Belote-US-SEIGNELAY/tournoi-foot.html';
   event.waitUntil(clients.openWindow(url));
 });
