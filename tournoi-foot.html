@@ -82,23 +82,6 @@
 <button class="btn btn-gold" onclick="autoPlanning()">⚡ Générer le planning</button>
 </div>
 <div id="planning-editor"><div class="empty-state" style="padding:.8rem"><div class="icon" style="font-size:1.5rem">📋</div>Lancez le tournoi pour gérer le planning</div></div></div>
-<div class="card"><h2>📜 Gestion des anciens résultats</h2><p style="color:var(--muted);font-size:.8rem;margin-bottom:.7rem">Ajoutez manuellement un ancien tournoi ou archivez le tournoi en cours une fois terminé.</p>
-<div style="background:rgba(0,0,0,.12);border:1px solid var(--gris-moyen);border-radius:6px;padding:.6rem;margin-bottom:.7rem">
-<div style="font-weight:700;color:var(--or);font-size:.82rem;margin-bottom:.5rem">➕ Ajouter un ancien résultat</div>
-<div class="setup-grid" style="margin-bottom:.4rem">
-<div><label>Date</label><input type="date" id="histo-date"></div>
-<div><label>Titre / Nom</label><input type="text" id="histo-titre" placeholder="Ex: Tournoi de printemps"></div>
-</div>
-<div class="setup-grid" style="margin-bottom:.4rem">
-<div><label>🥇 1er</label><input type="text" id="histo-1er" placeholder="Équipe championne"></div>
-<div><label>🥈 2e</label><input type="text" id="histo-2e" placeholder="Finaliste"></div>
-<div><label>🥉 3e</label><input type="text" id="histo-3e" placeholder="3e place (optionnel)"></div>
-</div>
-<div><label>Détails (optionnel)</label><input type="text" id="histo-details" placeholder="Ex: 12 équipes, score finale 3-1"></div>
-<div id="alert-histo" class="mt-1"></div>
-<button class="btn btn-primary mt-1" onclick="ajouterHisto()">➕ Ajouter</button>
-</div>
-<div id="histo-liste"></div></div>
 <div class="card"><h2>🔔 Notifications</h2><p style="color:var(--muted);font-size:.8rem;margin-bottom:.6rem">Gérez les annonces et les abonnements depuis l'onglet dédié.</p><button class="btn btn-primary btn-sm" onclick="goTab('notifs',document.getElementById('tab-notifs'))">🔔 Aller aux notifications</button></div>
 <div class="card"><h2>❓ Question secrète de récupération</h2><p style="color:var(--muted);font-size:.8rem;margin-bottom:.7rem">En cas d'oubli du mot de passe, cette question permet de le réinitialiser.</p><div style="display:grid;grid-template-columns:1fr auto;gap:.6rem;align-items:end;margin-bottom:.5rem"><div><label>Question secrète</label><input type="text" id="cfg-question" placeholder="Ex: Nom de votre premier chien ?"></div><button class="btn btn-primary" onclick="sauverQuestion()">💾</button></div><div><label>Réponse secrète</label><input type="text" id="cfg-reponse" placeholder="Votre réponse (insensible à la casse)"></div><div id="alert-question" class="mt-1"></div></div>
 <div class="card"><h2>🔑 Mot de passe</h2><div class="pwd-row"><div><label>Nouveau</label><div class="pwd-wrap"><input type="password" id="new-pwd"><button class="pwd-eye" onclick="toggleEye('new-pwd')">👁</button></div></div><div><label>Confirmer</label><input type="password" id="new-pwd2" onkeydown="if(event.key==='Enter')chgMdp()"></div><button class="btn btn-primary" onclick="chgMdp()">💾</button></div><div id="alert-mdp" class="mt-1"></div></div><div class="card"><h2>ℹ️ Règles</h2><p style="color:var(--muted);line-height:1.6;font-size:.83rem"><strong style="color:var(--txt)">📋 Poules :</strong> Tous vs tous avec rotation par tours. Les matchs sont répartis en tours successifs sur la journée. Chaque équipe joue 1 match par tour et se repose entre deux. Classement : pts → diff buts → buts marqués.<br><br><strong style="color:var(--txt)">🏆 Élim :</strong> Les meilleurs de chaque poule (nombre réglable en Config) rejoignent la <strong style="color:var(--or)">Coupe principale</strong>, qui démarre toujours en quarts de finale (Quarts → Demis → Petite finale → Finale). Toutes les autres équipes jouent la <strong>🛡️ Coupe de consolation</strong> (même format adapté à leur nombre). <strong style="color:var(--or)">En cas d'égalité : tirs au but pour départager.</strong><br><br><strong style="color:var(--or)">3 pts victoire · 1 pt nul · 0 pt défaite</strong></p></div></section>
@@ -125,7 +108,7 @@ function checkPwd(){if(document.getElementById('pwd-input').value===mdp){deb=tru
 function verrouiller(){deb=false;localStorage.removeItem('foot_session');['tab-equipes','tab-setup','tab-poules','tab-elim','tab-notifs'].forEach(t=>document.getElementById(t).classList.remove('visible'));document.getElementById('btn-lock').style.display='none';document.getElementById('btn-orga').style.display='block';document.getElementById('regl-btn-edit-wrap').style.display='none';goTab('resultats',document.getElementById('tab-resultats'))}
 function chgMdp(){const a=document.getElementById('new-pwd').value,b=document.getElementById('new-pwd2').value,d=document.getElementById('alert-mdp');if(!a){flash(d,'warning','⚠️ Vide.');return}if(a!==b){flash(d,'warning','⚠️ Différents.');return}mdp=a;localStorage.setItem('foot_mdp',mdp);saveFB();document.getElementById('new-pwd').value='';document.getElementById('new-pwd2').value='';flash(d,'success','✅ OK !')}
 function toggleEye(id){const i=document.getElementById(id);i.type=i.type==='password'?'text':'password'}
-function goTab(n,b){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));if(b)b.classList.add('active');document.getElementById('sec-'+n).classList.add('active');if(n==='resultats')rRes();if(n==='poules'){rPoules();rPlanningEditor()}if(n==='elim'){rElim();rPlanningEditor()}if(n==='planning')rPlanning();if(n==='parequipe')rParEquipe();if(n==='qr')setTimeout(initQR,50);if(n==='historique')rHistorique();if(n==='setup'){rTerrains();rPlanningEditor();rHistoListe();rNotifBtn()}if(n==='reglement')renderReglement();if(n==='buvette')rBuvette();if(n==='notifs'){window._histListener=null;rNotifs();}}
+function goTab(n,b){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));if(b)b.classList.add('active');document.getElementById('sec-'+n).classList.add('active');if(n==='resultats')rRes();if(n==='poules'){rPoules();rPlanningEditor()}if(n==='elim'){rElim();rPlanningEditor()}if(n==='planning')rPlanning();if(n==='parequipe')rParEquipe();if(n==='qr')setTimeout(initQR,50);if(n==='historique')rHistorique();if(n==='setup'){rTerrains();rPlanningEditor();rNotifBtn()}if(n==='reglement')renderReglement();if(n==='buvette')rBuvette();if(n==='notifs'){window._histListener=null;rNotifs();}}
 const NE=['FC Seignelay','AS Auxerre B','US Chablis','RC Migennes','ES Joigny','FC Tonnerre','AS Avallon','SC Sens','US Toucy','RC Vermenton','FC Pont','AS Charny','US Aillant','ES Villeneuve','RC Bléneau','AS Courson'],CO=['Martin','Dupont','Lefebvre','Moreau','Bernard','Thomas','Petit','Robert','Durand','Simon','Laurent','Michel','Garcia','Roux'];
 function uid(){return'eq_'+Date.now()+'_'+Math.floor(Math.random()*1e4)}
 function addEquipe(){const n=document.getElementById('inp-nom').value.trim(),r=document.getElementById('inp-resp').value.trim(),a=document.getElementById('alert-eq');if(!n){flash(a,'warning','⚠️ Nom requis.');return}if(E.find(e=>e.nom.toLowerCase()===n.toLowerCase())){flash(a,'warning','⚠️ Existe déjà.');return}E.push({id:uid(),nom:n,resp:r});document.getElementById('inp-nom').value='';document.getElementById('inp-resp').value='';flash(a,'success','✅ '+n);rEq();save()}
@@ -728,8 +711,11 @@ equipe_loser:{title:'🥉 Petite finale',body:'Vous jouez pour la 3e place !'}};
 var quickNotifs=[];
 function loadNotifSettings(){if(!fbOk||!db)return;
 db.ref('foot_notif_settings').once('value',function(s){var d=s.val();if(d)Object.assign(notifSettings,d)});
-db.ref('foot_notif_templates').once('value',function(s){var d=s.val();if(d){Object.assign(notifTemplates,d);// Migrer l'ancien template equipe_match si nécessaire
-if(notifTemplates.equipe_match&&notifTemplates.equipe_match.title&&notifTemplates.equipe_match.title.indexOf('{equipe}')===-1){notifTemplates.equipe_match={title:'⚽ {equipe} vs {adversaire}',body:'{tour}{heure}{terrain}'};saveNotifTemplates()}}});
+db.ref('foot_notif_templates').once('value',function(s){var d=s.val();if(d){Object.assign(notifTemplates,d);}
+// Toujours forcer le bon template equipe_match
+if(!notifTemplates.equipe_match||notifTemplates.equipe_match.title.indexOf('{equipe}')===-1){
+notifTemplates.equipe_match={title:'⚽ {equipe} vs {adversaire}',body:'{tour}{heure}{terrain}'};
+db.ref('foot_notif_templates/equipe_match').set(notifTemplates.equipe_match);}});
 db.ref('foot_notif_quick').on('value',function(s){var d=s.val();quickNotifs=d?Object.values(d):[];var el=document.getElementById('quick-notifs-list');if(el)renderQuickNotifsList()})}
 function saveNotifSettings(){if(fbOk&&db)db.ref('foot_notif_settings').set(notifSettings)}
 function saveNotifTemplates(){if(fbOk&&db)db.ref('foot_notif_templates').set(notifTemplates)}
@@ -755,7 +741,7 @@ var ch=cup.champion,se=cup.second,tr=cup.troisieme;
 var conso=T.el.cups[1]&&T.el.cups[1].champion?T.el.cups[1].champion:null;
 var details=E.length+' équipes · '+C.np+' poules'+(conso?' · 🛡️ Consolation : '+conso.nom:'');
 var entry={id:'h_'+Date.now(),date:new Date().toISOString().split('T')[0],titre:'Tournoi du '+new Date().toLocaleDateString('fr-FR'),premier:ch.nom,deuxieme:se?se.nom:'',troisieme:tr?tr.nom:'',details:details};
-historique.unshift(entry);saveHisto();rHistorique();rHistoListe();
+historique.unshift(entry);saveHisto();rHistorique();
 cAlert('✅ Tournoi archivé dans l\'historique !','📦')}
 function ajouterHisto(){var date=document.getElementById('histo-date').value;var titre=document.getElementById('histo-titre').value.trim();
 var p1=document.getElementById('histo-1er').value.trim();var p2=document.getElementById('histo-2e').value.trim();
@@ -767,15 +753,29 @@ historique.unshift(entry);saveHisto();
 document.getElementById('histo-date').value='';document.getElementById('histo-titre').value='';
 document.getElementById('histo-1er').value='';document.getElementById('histo-2e').value='';
 document.getElementById('histo-3e').value='';document.getElementById('histo-details').value='';
-flash(a,'success','✅ Résultat ajouté !');rHistorique();rHistoListe()}
-function supprimerHisto(id){cConfirm('Supprimer ce résultat ?','🗑️').then(function(ok){if(!ok)return;historique=historique.filter(function(h){return h.id!==id});saveHisto();rHistorique();rHistoListe()})}
+flash(a,'success','✅ Résultat ajouté !');rHistorique()}
+function supprimerHisto(id){cConfirm('Supprimer ce résultat ?','🗑️').then(function(ok){if(!ok)return;historique=historique.filter(function(h){return h.id!==id});saveHisto();rHistorique()})}
 function rHistoListe(){var d=document.getElementById('histo-liste');if(!d)return;if(!historique.length){d.innerHTML='<div class="text-muted" style="text-align:center;padding:.5rem;font-size:.82rem">Aucun ancien résultat</div>';return}
 var h='';historique.forEach(function(e){h+='<div style="display:flex;justify-content:space-between;align-items:center;background:var(--gris-fonce);border:1px solid var(--gris-moyen);border-radius:5px;padding:.4rem .7rem;margin-bottom:.3rem"><div><div style="font-weight:700;font-size:.84rem;color:var(--txt)">'+e.titre+(e.date?' <span style="color:var(--muted);font-size:.72rem">'+e.date+'</span>':'')+'</div><div style="font-size:.76rem;color:var(--or)">🥇 '+e.premier+(e.deuxieme?' · 🥈 '+e.deuxieme:'')+(e.troisieme?' · 🥉 '+e.troisieme:'')+'</div></div><button class="btn btn-danger btn-sm" onclick="supprimerHisto(\''+e.id+'\')">✕</button></div>'});d.innerHTML=h}
-function rHistorique(){var d=document.getElementById('historique-content');if(!historique.length){d.innerHTML='<div class="empty-state"><div class="icon">📜</div>Aucun ancien résultat enregistré</div>';return}
-var h='<div class="card"><h2>📜 Anciens résultats</h2>';
+function rHistorique(){var d=document.getElementById('historique-content');var h='';
+// Panneau admin (ajout + archivage)
+if(deb){
+h+='<div class="card"><h2>➕ Ajouter un résultat</h2>';
+h+='<div class="setup-grid" style="margin-bottom:.4rem"><div><label>Date</label><input type="date" id="histo-date"></div><div><label>Titre / Nom</label><input type="text" id="histo-titre" placeholder="Ex: Tournoi de printemps"></div></div>';
+h+='<div class="setup-grid" style="margin-bottom:.4rem"><div><label>🥇 1er</label><input type="text" id="histo-1er" placeholder="Équipe championne"></div><div><label>🥈 2e</label><input type="text" id="histo-2e" placeholder="Finaliste"></div><div><label>🥉 3e</label><input type="text" id="histo-3e" placeholder="3e place (optionnel)"></div></div>';
+h+='<div><label>Détails (optionnel)</label><input type="text" id="histo-details" placeholder="Ex: 12 équipes, score finale 3-1"></div>';
+h+='<div id="alert-histo" class="mt-1"></div>';
+h+='<button class="btn btn-primary mt-1" onclick="ajouterHisto()">➕ Ajouter manuellement</button>';
+if(T&&T.fin)h+=' <button class="btn btn-gold mt-1" onclick="archiverTournoi()">📦 Archiver le tournoi en cours</button>';
+h+='</div>';}
+// Résultats
+if(!historique.length){
+h+='<div class="empty-state"><div class="icon">📜</div>Aucun ancien résultat enregistré</div>';
+}else{
+h+='<div class="card"><h2>📜 Anciens résultats</h2>';
 historique.forEach(function(e,i){
 h+='<div style="background:var(--gris-fonce);border:1px solid var(--gris-moyen);border-radius:8px;padding:.8rem;margin-bottom:.6rem'+(i===0?';border-left:3px solid var(--or)':'')+'">';
-h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem"><span style="font-family:\'Playfair Display\',serif;font-size:1rem;font-weight:700;color:var(--or)">'+e.titre+'</span>'+(e.date?'<span style="font-size:.72rem;color:var(--muted)">📅 '+e.date+'</span>':'')+'</div>';
+h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.4rem"><span style="font-family:\'Playfair Display\',serif;font-size:1rem;font-weight:700;color:var(--or)">'+e.titre+'</span><div style="display:flex;align-items:center;gap:.5rem">'+(e.date?'<span style="font-size:.72rem;color:var(--muted)">📅 '+e.date+'</span>':'')+(deb?'<button onclick="supprimerHisto(\''+e.id+'\')" style="border:none;cursor:pointer;background:rgba(239,68,68,.15);color:var(--rouge-clair);border-radius:5px;padding:.15rem .45rem;font-size:.75rem">✕</button>':'')+'</div></div>';
 h+='<div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:.3rem">';
 h+='<span style="font-size:.9rem">🥇 <strong style="color:var(--or)">'+e.premier+'</strong></span>';
 if(e.deuxieme)h+='<span style="font-size:.9rem">🥈 <strong>'+e.deuxieme+'</strong></span>';
@@ -783,7 +783,8 @@ if(e.troisieme)h+='<span style="font-size:.9rem">🥉 <strong>'+e.troisieme+'</s
 h+='</div>';
 if(e.details)h+='<div style="font-size:.78rem;color:var(--muted);margin-top:.2rem">'+e.details+'</div>';
 h+='</div>'});
-h+='</div>';d.innerHTML=h}
+h+='</div>';}
+d.innerHTML=h}
 // QR CODE
 let qrGenerated=false;
 function initQR(){if(qrGenerated)return;qrGenerated=true;new QRCode(document.getElementById('qrcode'),{text:'https://valentinpar.github.io/Belote-US-SEIGNELAY/',width:220,height:220,colorDark:'#0d3318',colorLight:'#f0f8f0',correctLevel:QRCode.CorrectLevel.M})}
