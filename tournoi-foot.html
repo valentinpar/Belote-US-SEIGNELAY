@@ -180,10 +180,10 @@ if(T.tours){h+='<div class="card"><h2>🗓️ Planning de la journée</h2><p sty
 T.tours.forEach(function(tour,ti){var jJo=tour.ms.filter(function(m){return m.j}).length,jTo=tour.ms.length;var poule=T.ps.find(function(p){return p.nm===tour.poule});var playing={};tour.ms.forEach(function(m){playing[m.e1.id]=true;playing[m.e2.id]=true});var repos=poule?poule.eq.filter(function(e){return!playing[e.id]}):[];
 h+='<div style="margin-top:.6rem;padding:.55rem;border:1px solid var(--gris-moyen);border-radius:6px;background:rgba(0,0,0,.12)"><div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.35rem"><span style="background:var(--vert-fonce);color:var(--or);padding:.15rem .5rem;border-radius:10px;font-size:.7rem;font-weight:700">Tour '+tour.num+'</span><span class="phase-tag phase-poules" style="font-size:.6rem">Poule '+tour.poule+'</span><span style="font-size:.7rem;color:var(--muted)">'+(tour.ok?'✅':jJo+'/'+jTo)+'</span></div>';
 if(repos.length>0){h+='<div style="font-size:.72rem;color:#fcd34d;margin-bottom:.25rem;font-style:italic">🏖️ Repos : '+repos.map(function(e){return e.nom}).join(', ')+'</div>'}
-tour.ms.forEach(function(m){var w1=m.ok&&+m.s1>+m.s2,w2=m.ok&&+m.s2>+m.s1;var disIn=tour.ok||(m.ok&&!deb);h+='<div class="match-card '+(m.ok?'joue':m.j?'':'')+'" data-match-id="'+m.id+'"><div class="match-label" style="display:flex;justify-content:space-between;align-items:center"><span>Tour '+tour.num+' · Poule '+tour.poule+(m.heure||m.terrain?' &nbsp;·&nbsp;<span style="color:var(--or)">🕐 '+(m.heure||'')+(m.heure&&m.terrain?' ':'')+(m.terrain?'📍 '+m.terrain:'')+'</span>':'')+'</span>'+(m.ok?'<span style="color:var(--vert-pale);font-size:.7rem">✅</span>'+(deb?'<button onclick="devaliderMatch('+ti+',\''+m.id+'\')" style="border:none;cursor:pointer;background:rgba(212,160,23,.15);color:var(--or);border-radius:5px;padding:.1rem .4rem;font-size:.66rem;margin-left:.3rem">✏️ Modifier</button><button onclick="notifResultatMatch('+ti+',\''+m.id+'\')" style="border:none;cursor:pointer;background:rgba(34,197,94,.12);color:var(--vert-pale);border-radius:5px;padding:.1rem .4rem;font-size:.66rem;margin-left:.3rem">📣 Résultat</button>':''):'')+'</div><div class="match-body"><div class="match-eq"><div class="match-eq-nom" style="color:'+(w1?'var(--vert-pale)':'')+'">'+m.e1.nom+(w1?' ✓':'')+'</div></div><div style="display:flex;align-items:center;gap:.25rem"><input type="number" class="score-input" value="'+m.s1+'" min="0" placeholder="—" '+(disIn?'disabled':'')+' oninput="ssG('+ti+',\''+m.id+'\',1,this.value)"><span class="vs-badge">—</span><input type="number" class="score-input" value="'+m.s2+'" min="0" placeholder="—" '+(disIn?'disabled':'')+' oninput="ssG('+ti+',\''+m.id+'\',2,this.value)"></div><div class="match-eq right"><div class="match-eq-nom" style="color:'+(w2?'var(--vert-pale)':'')+'">'+( w2?'✓ ':'')+m.e2.nom+'</div></div></div>'+(!tour.ok?'<div style="padding:.3rem .5rem;border-top:1px solid var(--gris-moyen);display:flex;gap:.4rem;flex-wrap:wrap">'+(!m.ok?'<button class="btn btn-green btn-sm btn-valider-match" onclick="vMatch('+ti+',\''+m.id+'\')" '+(m.j?'':'disabled style="opacity:.4;cursor:not-allowed"')+'>✅ Valider ce match</button>':'')+'<button class="btn btn-primary btn-sm" onclick="notifyMatchSuivant(T.tours['+ti+'].ms.find(function(x){return x.id===\''+m.id+'\'}),T.tours['+ti+'])" >📢 Notifier le prochain</button></div>':'')+'</div>'});;
+tour.ms.forEach(function(m){var w1=m.ok&&+m.s1>+m.s2,w2=m.ok&&+m.s2>+m.s1;var disIn=tour.ok||(m.ok&&!deb);h+='<div class="match-card '+(m.ok?'joue':m.j?'':'')+'" data-match-id="'+m.id+'"><div class="match-label" style="display:flex;justify-content:space-between;align-items:center"><span>Tour '+tour.num+' · Poule '+tour.poule+(m.heure||m.terrain?' &nbsp;·&nbsp;<span style="color:var(--or)">🕐 '+(m.heure||'')+(m.heure&&m.terrain?' ':'')+(m.terrain?'📍 '+m.terrain:'')+'</span>':'')+'</span>'+(m.ok?'<span style="color:var(--vert-pale);font-size:.7rem">✅</span>'+(deb?'<button onclick="devaliderMatch('+ti+',\''+m.id+'\')" style="border:none;cursor:pointer;background:rgba(212,160,23,.15);color:var(--or);border-radius:5px;padding:.1rem .4rem;font-size:.66rem;margin-left:.3rem">✏️ Modifier</button>':''):'')+'</div><div class="match-body"><div class="match-eq"><div class="match-eq-nom" style="color:'+(w1?'var(--vert-pale)':'')+'">'+m.e1.nom+(w1?' ✓':'')+'</div></div><div style="display:flex;align-items:center;gap:.25rem"><input type="number" class="score-input" value="'+m.s1+'" min="0" placeholder="—" '+(disIn?'disabled':'')+' oninput="ssG('+ti+',\''+m.id+'\',1,this.value)"><span class="vs-badge">—</span><input type="number" class="score-input" value="'+m.s2+'" min="0" placeholder="—" '+(disIn?'disabled':'')+' oninput="ssG('+ti+',\''+m.id+'\',2,this.value)"></div><div class="match-eq right"><div class="match-eq-nom" style="color:'+(w2?'var(--vert-pale)':'')+'">'+( w2?'✓ ':'')+m.e2.nom+'</div></div></div>'+(!tour.ok?'<div style="padding:.3rem .5rem;border-top:1px solid var(--gris-moyen);display:flex;gap:.4rem;flex-wrap:wrap">'+(!m.ok?'<button class="btn btn-green btn-sm btn-valider-match" onclick="vMatch('+ti+',\''+m.id+'\')" '+(m.j?'':'disabled style="opacity:.4;cursor:not-allowed"')+'>✅ Valider ce match</button>':'')+'<button class="btn btn-primary btn-sm" onclick="notifyMatchSuivant(T.tours['+ti+'].ms.find(function(x){return x.id===\''+m.id+'\'}),T.tours['+ti+'])" >📢 Notifier le prochain</button></div>':'')+'</div>'});;
 if(!tour.ok){var allValided=tour.ms.length>0&&tour.ms.every(function(m){return m.ok});var jOk=jJo===jTo&&jTo>0;
-if(allValided){h+='<button class="btn btn-gold btn-sm mt-1" onclick="vG('+ti+')">🏁 Clôturer le tour '+tour.num+'</button> <button class="btn btn-primary btn-sm mt-1" onclick="notifResultatTour('+ti+')">📣 Résultats du tour</button>'}
-else{h+='<button class="btn btn-green btn-sm mt-1" onclick="vG('+ti+')" '+(jOk&&!allValided?'':'disabled style="opacity:.3;cursor:not-allowed"')+'>'+(jOk?'⚡ Valider tout le tour d\'un coup':'Scores incomplets')+'</button>'+(jOk?'<button class="btn btn-primary btn-sm mt-1" onclick="notifResultatTour('+ti+')">📣 Résultats du tour</button>':'')}}
+if(allValided){h+='<button class="btn btn-gold btn-sm mt-1" onclick="vG('+ti+')">🏁 Clôturer le tour '+tour.num+'</button>'}
+else{h+='<button class="btn btn-green btn-sm mt-1" onclick="vG('+ti+')" '+(jOk&&!allValided?'':'disabled style="opacity:.3;cursor:not-allowed"')+'>'+(jOk?'⚡ Valider tout le tour d\'un coup':'Scores incomplets')+'</button>'}}
 h+='</div>'});h+='</div>'}
 if(av&&!T.el)h+='<div class="card" style="text-align:center"><h2 style="justify-content:center">🏆 Poules terminées !</h2><button class="btn btn-gold" onclick="lancerEl()">🚀 Éliminatoires</button></div>';d.innerHTML=h;window.scrollTo(0,scrollY)}
 function ssG(ti,mid,eq,v){if(!T||!T.tours)return;var tour=T.tours[ti];if(!tour||tour.ok)return;var m=tour.ms.find(function(x){return x.id===mid});if(!m)return;if(eq===1)m.s1=v===''?'':+v;else m.s2=v===''?'':+v;m.j=m.s1!==''&&m.s2!=='';var poule=T.ps.find(function(p){return p.nm===tour.poule});if(poule){var pm=poule.ms.find(function(x){return x.id===mid});if(pm){pm.s1=m.s1;pm.s2=m.s2;pm.j=m.j}}_s=true;save();setTimeout(function(){_s=false},1500);
@@ -227,42 +227,38 @@ var tour=T.tours[ti];if(!tour||tour.ok)return;
 var m=tour.ms.find(function(x){return x.id===mid});
 if(!m||!m.j)return;
 m.ok=true;
+notifResultatMatch(ti,mid);
 _s=true;save();setTimeout(function(){_s=false},1000);rPoules()}
 
 function notifyMatchSuivant(currentM,currentTour){
-if(!T||!T.tours)return;
-var nextItems=[];
-if(currentM.heure){
-// Planning avec horaires → trouver le prochain créneau
-var allFuture=[];
+if(!T||!T.tours||!currentM)return;
+// Trouver le prochain match pour chaque équipe individuellement
+function nextForTeam(teamId){
+var future=[];
 T.tours.forEach(function(t){
 if(t.ok)return;
 t.ms.forEach(function(m){
-if(m.ok||m.j||!m.heure)return;
-allFuture.push({m:m,t:t})})});
-allFuture.sort(function(a,b){return a.m.heure.localeCompare(b.m.heure)});
-if(allFuture.length){
-var nextTime=allFuture[0].m.heure;
-nextItems=allFuture.filter(function(x){return x.m.heure===nextTime});}
-}else{
-// Sans horaires → trouver le prochain tour pour les équipes de ce match
-var nextTourSuiv=T.tours.find(function(t){return t.poule===currentTour.poule&&!t.ok&&t.num>currentTour.num});
-if(nextTourSuiv){nextTourSuiv.ms.forEach(function(m){
-if(m.e1.id===currentM.e1.id||m.e1.id===currentM.e2.id||m.e2.id===currentM.e1.id||m.e2.id===currentM.e2.id)
-nextItems.push({m:m,t:nextTourSuiv})})}}
-// Envoyer notifications + logger dans l'historique
-nextItems.forEach(function(item){
-var m=item.m,t=item.t;
-notifEq(m.e1.id,{tour:'Tour '+t.num,equipe:m.e1.nom,adversaire:m.e2.nom,heure:m.heure?' à '+m.heure:'',terrain:m.terrain?' · '+m.terrain:''},'equipe_match');
-notifEq(m.e2.id,{tour:'Tour '+t.num,equipe:m.e2.nom,adversaire:m.e1.nom,heure:m.heure?' à '+m.heure:'',terrain:m.terrain?' · '+m.terrain:''},'equipe_match')});
-if(nextItems.length){
-var first=nextItems[0];
-var logTitle='📢 Prochain match annoncé — Tour '+first.t.num;
-var logBody=nextItems.map(function(x){return x.m.e1.nom+' vs '+x.m.e2.nom+(x.m.heure?' à '+x.m.heure:'')+(x.m.terrain?' · '+x.m.terrain:'')}).join(' | ');
-logNotif(logTitle,logBody,'all','auto');}}
+if(m.ok||m.j)return;
+if(m.e1&&m.e1.id===teamId||m.e2&&m.e2.id===teamId)
+future.push({m:m,t:t})})});
+if(!future.length)return null;
+future.sort(function(a,b){
+if(a.m.heure&&b.m.heure)return a.m.heure.localeCompare(b.m.heure);
+return a.t.num-b.t.num});
+return future[0]}
+var n1=nextForTeam(currentM.e1.id);
+var n2=nextForTeam(currentM.e2.id);
+if(n1){var adv1=n1.m.e1.id===currentM.e1.id?n1.m.e2:n1.m.e1;
+notifEq(currentM.e1.id,{tour:'Tour '+n1.t.num,equipe:currentM.e1.nom,adversaire:adv1.nom,heure:n1.m.heure?' à '+n1.m.heure:'',terrain:n1.m.terrain?' · '+n1.m.terrain:''},'equipe_match')}
+if(n2){var adv2=n2.m.e1.id===currentM.e2.id?n2.m.e2:n2.m.e1;
+notifEq(currentM.e2.id,{tour:'Tour '+n2.t.num,equipe:currentM.e2.nom,adversaire:adv2.nom,heure:n2.m.heure?' à '+n2.m.heure:'',terrain:n2.m.terrain?' · '+n2.m.terrain:''},'equipe_match')}
+if(n1||n2){var logTitle='📢 Prochain match annoncé';
+var logBody=[n1?currentM.e1.nom+' → vs '+( n1.m.e1.id===currentM.e1.id?n1.m.e2.nom:n1.m.e1.nom):'',n2?currentM.e2.nom+' → vs '+(n2.m.e1.id===currentM.e2.id?n2.m.e2.nom:n2.m.e1.nom):''].filter(Boolean).join(' | ');
+logNotif(logTitle,logBody,'auto','auto')}}
 
 function vG(ti){if(!T||!T.tours)return;var tour=T.tours[ti];if(!tour||tour.ok)return;if(!tour.ms.every(function(m){return m.j}))return;var poule=T.ps.find(function(p){return p.nm===tour.poule});if(!poule)return;tour.ms.forEach(function(m){var s1=+m.s1,s2=+m.s2,a=poule.st[m.e1.id],b=poule.st[m.e2.id];a.j++;b.j++;a.bp+=s1;a.bc+=s2;b.bp+=s2;b.bc+=s1;if(s1>s2){a.v++;a.p+=C.pV;b.d++;b.p+=C.pD}else if(s2>s1){b.v++;b.p+=C.pV;a.d++;a.p+=C.pD}else{a.n++;a.p+=C.pN;b.n++;b.p+=C.pN}});tour.ok=true;
 var toutesOk=T.tours.every(function(t){return t.ok});
+notifResultatTour(ti);
 if(toutesOk){
 T.ps.forEach(function(p){p.ok=true});
 autoNotif('poules_fin',{},'all');
