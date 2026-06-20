@@ -739,7 +739,10 @@ resultat_match:{title:'⚽ Résultat · {tour} · Poule {poule}',body:'{e1} {s1}
 resultat_tour:{title:'📊 Résultats · {tour} · Poule {poule}',body:'{resultats}'}};
 var quickNotifs=[];
 function loadNotifSettings(){if(!fbOk||!db)return;
-db.ref('foot_notif_settings').once('value',function(s){var d=s.val();if(d)Object.assign(notifSettings,d)});
+db.ref('foot_notif_settings').once('value',function(s){var d=s.val();if(d)Object.assign(notifSettings,d);
+// S'assurer que les nouvelles clés ont une valeur par défaut
+if(notifSettings.resultat_match===undefined)notifSettings.resultat_match=true;
+if(notifSettings.resultat_tour===undefined)notifSettings.resultat_tour=true;});
 db.ref('foot_notif_templates').once('value',function(s){var d=s.val();if(d){Object.assign(notifTemplates,d);}
 // Toujours forcer le bon template equipe_match
 if(!notifTemplates.equipe_match||notifTemplates.equipe_match.title.indexOf('{equipe}')===-1){
