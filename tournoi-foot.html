@@ -212,7 +212,7 @@ h+='<div class="match-eq right"><div class="match-eq-nom" style="color:'+(w2?'va
 if(!m.ok&&!tour.ok)h+='<div style="padding:.2rem .6rem;background:rgba(212,160,23,.08);border-top:1px solid rgba(212,160,23,.2);font-size:.75rem;color:var(--or);text-align:center">'+(arb?'🟨 Arbitre : <strong>'+arb.nom+'</strong>':'⚠️ Aucun arbitre dispo')+'</div>';
 if(!tour.ok){h+='<div style="padding:.3rem .5rem;border-top:1px solid var(--gris-moyen);display:flex;gap:.4rem;flex-wrap:wrap">';
 h+='<button class="btn btn-green btn-sm btn-valider-match" onclick="vMatch('+ti+',\''+m.id+'\')" '+(m.j?'':'disabled style="opacity:.4;cursor:not-allowed"')+'>✅ Valider</button>';
-h+='<button class="btn btn-primary btn-sm" onclick="notifMatchDirect(T.tours['+ti+'].ms.find(function(x){return x.id===\''+m.id+'\'}),T.tours['+ti+'])">📢 Notifier</button>';
+h+='<button class="btn btn-primary btn-sm" onclick="notifMatchDirect(T.tours['+ti+'].ms.find(function(x){return x.id===\''+m.id+'\'}),T.tours['+ti+'],'+slotNum+')">📢 Notifier</button>';
 h+='</div>';}
 h+='</div>';});
 slot.forEach(function(item){var tour=item.tour,ti=item.ti;
@@ -315,27 +315,24 @@ queuePush(titR,bodR,'all');
 if(fbOk&&db)logNotif(titR,bodR,'all','auto');
 }catch(e){console.warn(e)}},100)}
 
-function notifMatchDirect(m,tour){
+function notifMatchDirect(m,tour,slotNum){
 if(!m||!tour)return;
 var heure=m.heure?' à '+m.heure:'';
 var terrain=m.terrain?' · '+m.terrain:'';
+var numTour=slotNum||tour.num;
 // Trouver l'arbitre
 var slotBusy=new Set([m.e1.nom,m.e2.nom]);
 var pouleArb=T.ps&&T.ps.find(function(p){return p.nm===tour.poule});
 var samePoolNoms=new Set(pouleArb?pouleArb.eq.map(function(e){return e.nom}):[]);
 var arb=E.find(function(e){return !slotBusy.has(e.nom)&&!samePoolNoms.has(e.nom)});
-// Format : Ligne 1 = tour, Ligne 2 = équipes + arbitre
-var tourLabel='Tour '+tour.num+' · Poule '+tour.poule;
+var tourLabel='Tour '+numTour+' · Poule '+tour.poule;
 var matchLabel=m.e1.nom+' vs '+m.e2.nom+(arb?' · 🟨 '+arb.nom:'')+heure+terrain;
-// Notifier l'équipe 1
 notifEq(m.e1.id,{tour:tourLabel,equipe:m.e1.nom,adversaire:m.e2.nom,heure:heure,terrain:terrain},'equipe_match');
-// Notifier l'équipe 2
 notifEq(m.e2.id,{tour:tourLabel,equipe:m.e2.nom,adversaire:m.e1.nom,heure:heure,terrain:terrain},'equipe_match');
-// Notifier l'arbitre si activé
 if(arb&&notifSettings.arbitre_match!==false){
 var tmplArb=notifTemplates.arbitre_match||{title:'🟨 Tu arbitres · {tour} · Poule {poule}',body:'{e1} vs {e2}{heure}{terrain}'};
-var titA=fillT(tmplArb.title,{tour:'Tour '+tour.num,poule:tour.poule,e1:m.e1.nom,e2:m.e2.nom,heure:heure,terrain:terrain});
-var bodA=fillT(tmplArb.body,{tour:'Tour '+tour.num,poule:tour.poule,e1:m.e1.nom,e2:m.e2.nom,heure:heure,terrain:terrain});
+var titA=fillT(tmplArb.title,{tour:'Tour '+numTour,poule:tour.poule,e1:m.e1.nom,e2:m.e2.nom,heure:heure,terrain:terrain});
+var bodA=fillT(tmplArb.body,{tour:'Tour '+numTour,poule:tour.poule,e1:m.e1.nom,e2:m.e2.nom,heure:heure,terrain:terrain});
 queuePush(titA,bodA,arb.id);
 if(notifTeams[arb.id])notify(titA,bodA);
 logNotif(titA,bodA,arb.id,'auto');}
