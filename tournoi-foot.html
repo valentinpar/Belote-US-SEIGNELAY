@@ -319,11 +319,27 @@ function notifMatchDirect(m,tour){
 if(!m||!tour)return;
 var heure=m.heure?' à '+m.heure:'';
 var terrain=m.terrain?' · '+m.terrain:'';
-var titreMatch='⚽ '+m.e1.nom+' vs '+m.e2.nom;
-var corps='Tour '+tour.num+' · Poule '+tour.poule+heure+terrain;
-notifEq(m.e1.id,{tour:'Tour '+tour.num,equipe:m.e1.nom,adversaire:m.e2.nom,heure:heure,terrain:terrain},'equipe_match');
-notifEq(m.e2.id,{tour:'Tour '+tour.num,equipe:m.e2.nom,adversaire:m.e1.nom,heure:heure,terrain:terrain},'equipe_match');
-logNotif(titreMatch,corps,'all','manual')}
+// Trouver l'arbitre
+var slotBusy=new Set([m.e1.nom,m.e2.nom]);
+var pouleArb=T.ps&&T.ps.find(function(p){return p.nm===tour.poule});
+var samePoolNoms=new Set(pouleArb?pouleArb.eq.map(function(e){return e.nom}):[]);
+var arb=E.find(function(e){return !slotBusy.has(e.nom)&&!samePoolNoms.has(e.nom)});
+// Format : Ligne 1 = tour, Ligne 2 = équipes + arbitre
+var tourLabel='Tour '+tour.num+' · Poule '+tour.poule;
+var matchLabel=m.e1.nom+' vs '+m.e2.nom+(arb?' · 🟨 '+arb.nom:'')+heure+terrain;
+// Notifier l'équipe 1
+notifEq(m.e1.id,{tour:tourLabel,equipe:m.e1.nom,adversaire:m.e2.nom,heure:heure,terrain:terrain},'equipe_match');
+// Notifier l'équipe 2
+notifEq(m.e2.id,{tour:tourLabel,equipe:m.e2.nom,adversaire:m.e1.nom,heure:heure,terrain:terrain},'equipe_match');
+// Notifier l'arbitre si activé
+if(arb&&notifSettings.arbitre_match!==false){
+var tmplArb=notifTemplates.arbitre_match||{title:'🟨 Tu arbitres · {tour} · Poule {poule}',body:'{e1} vs {e2}{heure}{terrain}'};
+var titA=fillT(tmplArb.title,{tour:'Tour '+tour.num,poule:tour.poule,e1:m.e1.nom,e2:m.e2.nom,heure:heure,terrain:terrain});
+var bodA=fillT(tmplArb.body,{tour:'Tour '+tour.num,poule:tour.poule,e1:m.e1.nom,e2:m.e2.nom,heure:heure,terrain:terrain});
+queuePush(titA,bodA,arb.id);
+if(notifTeams[arb.id])notify(titA,bodA);
+logNotif(titA,bodA,arb.id,'auto');}
+logNotif(tourLabel,matchLabel,'all','manual')}
 
 function notifyMatchSuivant(currentM,currentTour){
 if(!T||!T.tours||!currentM)return;
@@ -826,7 +842,7 @@ queuePush(title,body,eqId);
 logNotif(title,body,eqId,'auto')}
 
 // ── Paramètres notifications automatiques ──
-var notifSettings={tour_poule:true,poules_fin:true,elim_lance:true,round_elim:true,champion:true,equipe_match:true,equipe_qualif:true,resultat_match:true,resultat_tour:true};
+var notifSettings={tour_poule:true,poules_fin:true,elim_lance:true,round_elim:true,champion:true,equipe_match:true,equipe_qualif:true,resultat_match:true,resultat_tour:true,arbitre_match:true};
 var notifTemplates={
 tour_poule:{title:'✅ Tour {num} · Poule {poule}',body:'Prochain tour disponible.'},
 poules_fin:{title:'🏁 Poules terminées !',body:'Prêt pour les éliminatoires !'},
@@ -835,17 +851,18 @@ round_elim:{title:'{icon} {round} terminé',body:'{next} disponible !'},
 champion:{title:'🥇 Champion du tournoi !',body:'{equipe} remporte le tournoi !'},
 consolation:{title:'🛡️ Vainqueur consolation',body:'{equipe} remporte la consolation !'},
 petite_finale:{title:'🥉 Petite finale terminée',body:'3e place : {equipe}'},
-equipe_match:{title:'⚽ {equipe} vs {adversaire}',body:'{tour}{heure}{terrain}'},
+equipe_match:{title:'{tour} · Poule {poule}',body:'⚽ {equipe} vs {adversaire}{heure}{terrain}'},
 equipe_qualif:{title:'✅ Qualifié — {round}',body:'{icon} Votre prochain match !'},
 equipe_loser:{title:'🥉 Petite finale',body:'Vous jouez pour la 3e place !'},
 resultat_match:{title:'⚽ Résultat · {tour} · Poule {poule}',body:'{e1} {s1}–{s2} {e2}{victoire}'},
-resultat_tour:{title:'📊 Résultats · {tour} · Poule {poule}',body:'{resultats}'}};
+resultat_tour:{title:'📊 Résultats · {tour} · Poule {poule}',body:'{resultats}'},
+arbitre_match:{title:'🟨 Tu arbitres · {tour} · Poule {poule}',body:'{e1} vs {e2}{heure}{terrain}'}};
 var quickNotifs=[];
 function loadNotifSettings(){if(!fbOk||!db)return;
 db.ref('foot_notif_settings').once('value',function(s){var d=s.val();if(d)Object.assign(notifSettings,d);
 // S'assurer que les nouvelles clés ont une valeur par défaut
 if(notifSettings.resultat_match===undefined)notifSettings.resultat_match=true;
-if(notifSettings.resultat_tour===undefined)notifSettings.resultat_tour=true;});
+if(notifSettings.resultat_tour===undefined)notifSettings.resultat_tour=true;if(notifSettings.arbitre_match===undefined)notifSettings.arbitre_match=true;});
 db.ref('foot_notif_templates').once('value',function(s){var d=s.val();if(d){Object.assign(notifTemplates,d);}
 // Toujours forcer le bon template equipe_match
 if(!notifTemplates.equipe_match||notifTemplates.equipe_match.title.indexOf('{equipe}')===-1){
@@ -1060,6 +1077,9 @@ var tmplDefs=[
 {key:'resultat_match',label:'📣 Résultat d\'un match',
  autoTitle:'Tour 2 · Poule A',
  vars:[{k:'tour',ex:'Tour 2',label:'Tour'},{k:'poule',ex:'A',label:'Poule'},{k:'e1',ex:'Les Loups',label:'Équipe 1'},{k:'s1',ex:'3',label:'Score 1'},{k:'s2',ex:'1',label:'Score 2'},{k:'e2',ex:'FC Tonnerre',label:'Équipe 2'},{k:'victoire',ex:' · Victoire Les Loups',label:'Victoire'}]},
+{key:'arbitre_match',label:'🟨 Notification arbitre',
+ autoTitle:'Tour 1 · Poule A',
+ vars:[{k:'tour',ex:'Tour 1',label:'Tour'},{k:'poule',ex:'A',label:'Poule'},{k:'e1',ex:'Les Loups',label:'Équipe 1'},{k:'e2',ex:'FC Tonnerre',label:'Équipe 2'},{k:'heure',ex:' à 14h30',label:'Heure'},{k:'terrain',ex:' · Terrain B',label:'Terrain'}]},
 {key:'resultat_tour',label:'📊 Résultats d\'un tour',
  autoTitle:'Tour 2 · Poule A',
  vars:[{k:'tour',ex:'Tour 2',label:'Tour'},{k:'poule',ex:'A',label:'Poule'},{k:'resultats',ex:'Les Loups 3–1 FC Tonnerre | ...',label:'Résultats'}]},
@@ -1119,7 +1139,11 @@ var settings=[
 {key:'equipe_match',label:'⚽ Prochain match équipe',desc:'Notifie chaque équipe de son prochain match'},
 {key:'equipe_qualif',label:'🎯 Qualifications équipe',desc:'Notifie chaque équipe quand elle est qualifiée'},
 {key:'resultat_match',label:'📣 Résultat d\'un match',desc:'Bouton manuel sur chaque match validé'},
+{key:'arbitre_match',label:'🟨 Notification arbitre',
+ autoTitle:'Tour 1 · Poule A',
+ vars:[{k:'tour',ex:'Tour 1',label:'Tour'},{k:'poule',ex:'A',label:'Poule'},{k:'e1',ex:'Les Loups',label:'Équipe 1'},{k:'e2',ex:'FC Tonnerre',label:'Équipe 2'},{k:'heure',ex:' à 14h30',label:'Heure'},{k:'terrain',ex:' · Terrain B',label:'Terrain'}]},
 {key:'resultat_tour',label:'📊 Résultats d\'un tour',desc:'Bouton manuel pour envoyer tous les résultats'},
+{key:'arbitre_match',label:'🟨 Notification arbitre',desc:'Notifie l\'arbitre quand on notifie un match'},
 ];
 settings.forEach(function(s){
 var on=notifSettings[s.key]!==false;
@@ -1199,7 +1223,7 @@ if(a){a.innerHTML='<span style="color:var(--vert-pale)">✅ Sauvegardé !</span>
 function resetTemplate(key,idx,td){
 notifTemplates[key]={
 title:({tour_poule:'✅ Tour {num} · Poule {poule}',poules_fin:'🏁 Poules terminées !',elim_lance:'🏆 Éliminatoires lancés !',round_elim:'{icon} {round} terminé',champion:'🥇 Champion du tournoi !',consolation:'🛡️ Vainqueur consolation',petite_finale:'🥉 Petite finale terminée',equipe_match:'⚽ {equipe} vs {adversaire}',equipe_qualif:'✅ Qualifié — {round}',equipe_loser:'🥉 Petite finale',resultat_match:'⚽ Résultat · {tour} · Poule {poule}',resultat_tour:'📊 Résultats · {tour} · Poule {poule}'})[key]||'',
-body:({tour_poule:'Prochain tour disponible.',poules_fin:'Prêt pour les éliminatoires !',elim_lance:'Les quarts de finale démarrent. Bonne chance !',round_elim:'{next} disponible !',champion:'{equipe} remporte le tournoi !',consolation:'{equipe} remporte la consolation !',petite_finale:'3e place : {equipe}',equipe_match:'{tour}{heure}{terrain}',equipe_qualif:'{icon} Votre prochain match !',equipe_loser:'Vous jouez pour la 3e place !',resultat_match:'{e1} {s1}–{s2} {e2}{victoire}',resultat_tour:'{resultats}'})[key]||''};
+body:({tour_poule:'Prochain tour disponible.',poules_fin:'Prêt pour les éliminatoires !',elim_lance:'Les quarts de finale démarrent. Bonne chance !',round_elim:'{next} disponible !',champion:'{equipe} remporte le tournoi !',consolation:'{equipe} remporte la consolation !',petite_finale:'3e place : {equipe}',equipe_match:'{tour}{heure}{terrain}',equipe_qualif:'{icon} Votre prochain match !',equipe_loser:'Vous jouez pour la 3e place !',resultat_match:'{e1} {s1}–{s2} {e2}{victoire}',resultat_tour:'{resultats}',arbitre_match:'{e1} vs {e2}{heure}{terrain}'})[key]||''};
 saveNotifTemplates();
 var ti=document.getElementById('tmpl-t-'+key);if(ti)ti.value=notifTemplates[key].title;
 var bi=document.getElementById('tmpl-b-'+key);if(bi)bi.value=notifTemplates[key].body;
