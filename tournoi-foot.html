@@ -593,29 +593,58 @@ return conflits}
 function renderConflitAlert(){var conflits=checkConflits();if(!conflits.length)return'';var h='<div class="alert alert-warning" style="margin-bottom:.7rem">⚠️ <strong>Conflits détectés !</strong> Plusieurs matchs sont programmés sur le même terrain à la même heure :<ul style="margin:.4rem 0 0 1.2rem;font-size:.8rem">';
 conflits.forEach(function(c){h+='<li><strong>'+c.a.heure+'</strong> sur <strong>'+c.a.terrain+'</strong> : '+c.a.label+' et '+c.b.label+'</li>'});
 h+='</ul></div>';return h}
-function rPlanningEditor(){var d=document.getElementById('planning-editor');if(!d)return;if(!T){d.innerHTML='<div class="empty-state" style="padding:.6rem">Lancez le tournoi</div>';return}var terrOpts='<option value="">— Terrain —</option>';terrains.forEach(function(t){terrOpts+='<option value="'+t+'">'+t+'</option>'});var h=renderConflitAlert();
+function rPlanningEditor(){
+var d=document.getElementById('planning-editor');if(!d)return;
+if(!T){d.innerHTML='<div class="empty-state" style="padding:.6rem">Lancez le tournoi</div>';return}
+var terrOpts='<option value="">— Terrain —</option>';terrains.forEach(function(t){terrOpts+='<option value="'+t+'">'+t+'</option>'});
+var h=renderConflitAlert();
 
-function phaseHeader(key,label,tagClass){var val=phaseStartTimes[key]||'';return '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.4rem;margin-bottom:.5rem"><div style="font-weight:700;color:var(--or);font-size:.9rem">'+label+'</div><div style="display:flex;align-items:center;gap:.3rem"><span style="font-size:.72rem;color:var(--muted)">🕐</span><input type="time" value="'+val+'" style="background:var(--noir);border:1px solid var(--or);color:var(--or);border-radius:4px;padding:.15rem .3rem;font-family:monospace;font-size:.78rem;font-weight:700;width:90px"><button onclick="appliquerHeurePhase(\''+key+'\',this.previousElementSibling.value)" style="background:var(--or);color:var(--noir);border:none;border-radius:6px;padding:.2rem .5rem;font-size:.72rem;font-weight:700;cursor:pointer">⚡ Appliquer</button></div></div>';}
+function phaseHeader(key,label){var val=phaseStartTimes[key]||'';return '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.4rem;margin-bottom:.5rem"><div style="font-weight:700;color:var(--or);font-size:.9rem">'+label+'</div><div style="display:flex;align-items:center;gap:.3rem"><span style="font-size:.72rem;color:var(--muted)">🕐</span><input type="time" value="'+val+'" style="background:var(--noir);border:1px solid var(--or);color:var(--or);border-radius:4px;padding:.15rem .3rem;font-family:monospace;font-size:.78rem;font-weight:700;width:90px"><button onclick="appliquerHeurePhase(\''+key+'\',this.previousElementSibling.value)" style="background:var(--or);color:var(--noir);border:none;border-radius:6px;padding:.2rem .5rem;font-size:.72rem;font-weight:700;cursor:pointer">⚡ Appliquer</button></div></div>';}
 
-// ── Phase de poules ──
-if(T.tours&&T.tours.length){h+='<div style="margin-bottom:.8rem">'+phaseHeader('poules','📋 Phase de poules','phase-poules');
-var pouleNames=[];T.tours.forEach(function(t){if(pouleNames.indexOf(t.poule)<0)pouleNames.push(t.poule)});pouleNames.sort();
-pouleNames.forEach(function(pn){var pTours=T.tours.filter(function(t){return t.poule===pn});var nbMs=0;pTours.forEach(function(t){nbMs+=t.ms.length});
-h+='<div style="margin-bottom:.8rem;padding:.6rem;border:1px solid var(--gris-moyen);border-radius:8px;background:rgba(0,0,0,.08)"><div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.5rem"><span class="phase-tag phase-poules" style="font-size:.68rem">Poule '+pn+'</span><span style="font-size:.72rem;color:var(--muted)">'+nbMs+' matchs</span></div>';
-pTours.forEach(function(tour){h+='<div style="margin-bottom:.5rem;padding:.4rem;border-left:3px solid var(--vert);padding-left:.6rem"><div style="font-size:.68rem;font-weight:700;color:var(--or);margin-bottom:.25rem">Tour '+tour.num+'</div>';
-tour.ms.forEach(function(m){var sel=terrOpts.replace('value="'+(m.terrain||'')+'"','value="'+(m.terrain||'')+'" selected');h+='<div class="planning-edit-row"><span class="font-bold">'+m.e1.nom+'</span><span style="color:var(--or);font-weight:800;text-align:center;font-size:.7rem">VS</span><span class="font-bold" style="text-align:right">'+m.e2.nom+'</span><input type="time" value="'+(m.heure||'')+'" style="background:var(--noir);border:1px solid var(--gris-moyen);color:var(--or);border-radius:4px;padding:.2rem .3rem;font-family:monospace;font-size:.8rem;font-weight:700" onchange="setMatchPlanning(\''+m.id+'\',\'heure\',this.value)"><select style="background:var(--noir);border:1px solid var(--gris-moyen);color:var(--vert-pale);border-radius:4px;padding:.2rem .3rem;font-size:.76rem" onchange="setMatchPlanning(\''+m.id+'\',\'terrain\',this.value)">'+sel+'</select></div>'});h+='</div>'});
-h+='</div>'});h+='</div>';}
+// ── Phase de poules — groupée par tour GLOBAL ──
+if(T.tours&&T.tours.length){
+h+='<div style="margin-bottom:.8rem">'+phaseHeader('poules','📋 Phase de poules');
+var nbT=Math.max(1,terrains?terrains.length:1);
+var allMs=[];var maxMs=0;
+T.tours.forEach(function(t){if(t.ms.length>maxMs)maxMs=t.ms.length;});
+for(var gi=0;gi<maxMs;gi++){T.tours.forEach(function(t,ti){if(t.ms[gi])allMs.push({m:t.ms[gi],tour:t,ti:ti});});}
+var slotNum=0;
+for(var si=0;si<allMs.length;si+=nbT){slotNum++;
+var slot=allMs.slice(si,si+nbT);
+var slotH=slot.find(function(x){return x.m.heure;});
+var slotIds=slot.map(function(x){return x.m.id;}).join(',');
+h+='<div style="margin-bottom:.5rem;padding:.5rem;border:1px solid var(--gris-moyen);border-radius:8px;background:rgba(0,0,0,.08)">';
+h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.35rem">';
+h+='<span style="background:var(--vert-fonce);color:var(--or);padding:.1rem .5rem;border-radius:10px;font-size:.72rem;font-weight:700">🗓️ Tour '+slotNum+'</span>';
+h+='<div style="display:flex;align-items:center;gap:.3rem"><span style="font-size:.7rem;color:var(--muted)">🕐</span>';
+h+='<input type="time" value="'+(slotH?slotH.m.heure:'')+'" style="background:var(--noir);border:1px solid var(--gris-moyen);color:var(--or);border-radius:4px;padding:.1rem .3rem;font-family:monospace;font-size:.75rem;font-weight:700;width:80px" onchange="setSlotHeure(\''+slotIds+'\',this.value)"></div></div>';
+slot.forEach(function(item){var m=item.m,tour=item.tour,ti=item.ti;
+var sel=terrOpts.replace('value="'+(m.terrain||'')+'"','value="'+(m.terrain||'')+'" selected');
+h+='<div style="display:flex;align-items:center;gap:.3rem;margin-bottom:.25rem;padding:.2rem .3rem;background:rgba(0,0,0,.1);border-radius:4px">';
+h+='<span class="phase-tag phase-poules" style="font-size:.55rem;padding:.1rem .3rem;flex-shrink:0">'+tour.poule+'</span>';
+h+='<span style="flex:1;font-size:.78rem;font-weight:700">'+m.e1.nom+'</span>';
+h+='<span style="color:var(--or);font-size:.7rem;font-weight:800;padding:0 .2rem">VS</span>';
+h+='<span style="flex:1;font-size:.78rem;font-weight:700;text-align:right">'+m.e2.nom+'</span>';
+h+='<select style="background:var(--noir);border:1px solid var(--gris-moyen);color:var(--vert-pale);border-radius:4px;padding:.1rem .25rem;font-size:.7rem;max-width:90px" onchange="setMatchPlanning(\''+m.id+'\',\'terrain\',this.value)">'+sel+'</select>';
+h+='</div>';});
+h+='</div>';}
+h+='</div>';}
 
 // ── Phase éliminatoire ──
 if(T.elimSlots){h+='<div style="margin-bottom:.8rem"><div style="font-weight:700;color:var(--or);margin-bottom:.4rem;font-size:.9rem">🏆 Phase éliminatoire</div>';
 var phases={};var phOrder=[];T.elimSlots.forEach(function(s){if(s.bye)return;if(!phases[s.phase]){phases[s.phase]={tg:s.tg,slots:[]};phOrder.push(s.phase)}phases[s.phase].slots.push(s)});
-phOrder.forEach(function(phaseName){var ph=phases[phaseName];var phKey='elim_'+phaseName;
-h+='<div style="margin-bottom:.6rem;padding:.5rem;border:1px solid var(--gris-moyen);border-radius:6px;background:rgba(0,0,0,.1)">'+phaseHeader(phKey,'<span class="phase-tag '+ph.tg+'" style="font-size:.6rem">'+phaseName+'</span>',ph.tg);
-ph.slots.forEach(function(s){var realMatch=findMatch(s.id);var hasTeams=realMatch&&realMatch.e1&&realMatch.e2;var eqNames=hasTeams?(realMatch.e1.nom+' vs '+realMatch.e2.nom):('⏳ '+s.label+' — à déterminer');var sel=terrOpts.replace('value="'+(s.terrain||'')+'"','value="'+(s.terrain||'')+'" selected');
-h+='<div class="planning-edit-row"><span style="font-size:.8rem;color:'+(hasTeams?'var(--txt)':'var(--muted)')+';font-weight:'+(hasTeams?'700':'400')+'">'+eqNames+'</span><span></span><span></span><input type="time" value="'+(s.heure||'')+'" style="background:var(--noir);border:1px solid var(--gris-moyen);color:var(--or);border-radius:4px;padding:.2rem .3rem;font-family:monospace;font-size:.8rem;font-weight:700" onchange="setElimSlot(\''+s.id+'\',\'heure\',this.value)"><select style="background:var(--noir);border:1px solid var(--gris-moyen);color:var(--vert-pale);border-radius:4px;padding:.2rem .3rem;font-size:.76rem" onchange="setElimSlot(\''+s.id+'\',\'terrain\',this.value)">'+sel+'</select></div>'});
-h+='</div>'});h+='</div>';}
+phOrder.forEach(function(phaseName){var ph=phases[phaseName];
+h+='<div style="margin-bottom:.6rem;padding:.5rem;border:1px solid var(--gris-moyen);border-radius:6px;background:rgba(0,0,0,.1)">'+phaseHeader('elim_'+phaseName,'<span class="phase-tag '+ph.tg+'" style="font-size:.6rem">'+phaseName+'</span>');
+ph.slots.forEach(function(s){var realMatch=findMatch(s.id);var hasTeams=realMatch&&realMatch.e1&&realMatch.e2;
+var eqNames=hasTeams?(realMatch.e1.nom+' vs '+realMatch.e2.nom):('⏳ '+s.label);
+var sel=terrOpts.replace('value="'+(s.terrain||'')+'"','value="'+(s.terrain||'')+'" selected');
+h+='<div class="planning-edit-row"><span style="font-size:.8rem;color:'+(hasTeams?'var(--txt)':'var(--muted)')+';font-weight:'+(hasTeams?700:400)+'">'+eqNames+'</span><span></span><span></span>';
+h+='<input type="time" value="'+(s.heure||'')+'" style="background:var(--noir);border:1px solid var(--gris-moyen);color:var(--or);border-radius:4px;padding:.2rem .3rem;font-family:monospace;font-size:.8rem;font-weight:700" onchange="setElimSlot(\''+s.id+'\',\'heure\',this.value)">';
+h+='<select style="background:var(--noir);border:1px solid var(--gris-moyen);color:var(--vert-pale);border-radius:4px;padding:.2rem .3rem;font-size:.76rem" onchange="setElimSlot(\''+s.id+'\',\'terrain\',this.value)">'+sel+'</select></div>';});
+h+='</div>';});h+='</div>';}
 
 if(!h)h='<div class="empty-state" style="padding:.6rem">Aucun match</div>';d.innerHTML=h}
+
 
 function appliquerHeurePhase(phaseKey,heure){
 function m2s(m){var h=Math.floor(m/60),mn=m%60;return(h<10?'0':'')+h+':'+(mn<10?'0':'')+mn}
