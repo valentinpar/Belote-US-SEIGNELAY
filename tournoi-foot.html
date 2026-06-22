@@ -620,36 +620,42 @@ if(!h)h='<div class="empty-state" style="padding:.6rem">Aucun match</div>';d.inn
 function appliquerHeurePhase(phaseKey,heure){
 function m2s(m){var h=Math.floor(m/60),mn=m%60;return(h<10?'0':'')+h+':'+(mn<10?'0':'')+mn}
 if(!heure){notify('⚠️','Entrez une heure de début');return;}
-var p=heure.split(':');
-var currentMin=parseInt(p[0])*60+parseInt(p[1]);
 var dureeEl=document.getElementById('auto-duree');
 var pauseEl=document.getElementById('auto-pause');
 var duree=dureeEl&&dureeEl.value?parseInt(dureeEl.value):15;
 var pause=pauseEl&&pauseEl.value?parseInt(pauseEl.value):5;
-phaseStartTimes[phaseKey]=heure;
-savePhaseStartTimes();
-if(phaseKey==='poules'){
-if(!T||!T.tours)return;
+var allPhases=[];
+if(T&&T.tours&&T.tours.length)allPhases.push({key:'poules',type:'poules'});
+if(T&&T.elimSlots){
+var seen={};T.elimSlots.forEach(function(s){
+if(!s.bye&&s.phase&&!seen[s.phase]){seen[s.phase]=true;allPhases.push({key:'elim_'+s.phase,type:'elim',name:s.phase});}});}
+var startIdx=allPhases.findIndex(function(ph){return ph.key===phaseKey});
+if(startIdx<0)return;
+var p=heure.split(':');
+var currentMin=parseInt(p[0])*60+parseInt(p[1]);
+for(var pi=startIdx;pi<allPhases.length;pi++){
+var ph=allPhases[pi];
+if(pi===startIdx)phaseStartTimes[ph.key]=heure;
+if(ph.type==='poules'){
 var nbT=Math.max(1,terrains?terrains.length:1);
-var allMs=[];
-var maxMs=0;T.tours.forEach(function(t){if(t.ms.length>maxMs)maxMs=t.ms.length;});
+var allMs=[];var maxMs=0;
+T.tours.forEach(function(t){if(t.ms.length>maxMs)maxMs=t.ms.length;});
 for(var gi=0;gi<maxMs;gi++){T.tours.forEach(function(t){if(t.ms[gi])allMs.push(t.ms[gi]);});}
 for(var si=0;si<allMs.length;si+=nbT){
 var hStr=m2s(currentMin);
 for(var j=si;j<Math.min(si+nbT,allMs.length);j++){allMs[j].heure=hStr;}
 currentMin+=duree+pause;}
 }else{
-var phaseName=phaseKey.replace(/^elim_/,'');
-if(!T||!T.elimSlots)return;
-var slots=T.elimSlots.filter(function(s){return s.phase===phaseName&&!s.bye;});
+var slots=T.elimSlots.filter(function(s){return s.phase===ph.name&&!s.bye;});
 var nbT=Math.max(1,terrains?terrains.length:1);
 for(var si=0;si<slots.length;si+=nbT){
 var hStr=m2s(currentMin);
 for(var j=si;j<Math.min(si+nbT,slots.length);j++){
-slots[j].heure=hStr;
-var rm=findMatch(slots[j].id);if(rm)rm.heure=hStr;}
-currentMin+=duree+pause;}}
-save();
+slots[j].heure=hStr;var rm=findMatch(slots[j].id);if(rm)rm.heure=hStr;}
+currentMin+=duree+pause;}
+}
+}
+savePhaseStartTimes();save();
 notify('✅ Horaires appliqués','Départ '+heure);
 rPlanningEditor();checkConflits();}
 
