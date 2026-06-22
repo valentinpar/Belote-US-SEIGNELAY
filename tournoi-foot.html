@@ -285,7 +285,8 @@ m.ok=false;
 _s=true;save();setTimeout(function(){_s=false},1000);rPoules()}
 
 var _arbitreCount={};
-function resetArbitreCount(){_arbitreCount={};}
+var _arbitreOffset=0;
+function resetArbitreCount(){_arbitreCount={};_arbitreOffset=0;}
 function getArbitre(m,ti,gIdx){
 if(!T||!E.length||!m.e1||!m.e2)return null;
 var tour=T.tours&&T.tours[ti>=0?ti:0];
@@ -296,12 +297,14 @@ T.tours.forEach(function(t){var match=t.ms[gIdx];
 if(match){if(match.e1)busyNoms.add(match.e1.nom);if(match.e2)busyNoms.add(match.e2.nom)}});}
 var poule=T.ps&&T.ps.find(function(p){return p.nm===tour.poule});
 var samePoolNoms=new Set(poule?poule.eq.map(function(e){return e.nom}):[]);
-// Candidats éligibles : autre pool + pas occupé
 var candidates=E.filter(function(e){return !busyNoms.has(e.nom)&&!samePoolNoms.has(e.nom)});
 if(!candidates.length)return null;
-// Choisir celui qui a le moins arbitré pour faire tourner
-candidates.sort(function(a,b){return (_arbitreCount[a.id]||0)-(_arbitreCount[b.id]||0)});
-var arb=candidates[0];
+// Trouver le minimum d'arbitrages parmi les candidats
+var minCount=Math.min.apply(null,candidates.map(function(e){return _arbitreCount[e.id]||0}));
+// Parmi les moins utilisés, choisir en rotation (offset)
+var minCandidates=candidates.filter(function(e){return (_arbitreCount[e.id]||0)===minCount});
+var arb=minCandidates[_arbitreOffset%minCandidates.length];
+_arbitreOffset++;
 _arbitreCount[arb.id]=(_arbitreCount[arb.id]||0)+1;
 return arb}
 
