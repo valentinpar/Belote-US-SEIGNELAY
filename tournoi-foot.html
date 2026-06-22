@@ -620,8 +620,10 @@ h+='</div>'});h+='</div>';}
 if(!h)h='<div class="empty-state" style="padding:.6rem">Aucun match</div>';d.innerHTML=h}
 
 function appliquerHeurePhase(phaseKey){
-var el=document.getElementById('pht-'+phaseKey.replace(/[^a-zA-Z0-9_-]/g,'_'));
-if(!el||!el.value){notify('⚠️','Entrez une heure de début.');return;return;}
+var safeId='pht-'+phaseKey.replace(/[^a-zA-Z0-9_-]/g,'_');
+var el=document.getElementById(safeId);
+console.log('appliquerHeurePhase',phaseKey,'id:',safeId,'el:',el,'val:',el&&el.value);
+if(!el||!el.value){notify('⚠️','Entrez une heure de début.');return;}
 var heure=el.value;var parts=heure.split(':');var currentMin=+parts[0]*60+(+parts[1]);
 var duree=+( document.getElementById('auto-duree')&&document.getElementById('auto-duree').value||15);
 var pause=+( document.getElementById('auto-pause')&&document.getElementById('auto-pause').value||5);
