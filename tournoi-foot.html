@@ -596,28 +596,50 @@ function renderConflitAlert(){var conflits=checkConflits();if(!conflits.length)r
 conflits.forEach(function(c){h+='<li><strong>'+c.a.heure+'</strong> sur <strong>'+c.a.terrain+'</strong> : '+c.a.label+' et '+c.b.label+'</li>'});
 h+='</ul></div>';return h}
 function rPlanningEditor(){var d=document.getElementById('planning-editor');if(!d)return;if(!T){d.innerHTML='<div class="empty-state" style="padding:.6rem">Lancez le tournoi</div>';return}var terrOpts='<option value="">— Terrain —</option>';terrains.forEach(function(t){terrOpts+='<option value="'+t+'">'+t+'</option>'});var h=renderConflitAlert();
-// Phase de poules — groupé par poule
-if(T.tours&&T.tours.length){h+='<div style="margin-bottom:.8rem"><div style="font-weight:700;color:var(--or);margin-bottom:.4rem;font-size:.9rem">📋 Phase de poules</div>';
-// Récupérer les poules uniques
+
+function phaseHeader(key,label,tagClass){var val=phaseStartTimes[key]||'';return '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.4rem;margin-bottom:.5rem"><div style="font-weight:700;color:var(--or);font-size:.9rem">'+label+'</div><div style="display:flex;align-items:center;gap:.35rem"><span style="font-size:.72rem;color:var(--muted)">🕐 Début</span><input type="time" id="pht-'+key+'" value="'+val+'" style="background:var(--noir);border:1px solid var(--or);color:var(--or);border-radius:4px;padding:.15rem .3rem;font-family:monospace;font-size:.78rem;font-weight:700;width:90px"><button onclick="appliquerHeurePhase(\''+key+'\')" style="background:var(--or);color:var(--noir);border:none;border-radius:6px;padding:.2rem .5rem;font-size:.72rem;font-weight:700;cursor:pointer">⚡ Appliquer</button></div></div>';}
+
+// ── Phase de poules ──
+if(T.tours&&T.tours.length){h+='<div style="margin-bottom:.8rem">'+phaseHeader('poules','📋 Phase de poules','phase-poules');
 var pouleNames=[];T.tours.forEach(function(t){if(pouleNames.indexOf(t.poule)<0)pouleNames.push(t.poule)});pouleNames.sort();
 pouleNames.forEach(function(pn){var pTours=T.tours.filter(function(t){return t.poule===pn});var nbMs=0;pTours.forEach(function(t){nbMs+=t.ms.length});
-h+='<div style="margin-bottom:.8rem;padding:.6rem;border:1px solid var(--gris-moyen);border-radius:8px;background:rgba(0,0,0,.08)"><div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.5rem"><span class="phase-tag phase-poules" style="font-size:.68rem">Poule '+pn+'</span><span style="font-size:.72rem;color:var(--muted)">'+nbMs+' matchs · '+pTours.length+' tours</span></div>';
+h+='<div style="margin-bottom:.8rem;padding:.6rem;border:1px solid var(--gris-moyen);border-radius:8px;background:rgba(0,0,0,.08)"><div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.5rem"><span class="phase-tag phase-poules" style="font-size:.68rem">Poule '+pn+'</span><span style="font-size:.72rem;color:var(--muted)">'+nbMs+' matchs</span></div>';
 pTours.forEach(function(tour){h+='<div style="margin-bottom:.5rem;padding:.4rem;border-left:3px solid var(--vert);padding-left:.6rem"><div style="font-size:.68rem;font-weight:700;color:var(--or);margin-bottom:.25rem">Tour '+tour.num+'</div>';
 tour.ms.forEach(function(m){var sel=terrOpts.replace('value="'+(m.terrain||'')+'"','value="'+(m.terrain||'')+'" selected');h+='<div class="planning-edit-row"><span class="font-bold">'+m.e1.nom+'</span><span style="color:var(--or);font-weight:800;text-align:center;font-size:.7rem">VS</span><span class="font-bold" style="text-align:right">'+m.e2.nom+'</span><input type="time" value="'+(m.heure||'')+'" style="background:var(--noir);border:1px solid var(--gris-moyen);color:var(--or);border-radius:4px;padding:.2rem .3rem;font-family:monospace;font-size:.8rem;font-weight:700" onchange="setMatchPlanning(\''+m.id+'\',\'heure\',this.value)"><select style="background:var(--noir);border:1px solid var(--gris-moyen);color:var(--vert-pale);border-radius:4px;padding:.2rem .3rem;font-size:.76rem" onchange="setMatchPlanning(\''+m.id+'\',\'terrain\',this.value)">'+sel+'</select></div>'});h+='</div>'});
-h+='</div>'});h+='</div>'}
-// Phase éliminatoire (slots pré-planifiés + matchs réels si lancés)
+h+='</div>'});h+='</div>';}
+
+// ── Phase éliminatoire ──
 if(T.elimSlots){h+='<div style="margin-bottom:.8rem"><div style="font-weight:700;color:var(--or);margin-bottom:.4rem;font-size:.9rem">🏆 Phase éliminatoire</div>';
-// Grouper par phase
 var phases={};var phOrder=[];T.elimSlots.forEach(function(s){if(s.bye)return;if(!phases[s.phase]){phases[s.phase]={tg:s.tg,slots:[]};phOrder.push(s.phase)}phases[s.phase].slots.push(s)});
-phOrder.forEach(function(phaseName){var ph=phases[phaseName];h+='<div style="margin-bottom:.6rem;padding:.5rem;border:1px solid var(--gris-moyen);border-radius:6px;background:rgba(0,0,0,.1)"><div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem"><span class="phase-tag '+ph.tg+'" style="font-size:.6rem">'+phaseName+'</span></div>';
-ph.slots.forEach(function(s){
-var realMatch=findMatch(s.id);
-var hasTeams=realMatch&&realMatch.e1&&realMatch.e2;
-var eqNames=hasTeams?(realMatch.e1.nom+' vs '+realMatch.e2.nom):('⏳ '+s.label+' — à déterminer');
-var sel=terrOpts.replace('value="'+(s.terrain||'')+'"','value="'+(s.terrain||'')+'" selected');
+phOrder.forEach(function(phaseName){var ph=phases[phaseName];var phKey='elim_'+phaseName;
+h+='<div style="margin-bottom:.6rem;padding:.5rem;border:1px solid var(--gris-moyen);border-radius:6px;background:rgba(0,0,0,.1)">'+phaseHeader(phKey,'<span class="phase-tag '+ph.tg+'" style="font-size:.6rem">'+phaseName+'</span>',ph.tg);
+ph.slots.forEach(function(s){var realMatch=findMatch(s.id);var hasTeams=realMatch&&realMatch.e1&&realMatch.e2;var eqNames=hasTeams?(realMatch.e1.nom+' vs '+realMatch.e2.nom):('⏳ '+s.label+' — à déterminer');var sel=terrOpts.replace('value="'+(s.terrain||'')+'"','value="'+(s.terrain||'')+'" selected');
 h+='<div class="planning-edit-row"><span style="font-size:.8rem;color:'+(hasTeams?'var(--txt)':'var(--muted)')+';font-weight:'+(hasTeams?'700':'400')+'">'+eqNames+'</span><span></span><span></span><input type="time" value="'+(s.heure||'')+'" style="background:var(--noir);border:1px solid var(--gris-moyen);color:var(--or);border-radius:4px;padding:.2rem .3rem;font-family:monospace;font-size:.8rem;font-weight:700" onchange="setElimSlot(\''+s.id+'\',\'heure\',this.value)"><select style="background:var(--noir);border:1px solid var(--gris-moyen);color:var(--vert-pale);border-radius:4px;padding:.2rem .3rem;font-size:.76rem" onchange="setElimSlot(\''+s.id+'\',\'terrain\',this.value)">'+sel+'</select></div>'});
-h+='</div>'});h+='</div>'}
+h+='</div>'});h+='</div>';}
+
 if(!h)h='<div class="empty-state" style="padding:.6rem">Aucun match</div>';d.innerHTML=h}
+
+function appliquerHeurePhase(phaseKey){
+var el=document.getElementById('pht-'+phaseKey);
+if(!el||!el.value){flash(document.getElementById('alert-auto'),'warning','⚠️ Entrez une heure de début.');return;}
+var heure=el.value;var parts=heure.split(':');var currentMin=+parts[0]*60+(+parts[1]);
+var duree=+( document.getElementById('auto-duree')&&document.getElementById('auto-duree').value||15);
+var pause=+( document.getElementById('auto-pause')&&document.getElementById('auto-pause').value||5);
+phaseStartTimes[phaseKey]=heure;savePhaseStartTimes();
+if(phaseKey==='poules'){
+var nbT=Math.max(1,terrains&&terrains.length?terrains.length:1);
+var allMs=[];var maxMs=T.tours.reduce(function(acc,t){return Math.max(acc,t.ms.length)},0);
+for(var gi=0;gi<maxMs;gi++){T.tours.forEach(function(t){if(t.ms[gi])allMs.push(t.ms[gi])});}
+for(var si=0;si<allMs.length;si+=nbT){var heureStr=minToStr(currentMin);for(var j=si;j<Math.min(si+nbT,allMs.length);j++){allMs[j].heure=heureStr;}currentMin+=duree+pause;}}
+else{
+var phaseName=phaseKey.replace(/^elim_/,'');
+if(!T.elimSlots)return;
+var slots=T.elimSlots.filter(function(s){return s.phase===phaseName&&!s.bye});
+var nbT=Math.max(1,terrains&&terrains.length?terrains.length:1);
+for(var si=0;si<slots.length;si+=nbT){var heureStr=minToStr(currentMin);for(var j=si;j<Math.min(si+nbT,slots.length);j++){slots[j].heure=heureStr;var rm=findMatch(slots[j].id);if(rm)rm.heure=heureStr;}currentMin+=duree+pause;}}
+save();rPlanningEditor();checkConflits();}
+
+
 function rPlanning(){var d=document.getElementById('planning-content');if(!T){d.innerHTML='<div class="empty-state"><div class="icon">🗓️</div>Le planning apparaît après le lancement du tournoi</div>';return}var ms=getAllMatchs();if(!ms.length){d.innerHTML='<div class="empty-state"><div class="icon">🗓️</div>Aucun match</div>';return}
 var poolMs=ms.filter(function(m){return!m.isSlot});var elimMs=ms.filter(function(m){return m.isSlot});
 var anyPlanned=ms.some(function(m){return m.heure||m.terrain});
