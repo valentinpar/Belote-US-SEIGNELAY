@@ -202,11 +202,12 @@ var slot=allMs.slice(si,si+nbT);
 var tousOk=slot.every(function(x){return x.m.ok});
 h+='<div style="margin-top:.6rem;padding:.55rem;border:1px solid var(--gris-moyen);border-radius:6px;background:rgba(0,0,0,.12)">';
 h+='<div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.5rem"><span style="background:var(--vert-fonce);color:var(--or);padding:.2rem .7rem;border-radius:10px;font-size:.82rem;font-weight:700">🗓️ Tour '+slotNum+'</span><span style="font-size:.72rem;color:var(--muted)">'+(tousOk?'✅ Terminé':'En cours')+'</span></div>';
-var slotBusyNoms=new Set();slot.forEach(function(x){if(x.m.e1)slotBusyNoms.add(x.m.e1.nom);if(x.m.e2)slotBusyNoms.add(x.m.e2.nom)});
+var slotBusyNoms=new Set();
+slot.forEach(function(x){if(x.m.e1)slotBusyNoms.add(x.m.e1.nom);if(x.m.e2)slotBusyNoms.add(x.m.e2.nom)});
 slot.forEach(function(item){var m=item.m,tour=item.tour,ti=item.ti;
 var w1=m.ok&&+m.s1>+m.s2,w2=m.ok&&+m.s2>+m.s1;
 var disIn=tour.ok||(m.ok&&!deb);
-var arb=getArbitre(m,ti,item.gi,slotBusyNoms);
+var arb=getArbitre(m,tour,slotBusyNoms);
 h+='<div data-match-id="'+m.id+'" style="border:1px solid var(--gris-moyen);border-radius:8px;margin-bottom:.4rem;overflow:hidden">';
 h+='<div style="display:flex;justify-content:space-between;align-items:center;padding:.25rem .6rem;background:rgba(0,0,0,.18);font-size:.7rem;color:var(--muted)"><span><span class="phase-tag phase-poules" style="font-size:.6rem;padding:.1rem .35rem">Poule '+tour.poule+'</span>'+(m.heure?' 🕐 '+m.heure:'')+(m.terrain?' · 📍 '+m.terrain:'')+'</span>';
 h+='<span>'+(m.ok?'<span style="color:var(--vert-pale)">✅</span>':'')+(deb&&m.ok?'<button onclick="devaliderMatch('+ti+',\''+m.id+'\')" style="border:none;cursor:pointer;background:rgba(212,160,23,.15);color:var(--or);border-radius:5px;padding:.1rem .4rem;font-size:.66rem;margin-left:.3rem">✏️</button>':'')+'</span></div>';
@@ -296,23 +297,17 @@ _s=true;save();setTimeout(function(){_s=false},1000);rPoules()}
 var _arbitreCount={};
 var _arbitreOffset=0;
 function resetArbitreCount(){_arbitreCount={};_arbitreOffset=0;}
-function getArbitre(m,ti,gIdx,slotBusyNoms){
-if(!T||!E.length||!m.e1||!m.e2)return null;
-var tour=T.tours&&T.tours[ti>=0?ti:0];
-if(!tour)return null;
-// Équipes occupées = slot complet passé en param + équipes du gIdx
-var busyNoms=slotBusyNoms?new Set(slotBusyNoms):new Set();
-busyNoms.add(m.e1.nom);busyNoms.add(m.e2.nom);
-if(T.tours&&gIdx!==undefined){
-T.tours.forEach(function(t){var match=t.ms[gIdx];
-if(match){if(match.e1)busyNoms.add(match.e1.nom);if(match.e2)busyNoms.add(match.e2.nom)}});}
+function getArbitre(m,tour,slotBusyNoms){
+// Règle : arbitre d'une autre pool, pas occupé dans ce slot
+if(!T||!E.length||!m||!m.e1||!m.e2||!tour)return null;
+var busy=slotBusyNoms||new Set([m.e1.nom,m.e2.nom]);
 var poule=T.ps&&T.ps.find(function(p){return p.nm===tour.poule});
-var samePoolNoms=new Set(poule?poule.eq.map(function(e){return e.nom}):[]);
-var candidates=E.filter(function(e){return !busyNoms.has(e.nom)&&!samePoolNoms.has(e.nom)});
+var samePool=new Set(poule?poule.eq.map(function(e){return e.nom}):[]);
+var candidates=E.filter(function(e){return !busy.has(e.nom)&&!samePool.has(e.nom)});
 if(!candidates.length)return null;
 var minCount=Math.min.apply(null,candidates.map(function(e){return _arbitreCount[e.id]||0}));
-var minCandidates=candidates.filter(function(e){return (_arbitreCount[e.id]||0)===minCount});
-var arb=minCandidates[_arbitreOffset%minCandidates.length];
+var mins=candidates.filter(function(e){return(_arbitreCount[e.id]||0)===minCount});
+var arb=mins[_arbitreOffset%mins.length];
 _arbitreOffset++;
 _arbitreCount[arb.id]=(_arbitreCount[arb.id]||0)+1;
 return arb}
@@ -723,7 +718,9 @@ var pUnplanned=pMs.filter(function(m){return!m.heure&&!m.terrain});
 h+='<div style="margin-bottom:.8rem"><div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.35rem"><span class="phase-tag phase-poules" style="font-size:.65rem">Poule '+pn+'</span><span style="font-size:.7rem;color:var(--muted)">'+pMs.length+' matchs</span></div>';
 pPlanned.sort(function(a,b){if(!a.heure)return 1;if(!b.heure)return-1;return a.heure.localeCompare(b.heure)});
 pPlanned.forEach(function(m){
-var arbPlanning=getArbitre({e1:{id:m.e1id,nom:m.e1},e2:{id:m.e2id,nom:m.e2}},m.ti);
+var fakeM={e1:{id:m.e1id,nom:m.e1},e2:{id:m.e2id,nom:m.e2}};
+var fakeTour=T.tours&&T.tours[m.ti];
+var arbPlanning=getArbitre(fakeM,fakeTour,null);
 h+='<div class="planning-pub-row"><span class="pp-heure">'+(m.heure||'—')+'</span><span class="pp-eq">'+m.e1+'</span><span class="pp-vs">VS</span><span class="pp-eq" style="text-align:right">'+m.e2+'</span><span class="pp-terrain">🏟️ '+(m.terrain||'—')+'</span>'+(arbPlanning&&!m.ok?'<span style="font-size:.68rem;color:var(--or);margin-left:.3rem">🟨 '+arbPlanning.nom+'</span>':'')+'</div>'});
 if(pUnplanned.length){h+='<div style="margin-top:.3rem"><div style="color:var(--muted);font-size:.72rem;margin-bottom:.2rem">⏳ Horaire à définir :</div>';pUnplanned.forEach(function(m){h+='<div style="display:flex;justify-content:space-between;background:var(--gris-fonce);padding:.25rem .6rem;border-radius:4px;margin-bottom:.1rem;font-size:.78rem;color:var(--muted)"><span>'+m.e1+'</span><span style="font-size:.68rem">VS</span><span>'+m.e2+'</span></div>'});h+='</div>'}
 h+='</div>'});
