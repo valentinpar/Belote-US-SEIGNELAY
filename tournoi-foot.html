@@ -206,9 +206,7 @@ var slotBusyNoms=new Set();slot.forEach(function(x){if(x.m.e1)slotBusyNoms.add(x
 slot.forEach(function(item){var m=item.m,tour=item.tour,ti=item.ti;
 var w1=m.ok&&+m.s1>+m.s2,w2=m.ok&&+m.s2>+m.s1;
 var disIn=tour.ok||(m.ok&&!deb);
-var pouleArb=T.ps&&T.ps.find(function(p){return p.nm===tour.poule});
-var samePoolNoms=new Set(pouleArb?pouleArb.eq.map(function(e){return e.nom}):[]);
-var arb=E.find(function(e){return !slotBusyNoms.has(e.nom)&&!samePoolNoms.has(e.nom)});
+var arb=getArbitre(m,ti,si);
 h+='<div data-match-id="'+m.id+'" style="border:1px solid var(--gris-moyen);border-radius:8px;margin-bottom:.4rem;overflow:hidden">';
 h+='<div style="display:flex;justify-content:space-between;align-items:center;padding:.25rem .6rem;background:rgba(0,0,0,.18);font-size:.7rem;color:var(--muted)"><span><span class="phase-tag phase-poules" style="font-size:.6rem;padding:.1rem .35rem">Poule '+tour.poule+'</span>'+(m.heure?' 🕐 '+m.heure:'')+(m.terrain?' · 📍 '+m.terrain:'')+'</span>';
 h+='<span>'+(m.ok?'<span style="color:var(--vert-pale)">✅</span>':'')+(deb&&m.ok?'<button onclick="devaliderMatch('+ti+',\''+m.id+'\')" style="border:none;cursor:pointer;background:rgba(212,160,23,.15);color:var(--or);border-radius:5px;padding:.1rem .4rem;font-size:.66rem;margin-left:.3rem">✏️</button>':'')+'</span></div>';
