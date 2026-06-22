@@ -618,7 +618,9 @@ h+='</div>'});h+='</div>';}
 if(!h)h='<div class="empty-state" style="padding:.6rem">Aucun match</div>';d.innerHTML=h}
 
 function appliquerHeurePhase(phaseKey,heure){
-if(!heure){notify('⚠️','Entrez une heure de début');return;}
+try{
+alert('Appliquer: '+phaseKey+' / heure='+heure);
+if(!heure){alert('Heure vide');return;}
 var p=heure.split(':');
 var currentMin=parseInt(p[0])*60+parseInt(p[1]);
 var dureeEl=document.getElementById('auto-duree');
@@ -650,7 +652,8 @@ var rm=findMatch(slots[j].id);if(rm)rm.heure=hStr;}
 currentMin+=duree+pause;}}
 save();
 notify('✅ Horaires appliqués','Départ '+heure);
-rPlanningEditor();checkConflits();}
+rPlanningEditor();checkConflits();
+}catch(e){alert('Erreur: '+e.message);}}
 
 
 function rPlanning(){var d=document.getElementById('planning-content');if(!T){d.innerHTML='<div class="empty-state"><div class="icon">🗓️</div>Le planning apparaît après le lancement du tournoi</div>';return}var ms=getAllMatchs();if(!ms.length){d.innerHTML='<div class="empty-state"><div class="icon">🗓️</div>Aucun match</div>';return}
