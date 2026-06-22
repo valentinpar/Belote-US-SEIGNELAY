@@ -224,6 +224,17 @@ h+='</div>';});
 slot.forEach(function(item){var tour=item.tour,ti=item.ti;
 if(!tour.ok&&tour.ms.every(function(x){return x.ok}))h+='<div style="margin-top:.4rem"><button class="btn btn-gold btn-sm" onclick="vG('+ti+')">🏁 Clôturer Poule '+tour.poule+'</button></div>'});
 h+='</div>';}h+='</div>';}
+// Tableau arbitrages (admin uniquement)
+if(deb&&Object.keys(_arbitreCount).length){
+h+='<div class="card"><h2>🟨 Arbitrages par équipe</h2><table><thead><tr><th>Équipe</th><th>Pool</th><th style="text-align:center">Matchs arbitrés</th></tr></thead><tbody>';
+var arbRows=E.map(function(e){
+var pool=T.ps&&T.ps.find(function(p){return p.eq&&p.eq.some(function(x){return x.id===e.id})});
+return {nom:e.nom,pool:pool?pool.nm:'—',count:_arbitreCount[e.id]||0};
+}).sort(function(a,b){return b.count-a.count;});
+arbRows.forEach(function(r){
+h+='<tr><td class="font-bold">'+r.nom+'</td><td><span class="phase-tag phase-poules" style="font-size:.6rem">Poule '+r.pool+'</span></td><td style="text-align:center;font-weight:700;color:'+(r.count===0?'var(--muted)':r.count===Math.max.apply(null,arbRows.map(function(x){return x.count}))&&r.count>0?'var(--or)':'var(--vert-pale)')+'">'+r.count+'</td></tr>';
+});
+h+='</tbody></table></div>';}
 if(av&&!T.el)h+='<div class="card" style="text-align:center"><h2 style="justify-content:center">🏆 Poules terminées !</h2><button class="btn btn-gold" onclick="lancerEl()">🚀 Éliminatoires</button></div>';
 d.innerHTML=h;window.scrollTo(0,scrollY)}
 
