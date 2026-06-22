@@ -515,7 +515,7 @@ function setMatchPlanning(id,field,val){var m=findMatch(id);if(m){m[field]=val;s
 function setElimSlot(id,field,val){if(!T||!T.elimSlots)return;var s=T.elimSlots.find(function(x){return x.id===id});if(s){s[field]=val;save();rPlanningEditor()}}
 function autoPlanning(){if(!T){flash(document.getElementById('alert-auto'),'warning','⚠️ Lancez le tournoi d\'abord.');return}
 if(!terrains.length){flash(document.getElementById('alert-auto'),'warning','⚠️ Ajoutez au moins un terrain.');return}
-var startTime=phaseStartTimes['poules']||document.getElementById('auto-heure').value;var duree=+document.getElementById('auto-duree').value||15;var pause=+document.getElementById('auto-pause').value||0;
+var startTime=document.getElementById('auto-heure').value;var duree=+document.getElementById('auto-duree').value||15;var pause=+document.getElementById('auto-pause').value||0;
 var elimHeureInput=document.getElementById('auto-heure-elim');var elimHeureVal=elimHeureInput?elimHeureInput.value:'';
 if(!startTime){flash(document.getElementById('alert-auto'),'warning','⚠️ Choisissez une heure de début pour les poules.');return}
 var parts=startTime.split(':');var startMin=+parts[0]*60+(+parts[1]);
@@ -561,14 +561,12 @@ currentMin+=maxCreneaux;
 }
 // 5) Élim : répartir sur les terrains en parallèle
 if(T.elimSlots&&T.elimSlots.length){
-if(elimHeureVal&&!phaseStartTimes['elim']){var ep=elimHeureVal.split(':');currentMin=+ep[0]*60+(+ep[1]);}
+if(elimHeureVal){var ep=elimHeureVal.split(':');currentMin=+ep[0]*60+(+ep[1]);}
 var elimIdx=0;var terrIdx=0;
 // Grouper les élim par phase pour les jouer phase par phase
 var elimPhases={};var phaseOrder=[];T.elimSlots.forEach(function(s){if(s.bye)return;if(!elimPhases[s.phase]){elimPhases[s.phase]=[];phaseOrder.push(s.phase)}elimPhases[s.phase].push(s)});
 phaseOrder.forEach(function(phaseName){
 var slots=elimPhases[phaseName];
-var phKey='elim_'+phaseName;
-if(phaseStartTimes[phKey]){var pp=phaseStartTimes[phKey].split(':');currentMin=+pp[0]*60+(+pp[1]);}
 terrIdx=0;
 var phaseStart=currentMin;
 var maxOff=0;
