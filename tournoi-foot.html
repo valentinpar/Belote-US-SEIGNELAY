@@ -307,7 +307,9 @@ var candidates=E.filter(function(e){return !busy.has(e.nom)&&!samePool.has(e.nom
 if(!candidates.length)return null;
 var minCount=Math.min.apply(null,candidates.map(function(e){return _arbitreCount[e.id]||0}));
 var mins=candidates.filter(function(e){return(_arbitreCount[e.id]||0)===minCount});
-var arb=mins[_arbitreOffset%mins.length];
+// Tie-breaking : hash basé sur les équipes du match pour varier
+var hash=(m.e1.nom.charCodeAt(0)||0)+(m.e2.nom.charCodeAt(0)||0)+_arbitreOffset;
+var arb=mins[hash%mins.length];
 _arbitreOffset++;
 _arbitreCount[arb.id]=(_arbitreCount[arb.id]||0)+1;
 return arb}
