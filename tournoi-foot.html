@@ -618,9 +618,8 @@ h+='</div>'});h+='</div>';}
 if(!h)h='<div class="empty-state" style="padding:.6rem">Aucun match</div>';d.innerHTML=h}
 
 function appliquerHeurePhase(phaseKey,heure){
-try{
-alert('Appliquer: '+phaseKey+' / heure='+heure);
-if(!heure){alert('Heure vide');return;}
+function m2s(m){var h=Math.floor(m/60),mn=m%60;return(h<10?'0':'')+h+':'+(mn<10?'0':'')+mn}
+if(!heure){notify('⚠️','Entrez une heure de début');return;}
 var p=heure.split(':');
 var currentMin=parseInt(p[0])*60+parseInt(p[1]);
 var dureeEl=document.getElementById('auto-duree');
@@ -636,7 +635,7 @@ var allMs=[];
 var maxMs=0;T.tours.forEach(function(t){if(t.ms.length>maxMs)maxMs=t.ms.length;});
 for(var gi=0;gi<maxMs;gi++){T.tours.forEach(function(t){if(t.ms[gi])allMs.push(t.ms[gi]);});}
 for(var si=0;si<allMs.length;si+=nbT){
-var hStr=minToStr(currentMin);
+var hStr=m2s(currentMin);
 for(var j=si;j<Math.min(si+nbT,allMs.length);j++){allMs[j].heure=hStr;}
 currentMin+=duree+pause;}
 }else{
@@ -645,15 +644,14 @@ if(!T||!T.elimSlots)return;
 var slots=T.elimSlots.filter(function(s){return s.phase===phaseName&&!s.bye;});
 var nbT=Math.max(1,terrains?terrains.length:1);
 for(var si=0;si<slots.length;si+=nbT){
-var hStr=minToStr(currentMin);
+var hStr=m2s(currentMin);
 for(var j=si;j<Math.min(si+nbT,slots.length);j++){
 slots[j].heure=hStr;
 var rm=findMatch(slots[j].id);if(rm)rm.heure=hStr;}
 currentMin+=duree+pause;}}
 save();
 notify('✅ Horaires appliqués','Départ '+heure);
-rPlanningEditor();checkConflits();
-}catch(e){alert('Erreur: '+e.message);}}
+rPlanningEditor();checkConflits();}
 
 
 function rPlanning(){var d=document.getElementById('planning-content');if(!T){d.innerHTML='<div class="empty-state"><div class="icon">🗓️</div>Le planning apparaît après le lancement du tournoi</div>';return}var ms=getAllMatchs();if(!ms.length){d.innerHTML='<div class="empty-state"><div class="icon">🗓️</div>Aucun match</div>';return}
