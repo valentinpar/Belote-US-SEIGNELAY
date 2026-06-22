@@ -183,6 +183,7 @@ function rPoules(){
 const d=document.getElementById('poules-content');
 if(!T){d.innerHTML='<div class="empty-state"><div class="icon">📋</div>Lancez le tournoi</div>';return}
 var scrollY=window.scrollY;let h='';const av=T.ps.every(p=>p.ok);
+resetArbitreCount();
 T.ps.forEach(function(p){var cl=clP(p);
 h+='<div class="card"><h2><span class="phase-tag phase-poules">Poule '+p.nm+'</span></h2><div style="overflow-x:auto"><table><thead><tr><th>#</th><th>Équipe</th><th>J</th><th>V</th><th>N</th><th>D</th><th>BP</th><th>BC</th><th>Pts</th></tr></thead><tbody>';
 var ranked=cl||p.eq;
@@ -283,21 +284,26 @@ if(!m||!m.ok)return;
 m.ok=false;
 _s=true;save();setTimeout(function(){_s=false},1000);rPoules()}
 
+var _arbitreCount={};
+function resetArbitreCount(){_arbitreCount={};}
 function getArbitre(m,ti,gIdx){
 if(!T||!E.length||!m.e1||!m.e2)return null;
 var tour=T.tours&&T.tours[ti>=0?ti:0];
 if(!tour)return null;
-// Équipes jouant dans le même créneau (même gIdx = même tour global)
 var busyNoms=new Set([m.e1.nom,m.e2.nom]);
 if(T.tours&&gIdx!==undefined){
-T.tours.forEach(function(t){
-var match=t.ms[gIdx];
+T.tours.forEach(function(t){var match=t.ms[gIdx];
 if(match){if(match.e1)busyNoms.add(match.e1.nom);if(match.e2)busyNoms.add(match.e2.nom)}});}
-// Pool du match
 var poule=T.ps&&T.ps.find(function(p){return p.nm===tour.poule});
 var samePoolNoms=new Set(poule?poule.eq.map(function(e){return e.nom}):[]);
-// Arbitre : autre pool + pas occupé
-return E.find(function(e){return !busyNoms.has(e.nom)&&!samePoolNoms.has(e.nom)})||null}
+// Candidats éligibles : autre pool + pas occupé
+var candidates=E.filter(function(e){return !busyNoms.has(e.nom)&&!samePoolNoms.has(e.nom)});
+if(!candidates.length)return null;
+// Choisir celui qui a le moins arbitré pour faire tourner
+candidates.sort(function(a,b){return (_arbitreCount[a.id]||0)-(_arbitreCount[b.id]||0)});
+var arb=candidates[0];
+_arbitreCount[arb.id]=(_arbitreCount[arb.id]||0)+1;
+return arb}
 
 function vMatch(ti,mid){
 if(!T||!T.tours)return;
