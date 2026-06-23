@@ -824,19 +824,6 @@ if(target==='all'||target==='tournoi'){ok=Object.values(notifTeams).some(functio
 else if(target.indexOf(',')>=0){var ids=target.split(',');ok=ids.some(function(id){return !!notifTeams[id.trim()];});}
 else{ok=!!notifTeams[target];}
 if(ok)notify(d.title||'📢 Annonce',d.body||'');});
-// Listener par équipe (évite les écrasements entre notifications simultanées)
-var _eqNotifTs={};
-function listenEqNotif(eqId){
-db.ref('foot_notif_eq/'+eqId).on('value',function(snap){
-var d=snap.val();if(!d||!d.ts)return;
-if((_eqNotifTs[eqId]||0)>=d.ts)return;
-_eqNotifTs[eqId]=d.ts;
-if(Date.now()-d.ts>30000)return;
-if(notifTeams[eqId])notify(d.title||'📢',d.body||'');});}
-// S'abonner aux équipes déjà suivies
-Object.keys(notifTeams).forEach(function(eqId){if(notifTeams[eqId])listenEqNotif(eqId);});
-// Exposer listenEqNotif pour les abonnements futurs
-window._listenEqNotif=listenEqNotif;
 }catch(e){document.getElementById('bandeau-firebase').style.display='flex';loadLocal();rEq()}}
 function saveLocal(){localStorage.setItem('foot_E',JSON.stringify(E));localStorage.setItem('foot_C',JSON.stringify(C));localStorage.setItem('foot_T',JSON.stringify(T));localStorage.setItem('foot_terrains',JSON.stringify(terrains))}
 function saveFB(){if(!fbOk||!db)return;_s=true;db.ref('foot').set({E,C,T,mdp,terrains,qSec,rSec,historique,reglement:reglementTexte}).then(()=>setTimeout(()=>_s=false,1e3)).catch(()=>_s=false)}
@@ -997,7 +984,6 @@ function toggleNotifTeam(id){
 notifTeams[id]=!notifTeams[id];saveNotifTeams();renderEqDetail();
 if(notifTeams[id]){
 var eq=E.find(function(e){return e.id===id});
-if(window._listenEqNotif)window._listenEqNotif(id);
 initFCM('tournoi').then(function(t){
 if(t){demanderNomFCM(function(){mettreAJourNom();updateFCMTeams();notify('🔔 Notifications activées','Vous serez alerté pour les matchs de '+(eq?eq.nom:'votre équipe')+' !')});}
 else{updateFCMTeams();}});
@@ -1010,9 +996,8 @@ var title=fillT(tmpl.title,vars);
 var body=fillT(tmpl.body,vars);
 if(notifTeams[eqId])notify(title,body);
 queuePush(title,body,eqId);
-// Nœud Firebase individuel par équipe (évite les écrasements entre équipes)
 if(fbOk&&db){var _bt=Date.now()+(++_bcCounter);
-db.ref('foot_notif_eq/'+eqId).set({title:title,body:body,target:eqId,ts:_bt});}
+db.ref('foot_broadcast').set({title:title,body:body,target:eqId,ts:_bt});}
 logNotif(title,body,eqId,'auto')}
 
 // ── Paramètres notifications automatiques ──
