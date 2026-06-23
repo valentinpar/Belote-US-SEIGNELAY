@@ -387,6 +387,8 @@ var titA=fillT(tmplArb.title,{tour:'Tour '+numTour,poule:tour.poule,e1:m.e1.nom,
 var bodA=fillT(tmplArb.body,{tour:'Tour '+numTour,poule:tour.poule,e1:m.e1.nom,e2:m.e2.nom,heure:heure,terrain:terrain});
 queuePush(titA,bodA,arb.id);
 if(notifTeams[arb.id])notify(titA,bodA);
+// Broadcast in-app pour l'équipe arbitre abonnée
+if(fbOk&&db){var _bt=Date.now()+(++_bcCounter);_lastNotifWriteTs=_bt;db.ref('foot_broadcast').set({title:titA,body:bodA,target:arb.id,ts:_bt});}
 logNotif(titA,bodA,arb.id,'auto');}
 logNotif(tourLabel,matchLabel,'all','manual')}
 
@@ -979,6 +981,8 @@ var title=fillT(tmpl.title,vars);
 var body=fillT(tmpl.body,vars);
 if(notifTeams[eqId])notify(title,body);
 queuePush(title,body,eqId);
+// Broadcast in-app ciblé pour les appareils ouverts abonnés à cette équipe
+if(fbOk&&db){var _bt=Date.now()+(++_bcCounter);_lastNotifWriteTs=_bt;db.ref('foot_broadcast').set({title:title,body:body,target:eqId,ts:_bt});}
 logNotif(title,body,eqId,'auto')}
 
 // ── Paramètres notifications automatiques ──
