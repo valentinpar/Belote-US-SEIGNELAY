@@ -234,7 +234,7 @@ h+='</tbody></table></div>';}
 if(av&&!T.el)h+='<div class="card" style="text-align:center"><h2 style="justify-content:center">🏆 Poules terminées !</h2><button class="btn btn-gold" onclick="lancerEl()">🚀 Éliminatoires</button></div>';
 d.innerHTML=h;window.scrollTo(0,scrollY)}
 
-function ssG(ti,mid,eq,v){if(!T||!T.tours)return;var tour=T.tours[ti];if(!tour||tour.ok)return;var m=tour.ms.find(function(x){return x.id===mid});if(!m)return;if(eq===1)m.s1=v===''?'':+v;else m.s2=v===''?'':+v;m.j=m.s1!==''&&m.s2!=='';var poule=T.ps.find(function(p){return p.nm===tour.poule});if(poule){var pm=poule.ms.find(function(x){return x.id===mid});if(pm){pm.s1=m.s1;pm.s2=m.s2;pm.j=m.j}}_s=true;save();setTimeout(function(){_s=false},1500);
+function ssG(ti,mid,eq,v){if(!T||!T.tours)return;var tour=T.tours[ti];if(!tour)return;var m=tour.ms.find(function(x){return x.id===mid});if(!m||m.ok)return;if(eq===1)m.s1=v===''?'':+v;else m.s2=v===''?'':+v;m.j=m.s1!==''&&m.s2!=='';var poule=T.ps.find(function(p){return p.nm===tour.poule});if(poule){var pm=poule.ms.find(function(x){return x.id===mid});if(pm){pm.s1=m.s1;pm.s2=m.s2;pm.j=m.j}}_s=true;save();setTimeout(function(){_s=false},1500);
 // Debounce rPoules pour éviter le scroll pendant la frappe
 clearTimeout(window._ssGTimer);
 window._ssGTimer=setTimeout(function(){
@@ -820,15 +820,23 @@ var _lastBroadcastTs=Date.now();var _lastNotifWriteTs=0;var _bcCounter=0;
 db.ref('foot_broadcast').on('value',function(snap){var d=snap.val();if(!d||!d.ts)return;if(d.ts<=_lastBroadcastTs)return;_lastBroadcastTs=d.ts;if(d.ts===_lastNotifWriteTs)return;if(Date.now()-d.ts>30000)return;
 var target=d.target||'all';
 var ok=false;
-if(target==='all'||target==='tournoi'){
-// Global : montrer seulement aux abonnés d'au moins une équipe
-ok=Object.values(notifTeams).some(function(v){return v===true;});}
-else if(target.indexOf(',')>=0){
-// Multi-équipes séparées par virgule
-var ids=target.split(',');
-ok=ids.some(function(id){return !!notifTeams[id.trim()];});}
+if(target==='all'||target==='tournoi'){ok=Object.values(notifTeams).some(function(v){return v===true;});}
+else if(target.indexOf(',')>=0){var ids=target.split(',');ok=ids.some(function(id){return !!notifTeams[id.trim()];});}
 else{ok=!!notifTeams[target];}
 if(ok)notify(d.title||'📢 Annonce',d.body||'');});
+// Listener par équipe (évite les écrasements entre notifications simultanées)
+var _eqNotifTs={};
+function listenEqNotif(eqId){
+db.ref('foot_notif_eq/'+eqId).on('value',function(snap){
+var d=snap.val();if(!d||!d.ts)return;
+if((_eqNotifTs[eqId]||0)>=d.ts)return;
+_eqNotifTs[eqId]=d.ts;
+if(Date.now()-d.ts>30000)return;
+if(notifTeams[eqId])notify(d.title||'📢',d.body||'');});}
+// S'abonner aux équipes déjà suivies
+Object.keys(notifTeams).forEach(function(eqId){if(notifTeams[eqId])listenEqNotif(eqId);});
+// Exposer listenEqNotif pour les abonnements futurs
+window._listenEqNotif=listenEqNotif;
 }catch(e){document.getElementById('bandeau-firebase').style.display='flex';loadLocal();rEq()}}
 function saveLocal(){localStorage.setItem('foot_E',JSON.stringify(E));localStorage.setItem('foot_C',JSON.stringify(C));localStorage.setItem('foot_T',JSON.stringify(T));localStorage.setItem('foot_terrains',JSON.stringify(terrains))}
 function saveFB(){if(!fbOk||!db)return;_s=true;db.ref('foot').set({E,C,T,mdp,terrains,qSec,rSec,historique,reglement:reglementTexte}).then(()=>setTimeout(()=>_s=false,1e3)).catch(()=>_s=false)}
@@ -989,6 +997,7 @@ function toggleNotifTeam(id){
 notifTeams[id]=!notifTeams[id];saveNotifTeams();renderEqDetail();
 if(notifTeams[id]){
 var eq=E.find(function(e){return e.id===id});
+if(window._listenEqNotif)window._listenEqNotif(id);
 initFCM('tournoi').then(function(t){
 if(t){demanderNomFCM(function(){mettreAJourNom();updateFCMTeams();notify('🔔 Notifications activées','Vous serez alerté pour les matchs de '+(eq?eq.nom:'votre équipe')+' !')});}
 else{updateFCMTeams();}});
@@ -1001,8 +1010,9 @@ var title=fillT(tmpl.title,vars);
 var body=fillT(tmpl.body,vars);
 if(notifTeams[eqId])notify(title,body);
 queuePush(title,body,eqId);
-// Broadcast in-app ciblé pour les appareils ouverts abonnés à cette équipe
-if(fbOk&&db){var _bt=Date.now()+(++_bcCounter);_lastNotifWriteTs=_bt;db.ref('foot_broadcast').set({title:title,body:body,target:eqId,ts:_bt});}
+// Nœud Firebase individuel par équipe (évite les écrasements entre équipes)
+if(fbOk&&db){var _bt=Date.now()+(++_bcCounter);
+db.ref('foot_notif_eq/'+eqId).set({title:title,body:body,target:eqId,ts:_bt});}
 logNotif(title,body,eqId,'auto')}
 
 // ── Paramètres notifications automatiques ──
