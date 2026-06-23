@@ -439,9 +439,12 @@ if(joues.length){
 var titT='📊 Tour '+tour.num+' · Poule '+tour.poule;
 var bodT=joues.map(function(m){return m.e1.nom+' '+m.s1+'–'+m.s2+' '+m.e2.nom}).join(' | ');
 notify(titT,bodT);
-// In-app pour abonnés via broadcast
+// Envoyer uniquement aux équipes de ce tour (pas à tout le monde)
+var eqIds=new Set();
+joues.forEach(function(m){if(m.e1)eqIds.add(m.e1.id);if(m.e2)eqIds.add(m.e2.id);});
+eqIds.forEach(function(id){queuePush(titT,bodT,id);});
 if(fbOk&&db){_lastNotifWriteTs=Date.now()+(++_bcCounter);
-db.ref('foot_broadcast').set({title:titT,body:bodT,target:'all',ts:_lastNotifWriteTs});}}}
+db.ref('foot_broadcast').set({title:titT,body:bodT,target:Array.from(eqIds).join(','),ts:_lastNotifWriteTs});}}}
 }catch(e){console.warn(e)}},200);
 if(toutesOk){
 T.ps.forEach(function(p){p.ok=true});
@@ -816,7 +819,15 @@ db.ref('foot_buvette').on('value',function(snap){var d=snap.val();if(!d)return;b
 var _lastBroadcastTs=Date.now();var _lastNotifWriteTs=0;var _bcCounter=0;
 db.ref('foot_broadcast').on('value',function(snap){var d=snap.val();if(!d||!d.ts)return;if(d.ts<=_lastBroadcastTs)return;_lastBroadcastTs=d.ts;if(d.ts===_lastNotifWriteTs)return;if(Date.now()-d.ts>30000)return;
 var target=d.target||'all';
-var ok=target==='all'||target==='tournoi'||!!notifTeams[target];
+var ok=false;
+if(target==='all'||target==='tournoi'){
+// Global : montrer seulement aux abonnés d'au moins une équipe
+ok=Object.values(notifTeams).some(function(v){return v===true;});}
+else if(target.indexOf(',')>=0){
+// Multi-équipes séparées par virgule
+var ids=target.split(',');
+ok=ids.some(function(id){return !!notifTeams[id.trim()];});}
+else{ok=!!notifTeams[target];}
 if(ok)notify(d.title||'📢 Annonce',d.body||'');});
 }catch(e){document.getElementById('bandeau-firebase').style.display='flex';loadLocal();rEq()}}
 function saveLocal(){localStorage.setItem('foot_E',JSON.stringify(E));localStorage.setItem('foot_C',JSON.stringify(C));localStorage.setItem('foot_T',JSON.stringify(T));localStorage.setItem('foot_terrains',JSON.stringify(terrains))}
