@@ -352,7 +352,8 @@ function vMatch(ti,mid){
 if(!T||!T.tours)return;
 var tour=T.tours[ti];if(!tour)return;
 var m=tour.ms.find(function(x){return x.id===mid});
-if(!m||!m.j)return;
+if(!m){alert('Match introuvable');return;}
+if(!m.j){alert('Scores incomplets — m.j=false s1='+m.s1+' s2='+m.s2);return;}
 m.ok=true;
 // Notification résultat pour les équipes abonnées
 if(notifSettings.resultat_match!==false&&m.e1&&m.e2){
@@ -374,7 +375,7 @@ vG(ti);
 _s=true;save();setTimeout(function(){_s=false},1000);rPoules();}}
 
 function notifMatchDirect(m,tour,slotNum){
-if(!m||!tour)return;
+if(!m||!tour){alert('notifMatchDirect: m ou tour manquant');return;}
 var heure=m.heure?' à '+m.heure:'';
 var terrain=m.terrain?' · '+m.terrain:'';
 var numTour=slotNum||tour.num;
