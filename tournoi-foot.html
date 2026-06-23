@@ -339,20 +339,7 @@ var tour=T.tours[ti];if(!tour||tour.ok)return;
 var m=tour.ms.find(function(x){return x.id===mid});
 if(!m||!m.j)return;
 m.ok=true;
-_s=true;save();setTimeout(function(){_s=false},1000);rPoules();
-// Notification en différé pour ne pas bloquer la validation
-setTimeout(function(){
-try{
-if(notifSettings.resultat_match===false)return;
-if(!m.e1||!m.e2)return;
-var w1=+m.s1>+m.s2,draw=+m.s1===+m.s2;
-var vic=draw?' (nul)':' · Victoire '+(w1?m.e1.nom:m.e2.nom);
-var titR='⚽ '+m.e1.nom+' '+m.s1+'–'+m.s2+' '+m.e2.nom;
-var bodR='Tour '+tour.num+' · Poule '+tour.poule+vic;
-notify(titR,bodR);
-queuePush(titR,bodR,'all');
-if(fbOk&&db)logNotif(titR,bodR,'all','auto');
-}catch(e){console.warn(e)}},100)}
+_s=true;save();setTimeout(function(){_s=false},1000);rPoules();}
 
 function notifMatchDirect(m,tour,slotNum){
 if(!m||!tour)return;
@@ -403,35 +390,44 @@ if(n1||n2){var logTitle='📢 Prochain match annoncé';
 var logBody=[n1?currentM.e1.nom+' → vs '+( n1.m.e1.id===currentM.e1.id?n1.m.e2.nom:n1.m.e1.nom):'',n2?currentM.e2.nom+' → vs '+(n2.m.e1.id===currentM.e2.id?n2.m.e2.nom:n2.m.e1.nom):''].filter(Boolean).join(' | ');
 logNotif(logTitle,logBody,'auto','auto')}}
 
-function vG(ti){if(!T||!T.tours)return;var tour=T.tours[ti];if(!tour||tour.ok)return;if(!tour.ms.every(function(m){return m.j}))return;var poule=T.ps.find(function(p){return p.nm===tour.poule});if(!poule)return;tour.ms.forEach(function(m){var s1=+m.s1,s2=+m.s2,a=poule.st[m.e1.id],b=poule.st[m.e2.id];a.j++;b.j++;a.bp+=s1;a.bc+=s2;b.bp+=s2;b.bc+=s1;if(s1>s2){a.v++;a.p+=C.pV;b.d++;b.p+=C.pD}else if(s2>s1){b.v++;b.p+=C.pV;a.d++;a.p+=C.pD}else{a.n++;a.p+=C.pN;b.n++;b.p+=C.pN}});tour.ok=true;
+function vG(ti){
+if(!T||!T.tours)return;
+var tour=T.tours[ti];if(!tour||tour.ok)return;
+// Vérifier que TOUS les matchs sont validés (ok=true)
+if(!tour.ms.every(function(m){return m.ok})){
+notify('⚠️','Validez tous les matchs avant de clôturer');return;}
+var poule=T.ps.find(function(p){return p.nm===tour.poule});if(!poule)return;
+tour.ms.forEach(function(m){var s1=+m.s1,s2=+m.s2,a=poule.st[m.e1.id],b=poule.st[m.e2.id];
+a.j++;b.j++;a.bp+=s1;a.bc+=s2;b.bp+=s2;b.bc+=s1;
+if(s1>s2){a.v++;a.p+=C.pV;b.d++;b.p+=C.pD}else if(s2>s1){b.v++;b.p+=C.pV;a.d++;a.p+=C.pD}else{a.n++;a.p+=C.pN;b.n++;b.p+=C.pN}});
+tour.ok=true;
 var toutesOk=T.tours.every(function(t){return t.ok});
-// Notification résultats tour en différé
-var _tiCopy=ti,_tourCopy=tour;
-setTimeout(function(){
-try{
-if(notifSettings.resultat_tour===false)return;
-var joues=_tourCopy.ms.filter(function(m){return m.j&&m.e1&&m.e2});
-if(!joues.length)return;
-var titT='📊 Tour '+_tourCopy.num+' · Poule '+_tourCopy.poule;
+// Notifications résultats uniquement pour les équipes concernées
+setTimeout(function(){try{
+if(notifSettings.resultat_tour!==false){
+var joues=tour.ms.filter(function(m){return m.e1&&m.e2});
+if(joues.length){
+var titT='📊 Tour '+tour.num+' · Poule '+tour.poule;
 var bodT=joues.map(function(m){return m.e1.nom+' '+m.s1+'–'+m.s2+' '+m.e2.nom}).join(' | ');
 notify(titT,bodT);
-queuePush(titT,bodT,'all');
-if(fbOk&&db)logNotif(titT,bodT,'all','auto');
+// Push uniquement aux équipes abonnées de cette poule
+var eqIds=[];joues.forEach(function(m){if(m.e1&&m.e1.id)eqIds.push(m.e1.id);if(m.e2&&m.e2.id)eqIds.push(m.e2.id)});
+[...new Set(eqIds)].forEach(function(id){queuePush(titT,bodT,id);});
+if(fbOk&&db)logNotif(titT,bodT,'poule_'+tour.poule,'auto');}}
 }catch(e){console.warn(e)}},100);
 if(toutesOk){
 T.ps.forEach(function(p){p.ok=true});
-autoNotif('poules_fin',{},'all');
+// Notif fin de poules uniquement aux abonnés
 E.forEach(function(e){notifEq(e.id,{},'poules_fin')});
 }else{
-autoNotif('tour_poule',{num:tour.num,poule:tour.poule},'all');
+// Notif prochain match uniquement aux équipes abonnées
 var nextTour=T.tours.find(function(t){return t.poule===tour.poule&&!t.ok});
 if(nextTour){nextTour.ms.forEach(function(m){
-var adv1=m.e2,adv2=m.e1;
-notifEq(m.e1.id,{tour:'Tour '+nextTour.num,equipe:m.e1.nom,adversaire:adv1.nom,heure:m.heure?' à '+m.heure:'',terrain:m.terrain?' · '+m.terrain:''},'equipe_match');
+notifEq(m.e1.id,{tour:'Tour '+nextTour.num,equipe:m.e1.nom,adversaire:m.e2.nom,heure:m.heure?' à '+m.heure:'',terrain:m.terrain?' · '+m.terrain:''},'equipe_match');
 notifEq(m.e2.id,{tour:'Tour '+nextTour.num,equipe:m.e2.nom,adversaire:m.e1.nom,heure:m.heure?' à '+m.heure:'',terrain:m.terrain?' · '+m.terrain:''},'equipe_match');
-})}
+});}
 }
-save();rPoules()}
+save();rPoules();}
 function lancerEl(){if(!T)return;var Q=C.qual||2;
 var ranked=T.ps.map(function(p){return{nm:p.nm,teams:clP(p).map(function(e,idx){return{eq:e,pos:idx+1,st:p.st[e.id]}})}});
 var qualified=[],conso=[];
