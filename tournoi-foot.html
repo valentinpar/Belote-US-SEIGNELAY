@@ -349,13 +349,10 @@ _arbMap[m.id]=arb;});}
 
 
 function vMatch(ti,mid){
-if(!T||!T.tours){alert('T ou T.tours null');return;}
-var tour=T.tours[ti];
-if(!tour){alert('Tour '+ti+' introuvable dans T.tours (len='+T.tours.length+')');return;}
+if(!T||!T.tours)return;
+var tour=T.tours[ti];if(!tour)return;
 var m=tour.ms.find(function(x){return x.id===mid});
-if(!m){alert('Match '+mid+' introuvable');return;}
-if(!m.j){alert('Scores incomplets: s1='+m.s1+' s2='+m.s2+' j='+m.j);return;}
-alert('vMatch OK - validation de '+m.e1.nom+' vs '+m.e2.nom);
+if(!m||!m.j)return;
 m.ok=true;
 // Notification résultat pour les équipes abonnées
 if(notifSettings.resultat_match!==false&&m.e1&&m.e2){
@@ -381,10 +378,8 @@ if(!m||!tour){alert('notifMatchDirect: m ou tour manquant');return;}
 var heure=m.heure?' à '+m.heure:'';
 var terrain=m.terrain?' · '+m.terrain:'';
 var numTour=slotNum||tour.num;
-var slotBusy=new Set([m.e1.nom,m.e2.nom]);
-var pouleArb=T.ps&&T.ps.find(function(p){return p.nm===tour.poule});
-var samePoolNoms=new Set(pouleArb?pouleArb.eq.map(function(e){return e.nom}):[]);
-var arb=E.find(function(e){return !slotBusy.has(e.nom)&&!samePoolNoms.has(e.nom)});
+// Utiliser le même arbitre que l'affichage (depuis _arbMap)
+var arb=_arbMap[m.id]||null;
 var tourLabel='Tour '+numTour+' · Poule '+tour.poule;
 var matchLabel=m.e1.nom+' vs '+m.e2.nom+(arb?' · 🟨 '+arb.nom:'')+heure+terrain;
 // Notif match - un broadcast combiné e1+e2
