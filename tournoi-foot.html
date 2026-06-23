@@ -289,12 +289,27 @@ unique.forEach(function(eqId){queuePush(title,body,eqId);});
 logNotif(title,body,'poule_'+tour.poule,'auto');}
 }catch(err){console.error('notifResultatTour error:',err)}}
 
+function recalcPoule(poule){
+// Recalculer le classement depuis zéro en rejouant tous les matchs validés
+poule.eq.forEach(function(e){poule.st[e.id]={j:0,v:0,n:0,d:0,bp:0,bc:0,p:0}});
+poule.ms.forEach(function(m){if(!m.ok)return;
+var s1=+m.s1,s2=+m.s2,a=poule.st[m.e1.id],b=poule.st[m.e2.id];
+a.j++;b.j++;a.bp+=s1;a.bc+=s2;b.bp+=s2;b.bc+=s1;
+if(s1>s2){a.v++;a.p+=C.pV;b.d++;b.p+=C.pD}
+else if(s2>s1){b.v++;b.p+=C.pV;a.d++;a.p+=C.pD}
+else{a.n++;a.p+=C.pN;b.n++;b.p+=C.pN}});}
+
 function devaliderMatch(ti,mid){
 if(!deb||!T||!T.tours)return;
-var tour=T.tours[ti];if(!tour||tour.ok)return;
+var tour=T.tours[ti];if(!tour)return;
 var m=tour.ms.find(function(x){return x.id===mid});
 if(!m||!m.ok)return;
-m.ok=false;
+m.ok=false;m.j=false;m.s1='';m.s2='';
+// Si le tour était clôturé, le rouvrir et recalculer le classement
+if(tour.ok){
+tour.ok=false;
+var poule=T.ps.find(function(p){return p.nm===tour.poule});
+if(poule)recalcPoule(poule);}
 _s=true;save();setTimeout(function(){_s=false},1000);rPoules()}
 
 var _arbMap={};
@@ -335,11 +350,22 @@ _arbMap[m.id]=arb;});}
 
 function vMatch(ti,mid){
 if(!T||!T.tours)return;
-var tour=T.tours[ti];if(!tour||tour.ok)return;
+var tour=T.tours[ti];if(!tour)return;
 var m=tour.ms.find(function(x){return x.id===mid});
 if(!m||!m.j)return;
 m.ok=true;
-_s=true;save();setTimeout(function(){_s=false},1000);rPoules();}
+// Notification résultat pour les équipes abonnées
+if(notifSettings.resultat_match!==false&&m.e1&&m.e2){
+var w1=+m.s1>+m.s2,draw=+m.s1===+m.s2;
+var vic=draw?' (nul)':' · Victoire '+(w1?m.e1.nom:m.e2.nom);
+var vars={tour:'Tour '+tour.num,num:tour.num,poule:tour.poule,e1:m.e1.nom,s1:String(m.s1),s2:String(m.s2),e2:m.e2.nom,victoire:vic};
+notifEq(m.e1.id,vars,'resultat_match');
+notifEq(m.e2.id,vars,'resultat_match');}
+// Auto-clôture si tous les matchs du tour sont validés
+if(tour.ms.every(function(x){return x.ok;})){
+vG(ti);
+}else{
+_s=true;save();setTimeout(function(){_s=false},1000);rPoules();}}
 
 function notifMatchDirect(m,tour,slotNum){
 if(!m||!tour)return;
@@ -402,7 +428,8 @@ a.j++;b.j++;a.bp+=s1;a.bc+=s2;b.bp+=s2;b.bc+=s1;
 if(s1>s2){a.v++;a.p+=C.pV;b.d++;b.p+=C.pD}else if(s2>s1){b.v++;b.p+=C.pV;a.d++;a.p+=C.pD}else{a.n++;a.p+=C.pN;b.n++;b.p+=C.pN}});
 tour.ok=true;
 var toutesOk=T.tours.every(function(t){return t.ok});
-// Notifications résultats uniquement pour les équipes concernées
+// Notifications résultats déjà envoyées dans vMatch
+// Notif tour global + prochain match
 setTimeout(function(){try{
 if(notifSettings.resultat_tour!==false){
 var joues=tour.ms.filter(function(m){return m.e1&&m.e2});
@@ -410,11 +437,10 @@ if(joues.length){
 var titT='📊 Tour '+tour.num+' · Poule '+tour.poule;
 var bodT=joues.map(function(m){return m.e1.nom+' '+m.s1+'–'+m.s2+' '+m.e2.nom}).join(' | ');
 notify(titT,bodT);
-// Push uniquement aux équipes abonnées de cette poule
-var eqIds=[];joues.forEach(function(m){if(m.e1&&m.e1.id)eqIds.push(m.e1.id);if(m.e2&&m.e2.id)eqIds.push(m.e2.id)});
-[...new Set(eqIds)].forEach(function(id){queuePush(titT,bodT,id);});
-if(fbOk&&db)logNotif(titT,bodT,'poule_'+tour.poule,'auto');}}
-}catch(e){console.warn(e)}},100);
+// In-app pour abonnés via broadcast
+if(fbOk&&db){_lastNotifWriteTs=Date.now()+(++_bcCounter);
+db.ref('foot_broadcast').set({title:titT,body:bodT,target:'all',ts:_lastNotifWriteTs});}}}
+}catch(e){console.warn(e)}},200);
 if(toutesOk){
 T.ps.forEach(function(p){p.ok=true});
 // Notif fin de poules uniquement aux abonnés
@@ -779,11 +805,7 @@ db.ref('foot_buvette').on('value',function(snap){var d=snap.val();if(!d)return;b
 var _lastBroadcastTs=Date.now();var _lastNotifWriteTs=0;var _bcCounter=0;
 db.ref('foot_broadcast').on('value',function(snap){var d=snap.val();if(!d||!d.ts)return;if(d.ts<=_lastBroadcastTs)return;_lastBroadcastTs=d.ts;if(d.ts===_lastNotifWriteTs)return;if(Date.now()-d.ts>30000)return;
 var target=d.target||'all';
-var ok=false;
-if(target==='all'||target==='tournoi'){
-// Afficher seulement si l'utilisateur est abonné à au moins une équipe
-ok=Object.values(notifTeams).some(function(v){return v===true});}
-else{ok=!!notifTeams[target];}
+var ok=target==='all'||target==='tournoi'||!!notifTeams[target];
 if(ok)notify(d.title||'📢 Annonce',d.body||'');});
 }catch(e){document.getElementById('bandeau-firebase').style.display='flex';loadLocal();rEq()}}
 function saveLocal(){localStorage.setItem('foot_E',JSON.stringify(E));localStorage.setItem('foot_C',JSON.stringify(C));localStorage.setItem('foot_T',JSON.stringify(T));localStorage.setItem('foot_terrains',JSON.stringify(terrains))}
