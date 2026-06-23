@@ -349,11 +349,13 @@ _arbMap[m.id]=arb;});}
 
 
 function vMatch(ti,mid){
-if(!T||!T.tours)return;
-var tour=T.tours[ti];if(!tour)return;
+if(!T||!T.tours){alert('T ou T.tours null');return;}
+var tour=T.tours[ti];
+if(!tour){alert('Tour '+ti+' introuvable dans T.tours (len='+T.tours.length+')');return;}
 var m=tour.ms.find(function(x){return x.id===mid});
-if(!m){alert('Match introuvable');return;}
-if(!m.j){alert('Scores incomplets — m.j=false s1='+m.s1+' s2='+m.s2);return;}
+if(!m){alert('Match '+mid+' introuvable');return;}
+if(!m.j){alert('Scores incomplets: s1='+m.s1+' s2='+m.s2+' j='+m.j);return;}
+alert('vMatch OK - validation de '+m.e1.nom+' vs '+m.e2.nom);
 m.ok=true;
 // Notification résultat pour les équipes abonnées
 if(notifSettings.resultat_match!==false&&m.e1&&m.e2){
