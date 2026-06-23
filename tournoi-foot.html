@@ -777,9 +777,14 @@ if(_myTokenKey){db.ref('foot_token_reset/'+_myTokenKey).on('value',function(snap
 // Listener buvette (sync temps réel entre appareils)
 db.ref('foot_buvette').on('value',function(snap){var d=snap.val();if(!d)return;buvette=Array.isArray(d)?d:Object.values(d);localStorage.setItem('foot_buvette',JSON.stringify(buvette));var sec=document.querySelector('#sec-buvette.active');if(sec)rBuvette()});
 var _lastBroadcastTs=Date.now();var _lastNotifWriteTs=0;var _bcCounter=0;
-db.ref('foot_broadcast').on('value',function(snap){var d=snap.val();if(!d||!d.ts)return;if(d.ts<=_lastBroadcastTs)return;_lastBroadcastTs=d.ts;if(d.ts===_lastNotifWriteTs)return;if(Date.now()-d.ts>30000)return;// Ne pas réafficher si déjà reçu en push// Vérifier si ce message me concerne
-var target=d.target||'all';if(target==='all'){notify(d.title||'📢 Annonce',d.body||'')}else{// target = id équipe — afficher si l'équipe a activé ses notifs
-if(notifTeams[target])notify(d.title||'📢',d.body||'');}});
+db.ref('foot_broadcast').on('value',function(snap){var d=snap.val();if(!d||!d.ts)return;if(d.ts<=_lastBroadcastTs)return;_lastBroadcastTs=d.ts;if(d.ts===_lastNotifWriteTs)return;if(Date.now()-d.ts>30000)return;
+var target=d.target||'all';
+var ok=false;
+if(target==='all'||target==='tournoi'){
+// Afficher seulement si l'utilisateur est abonné à au moins une équipe
+ok=Object.values(notifTeams).some(function(v){return v===true});}
+else{ok=!!notifTeams[target];}
+if(ok)notify(d.title||'📢 Annonce',d.body||'');});
 }catch(e){document.getElementById('bandeau-firebase').style.display='flex';loadLocal();rEq()}}
 function saveLocal(){localStorage.setItem('foot_E',JSON.stringify(E));localStorage.setItem('foot_C',JSON.stringify(C));localStorage.setItem('foot_T',JSON.stringify(T));localStorage.setItem('foot_terrains',JSON.stringify(terrains))}
 function saveFB(){if(!fbOk||!db)return;_s=true;db.ref('foot').set({E,C,T,mdp,terrains,qSec,rSec,historique,reglement:reglementTexte}).then(()=>setTimeout(()=>_s=false,1e3)).catch(()=>_s=false)}
@@ -999,9 +1004,11 @@ if(!notifSettings[settingKey])return;
 var tmpl=notifTemplates[settingKey]||{title:'📢',body:''};
 var title=fillT(tmpl.title,vars);
 var body=fillT(tmpl.body,vars);
-if(fbOk&&db){_lastNotifWriteTs=Date.now()+(++_bcCounter);db.ref('foot_broadcast').set({title:title,body:body,target:target||'all',ts:_lastNotifWriteTs});}
-else notify(title,body); // fallback si pas Firebase
-queuePush(title,body,target||'all');
+notify(title,body);
+if(fbOk&&db){
+_lastNotifWriteTs=Date.now()+(++_bcCounter);
+db.ref('foot_broadcast').set({title:title,body:body,target:target||'all',ts:_lastNotifWriteTs});
+if(target&&target!=='all'&&target!=='tournoi')queuePush(title,body,target);}
 logNotif(title,body,target||'all','auto')}
 function saveHisto(){localStorage.setItem('foot_historique',JSON.stringify(historique));saveFB()}
 function archiverTournoi(){if(!T||!T.fin){cAlert('Le tournoi n\'est pas encore terminé.','⏳');return}
