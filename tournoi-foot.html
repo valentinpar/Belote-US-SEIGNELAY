@@ -212,7 +212,7 @@ h+='<div data-match-id="'+m.id+'" style="border:1px solid var(--gris-moyen);bord
 h+='<div style="display:flex;justify-content:space-between;align-items:center;padding:.25rem .6rem;background:rgba(0,0,0,.18);font-size:.7rem;color:var(--muted)"><span><span class="phase-tag phase-poules" style="font-size:.6rem;padding:.1rem .35rem">Poule '+tour.poule+'</span>'+(m.heure?' 🕐 '+m.heure:'')+(m.terrain?' · 📍 '+m.terrain:'')+'</span>';
 h+='<span>'+(m.ok?'<span style="color:var(--vert-pale)">✅</span>':'')+(deb&&m.ok?'<button onclick="devaliderMatch('+ti+',\''+m.id+'\')" style="border:none;cursor:pointer;background:rgba(212,160,23,.15);color:var(--or);border-radius:5px;padding:.1rem .4rem;font-size:.66rem;margin-left:.3rem">✏️</button>':'')+'</span></div>';
 h+='<div class="match-body"><div class="match-eq"><div class="match-eq-nom" style="color:'+(w1?'var(--vert-pale)':'')+'">'+m.e1.nom+(w1?' ✓':'')+'</div></div>';
-h+='<div style="display:flex;align-items:center;gap:.25rem"><input type="number" class="score-input" value="'+m.s1+'" min="0" placeholder="—" '+(disIn?'disabled':'')+' oninput="ssG('+ti+',\''+m.id+'\',1,this.value)"><span class="vs-badge">—</span><input type="number" class="score-input" value="'+m.s2+'" min="0" placeholder="—" '+(disIn?'disabled':'')+' oninput="ssG('+ti+',\''+m.id+'\',2,this.value)"></div>';
+h+='<div style="display:flex;align-items:center;gap:.25rem"><input type="number" class="score-input" value="'+m.s1+'" min="0" placeholder="—" '+(disIn?'disabled':'')+' oninput="ssG('+ti+',\''+m.id+'\',1,this.value)" onchange="ssG('+ti+',\''+m.id+'\',1,this.value)"><span class="vs-badge">—</span><input type="number" class="score-input" value="'+m.s2+'" min="0" placeholder="—" '+(disIn?'disabled':'')+' oninput="ssG('+ti+',\''+m.id+'\',2,this.value)" onchange="ssG('+ti+',\''+m.id+'\',2,this.value)"></div>';
 h+='<div class="match-eq right"><div class="match-eq-nom" style="color:'+(w2?'var(--vert-pale)':'')+'">'+( w2?'✓ ':'')+m.e2.nom+'</div></div></div>';
 if(!m.ok&&!tour.ok)h+='<div style="padding:.2rem .6rem;background:rgba(212,160,23,.08);border-top:1px solid rgba(212,160,23,.2);font-size:.75rem;color:var(--or);text-align:center">'+(arb?'🟨 Arbitre : <strong>'+arb.nom+'</strong>':'⚠️ Aucun arbitre dispo')+'</div>';
 if(!tour.ok){h+='<div style="padding:.3rem .5rem;border-top:1px solid var(--gris-moyen);display:flex;gap:.4rem;flex-wrap:wrap">';
@@ -359,8 +359,14 @@ if(notifSettings.resultat_match!==false&&m.e1&&m.e2){
 var w1=+m.s1>+m.s2,draw=+m.s1===+m.s2;
 var vic=draw?' (nul)':' · Victoire '+(w1?m.e1.nom:m.e2.nom);
 var vars={tour:'Tour '+tour.num,num:tour.num,poule:tour.poule,e1:m.e1.nom,s1:String(m.s1),s2:String(m.s2),e2:m.e2.nom,victoire:vic};
-notifEq(m.e1.id,vars,'resultat_match');
-notifEq(m.e2.id,vars,'resultat_match');}
+// Notif in-app locale
+if(notifTeams[m.e1.id]||notifTeams[m.e2.id]){notify(fillT((notifTemplates.resultat_match||{title:'⚽ Résultat',body:''}).title,vars),fillT((notifTemplates.resultat_match||{title:'',body:'{e1} {s1}–{s2} {e2}{victoire}'}).body,vars));}
+// Push FCM ciblé par équipe
+queuePush(fillT((notifTemplates.resultat_match||{title:'⚽'}).title,vars),fillT((notifTemplates.resultat_match||{body:''}).body,vars),m.e1.id);
+queuePush(fillT((notifTemplates.resultat_match||{title:'⚽'}).title,vars),fillT((notifTemplates.resultat_match||{body:''}).body,vars),m.e2.id);
+// Un seul broadcast Firebase avec les deux IDs
+if(fbOk&&db){var _bt2=Date.now()+(++_bcCounter);db.ref('foot_broadcast').set({title:fillT((notifTemplates.resultat_match||{title:'⚽ Résultat'}).title,vars),body:fillT((notifTemplates.resultat_match||{body:''}).body,vars),target:m.e1.id+','+m.e2.id,ts:_bt2});}
+logNotif(vars.e1+' '+vars.s1+'–'+vars.s2+' '+vars.e2,'',m.e1.id+','+m.e2.id,'auto');}
 // Auto-clôture si tous les matchs du tour sont validés
 if(tour.ms.every(function(x){return x.ok;})){
 vG(ti);
@@ -372,23 +378,27 @@ if(!m||!tour)return;
 var heure=m.heure?' à '+m.heure:'';
 var terrain=m.terrain?' · '+m.terrain:'';
 var numTour=slotNum||tour.num;
-// Trouver l'arbitre
 var slotBusy=new Set([m.e1.nom,m.e2.nom]);
 var pouleArb=T.ps&&T.ps.find(function(p){return p.nm===tour.poule});
 var samePoolNoms=new Set(pouleArb?pouleArb.eq.map(function(e){return e.nom}):[]);
 var arb=E.find(function(e){return !slotBusy.has(e.nom)&&!samePoolNoms.has(e.nom)});
 var tourLabel='Tour '+numTour+' · Poule '+tour.poule;
 var matchLabel=m.e1.nom+' vs '+m.e2.nom+(arb?' · 🟨 '+arb.nom:'')+heure+terrain;
-notifEq(m.e1.id,{tour:tourLabel,equipe:m.e1.nom,adversaire:m.e2.nom,heure:heure,terrain:terrain},'equipe_match');
-notifEq(m.e2.id,{tour:tourLabel,equipe:m.e2.nom,adversaire:m.e1.nom,heure:heure,terrain:terrain},'equipe_match');
+// Notif match - un broadcast combiné e1+e2
+var tmplM=notifTemplates.equipe_match||{title:'{tour} · Poule {poule}',body:'⚽ {equipe} vs {adversaire}{heure}{terrain}'};
+var titM=fillT(tmplM.title,{tour:tourLabel,poule:tour.poule,equipe:m.e1.nom,adversaire:m.e2.nom,heure:heure,terrain:terrain});
+var bodM=fillT(tmplM.body,{tour:tourLabel,poule:tour.poule,equipe:m.e1.nom,adversaire:m.e2.nom,heure:heure,terrain:terrain});
+if(notifTeams[m.e1.id]||notifTeams[m.e2.id])notify(titM,bodM);
+queuePush(titM,bodM,m.e1.id);queuePush(titM,bodM,m.e2.id);
+if(fbOk&&db){var _bt1=Date.now()+(++_bcCounter);db.ref('foot_broadcast').set({title:titM,body:bodM,target:m.e1.id+','+m.e2.id,ts:_bt1});}
+// Notif arbitre - broadcast séparé
 if(arb&&notifSettings.arbitre_match!==false){
 var tmplArb=notifTemplates.arbitre_match||{title:'🟨 Tu arbitres · {tour} · Poule {poule}',body:'{e1} vs {e2}{heure}{terrain}'};
 var titA=fillT(tmplArb.title,{tour:'Tour '+numTour,poule:tour.poule,e1:m.e1.nom,e2:m.e2.nom,heure:heure,terrain:terrain});
 var bodA=fillT(tmplArb.body,{tour:'Tour '+numTour,poule:tour.poule,e1:m.e1.nom,e2:m.e2.nom,heure:heure,terrain:terrain});
 queuePush(titA,bodA,arb.id);
 if(notifTeams[arb.id])notify(titA,bodA);
-// Broadcast in-app pour l'équipe arbitre abonnée
-if(fbOk&&db){var _bt=Date.now()+(++_bcCounter);_lastNotifWriteTs=_bt;db.ref('foot_broadcast').set({title:titA,body:bodA,target:arb.id,ts:_bt});}
+setTimeout(function(){if(fbOk&&db){var _bt2=Date.now()+(++_bcCounter);db.ref('foot_broadcast').set({title:titA,body:bodA,target:arb.id,ts:_bt2});}},100);
 logNotif(titA,bodA,arb.id,'auto');}
 logNotif(tourLabel,matchLabel,'all','manual')}
 
@@ -996,8 +1006,6 @@ var title=fillT(tmpl.title,vars);
 var body=fillT(tmpl.body,vars);
 if(notifTeams[eqId])notify(title,body);
 queuePush(title,body,eqId);
-if(fbOk&&db){var _bt=Date.now()+(++_bcCounter);
-db.ref('foot_broadcast').set({title:title,body:body,target:eqId,ts:_bt});}
 logNotif(title,body,eqId,'auto')}
 
 // ── Paramètres notifications automatiques ──
