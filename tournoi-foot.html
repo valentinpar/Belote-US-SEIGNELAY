@@ -220,8 +220,8 @@ h+='<button class="btn btn-green btn-sm btn-valider-match" onclick="vMatch('+ti+
 h+='<button class="btn btn-primary btn-sm" onclick="notifMatchDirect(T.tours['+ti+'].ms.find(function(x){return x.id===\''+m.id+'\'}),T.tours['+ti+'],'+slotNum+')">📢 Notifier</button>';
 h+='</div>';}
 h+='</div>';});
-slot.forEach(function(item){var tour=item.tour,ti=item.ti;
-if(!tour.ok&&tour.ms.every(function(x){return x.ok}))h+='<div style="margin-top:.4rem"><button class="btn btn-gold btn-sm" onclick="vG('+ti+')">🏁 Clôturer Poule '+tour.poule+'</button></div>'});
+var tisCloture=slot.filter(function(item){return !item.tour.ok&&item.tour.ms.every(function(x){return x.ok});}).map(function(item){return item.ti;});
+if(tisCloture.length>0){h+='<div style="margin-top:.4rem"><button class="btn btn-gold btn-sm" onclick="vGTous(['+tisCloture.join(',')+'])">🏁 Clôturer Tour '+slotNum+'</button></div>';}
 h+='</div>';}h+='</div>';}
 // Tableau arbitrages (admin uniquement)
 if(deb&&Object.keys(_arbMap).length){
@@ -440,6 +440,25 @@ notifEq(currentM.e2.id,{tour:'Tour '+n2.t.num,equipe:currentM.e2.nom,adversaire:
 if(n1||n2){var logTitle='📢 Prochain match annoncé';
 var logBody=[n1?currentM.e1.nom+' → vs '+( n1.m.e1.id===currentM.e1.id?n1.m.e2.nom:n1.m.e1.nom):'',n2?currentM.e2.nom+' → vs '+(n2.m.e1.id===currentM.e2.id?n2.m.e2.nom:n2.m.e1.nom):''].filter(Boolean).join(' | ');
 logNotif(logTitle,logBody,'auto','auto')}}
+
+function vGTous(tis){
+// Valider que tous les pools sont prêts
+for(var i=0;i<tis.length;i++){
+var t=T.tours[tis[i]];
+if(!t||t.ok)continue;
+if(!t.ms.every(function(m){return m.ok;})){notify('⚠️','Validez tous les matchs avant de clôturer');return;}}
+// Fermer tous les pools + calculer classements
+tis.forEach(function(ti){
+var tour=T.tours[ti];if(!tour||tour.ok)return;
+var poule=T.ps.find(function(p){return p.nm===tour.poule});if(!poule)return;
+tour.ms.forEach(function(m){var s1=+m.s1,s2=+m.s2,a=poule.st[m.e1.id],b=poule.st[m.e2.id];
+if(!a||!b)return;
+a.j++;b.j++;a.bp+=s1;a.bc+=s2;b.bp+=s2;b.bc+=s1;
+if(s1>s2){a.v++;a.p+=C.pV;b.d++;b.p+=C.pD}else if(s2>s1){b.v++;b.p+=C.pV;a.d++;a.p+=C.pD}else{a.n++;a.p+=C.pN;b.n++;b.p+=C.pN}});
+tour.ok=true;});
+var toutesOk=T.tours.every(function(t){return t.ok;});
+if(toutesOk){T.ps.forEach(function(p){p.ok=true;});E.forEach(function(e){notifEq(e.id,{},'poules_fin');});}
+save();rPoules();}
 
 function vG(ti){
 if(!T||!T.tours)return;
