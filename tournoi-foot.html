@@ -380,7 +380,10 @@ var heure=m.heure?' à '+m.heure:'';
 var terrain=m.terrain?' · '+m.terrain:'';
 var numTour=slotNum||tour.num;
 // Utiliser le même arbitre que l'affichage (depuis _arbMap)
+// Si absent, reconstruire _arbMap
 var arb=_arbMap[m.id]||null;
+if(!arb){buildArbMap();arb=_arbMap[m.id]||null;}
+notify('🔍 Debug arbitre',arb?'Arbitre: '+arb.nom+' (id:'+arb.id+')':'⚠️ Aucun arbitre trouvé pour '+m.id);
 var tourLabel='Tour '+numTour+' · Poule '+tour.poule;
 var matchLabel=m.e1.nom+' vs '+m.e2.nom+(arb?' · 🟨 '+arb.nom:'')+heure+terrain;
 // Notif match - un broadcast combiné e1+e2
