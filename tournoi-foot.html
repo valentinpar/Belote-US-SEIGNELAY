@@ -624,7 +624,17 @@ _isFinale=true;}
 else if(r.level===finaleLevel){var fm=r.ms[0];c.champion=mWinner(fm);c.second=mLoser(fm);if(c.key==='P')T.fin=true;
 if(c.key==='P'){autoNotif('champion',{equipe:c.champion?c.champion.nom:''},'all');
 if(c.champion)notifEq(c.champion.id,{equipe:c.champion.nom},'champion');
-if(c.second)notifEq(c.second.id,{equipe:c.second.nom},'champion');}
+if(c.second)notifEq(c.second.id,{equipe:c.second.nom},'champion');
+// Notification palmarès à TOUT LE MONDE (app ouverte ou push)
+setTimeout(function(){
+var titPal='🏆 Tournoi terminé ! Palmarès';
+var bodPal='🥇 '+(c.champion?c.champion.nom:'—')+(c.second?' · 🥈 '+c.second.nom:'')+(c.troisieme?' · 🥉 '+c.troisieme.nom:'');
+notify(titPal,bodPal);
+if(fbOk&&db){var _btp=Date.now()+(++_bcCounter);
+db.ref('foot_broadcast').set({title:titPal,body:bodPal,target:'all',ts:_btp});}
+queuePush(titPal,bodPal,'all');
+logNotif(titPal,bodPal,'all','auto');
+},300);}
 else{autoNotif('consolation',{equipe:c.champion?c.champion.nom:''},'all');
 if(c.champion)notifEq(c.champion.id,{equipe:c.champion.nom},'consolation');}
 _isFinale=true;}
@@ -929,7 +939,8 @@ var _lastArbTs=Date.now();
 db.ref('foot_broadcast').on('value',function(snap){var d=snap.val();if(!d||!d.ts)return;if(d.ts<=_lastBroadcastTs)return;_lastBroadcastTs=d.ts;if(d.ts===_lastNotifWriteTs)return;if(Date.now()-d.ts>30000)return;
 var target=d.target||'all';
 var ok=false;
-if(target==='all'||target==='tournoi'){ok=Object.values(notifTeams).some(function(v){return v===true;});}
+if(target==='all'){ok=true;} // Toujours afficher les annonces globales
+else if(target==='tournoi'){ok=Object.values(notifTeams).some(function(v){return v===true;});}
 else if(target.indexOf(',')>=0){var ids=target.split(',');ok=ids.some(function(id){return !!notifTeams[id.trim()];});}
 else{ok=!!notifTeams[target];}
 if(ok)notify(d.title||'📢 Annonce',d.body||'');});
