@@ -375,17 +375,12 @@ vG(ti);
 save();rPoules();}}
 
 function notifMatchDirect(m,tour,slotNum){
-if(!m||!tour){alert('notifMatchDirect: m ou tour manquant');return;}
+if(!m||!tour)return;
 var heure=m.heure?' à '+m.heure:'';
 var terrain=m.terrain?' · '+m.terrain:'';
 var numTour=slotNum||tour.num;
-// Utiliser le même arbitre que l'affichage (depuis _arbMap)
-// Si absent, reconstruire _arbMap
 var arb=_arbMap[m.id]||null;
 if(!arb){buildArbMap();arb=_arbMap[m.id]||null;}
-notify('🔍 Debug arbitre',arb?'Arbitre: '+arb.nom+' | notifTeams[arb]='+notifTeams[arb.id]+' | abonnés: '+Object.keys(notifTeams).filter(function(k){return notifTeams[k]}).length:'⚠️ Pas d\'arbitre');
-// Forcer la notif arbitre directement (sans vérification)
-if(arb){notify('🟨 Tu arbitres','(test direct) '+m.e1.nom+' vs '+m.e2.nom);}
 var tourLabel='Tour '+numTour+' · Poule '+tour.poule;
 var matchLabel=m.e1.nom+' vs '+m.e2.nom+(arb?' · 🟨 '+arb.nom:'')+heure+terrain;
 // Notif match - un broadcast combiné e1+e2
@@ -841,7 +836,7 @@ if(ok)notify(d.title||'📢 Annonce',d.body||'');});
 }catch(e){document.getElementById('bandeau-firebase').style.display='flex';loadLocal();rEq()}}
 function saveLocal(){localStorage.setItem('foot_E',JSON.stringify(E));localStorage.setItem('foot_C',JSON.stringify(C));localStorage.setItem('foot_T',JSON.stringify(T));localStorage.setItem('foot_terrains',JSON.stringify(terrains))}
 var _sPending=0;
-function saveFB(){if(!fbOk||!db)return;_sPending++;_s=true;db.ref('foot').set({E,C,T,mdp,terrains,qSec,rSec,historique,reglement:reglementTexte}).then(function(){_sPending--;if(_sPending<=0){_sPending=0;setTimeout(function(){_s=false},300);}}).catch(function(){_sPending--;if(_sPending<=0){_sPending=0;_s=false}})}
+function saveFB(){if(!fbOk||!db)return;_sPending++;_s=true;db.ref('foot').set({E,C,T,mdp,terrains,qSec,rSec,historique,reglement:reglementTexte}).then(function(){_sPending--;if(_sPending<=0){_sPending=0;setTimeout(function(){_s=false},300);}}).catch(function(err){notify('❌ Erreur Firebase','Save échoué: '+(err&&err.message||String(err)));_sPending--;if(_sPending<=0){_sPending=0;_s=false}})}
 function save(){saveLocal();saveFB()}
 function loadLocal(){try{const e=localStorage.getItem('foot_E'),c=localStorage.getItem('foot_C'),t=localStorage.getItem('foot_T');if(e)E=JSON.parse(e);if(c)C=JSON.parse(c);if(t)T=JSON.parse(t)}catch(e){}}
 
