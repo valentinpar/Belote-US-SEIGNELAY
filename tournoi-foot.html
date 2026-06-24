@@ -192,6 +192,9 @@ h+='<tr class="'+(i===0&&s.j>0?'p1':'')+'"><td>'+(i+1)+'</td><td class="font-bol
 h+='</tbody></table></div></div>';});
 if(T.tours){
 h+='<div class="card"><h2>🗓️ Matchs par tour</h2>';
+if(deb){
+var nbNonVal=0;T.tours.forEach(function(t){t.ms.forEach(function(m){if(!m.ok&&m.s1!==''&&m.s2!=='')nbNonVal++;});});
+if(nbNonVal>0)h+='<div style="margin-bottom:.7rem"><button class="btn btn-gold btn-sm" onclick="vTout()">✅ Tout valider ('+nbNonVal+' match'+(nbNonVal>1?'s':'')+')</button></div>';}
 var nbT=Math.max(1,terrains&&terrains.length?terrains.length:1);
 var allMs=[];
 var maxMs=T.tours.reduce(function(acc,t){return Math.max(acc,t.ms.length)},0);
@@ -440,6 +443,27 @@ notifEq(currentM.e2.id,{tour:'Tour '+n2.t.num,equipe:currentM.e2.nom,adversaire:
 if(n1||n2){var logTitle='📢 Prochain match annoncé';
 var logBody=[n1?currentM.e1.nom+' → vs '+( n1.m.e1.id===currentM.e1.id?n1.m.e2.nom:n1.m.e1.nom):'',n2?currentM.e2.nom+' → vs '+(n2.m.e1.id===currentM.e2.id?n2.m.e2.nom:n2.m.e1.nom):''].filter(Boolean).join(' | ');
 logNotif(logTitle,logBody,'auto','auto')}}
+
+function vTout(){
+if(!T||!T.tours||!deb)return;
+_s=true;
+var count=0;
+// Valider tous les matchs avec des scores
+T.tours.forEach(function(tour){
+if(tour.ok)return;
+tour.ms.forEach(function(m){
+if(!m.ok&&m.s1!==''&&m.s2!==''){m.j=true;m.ok=true;count++;}
+// Lire depuis les inputs si scores pas dans T
+if(!m.ok){var inps=document.querySelectorAll('[data-vmatch="'+m.id+'"]');
+if(inps.length>=2&&inps[0].value!==''&&inps[1].value!==''){
+m.s1=+inps[0].value;m.s2=+inps[1].value;m.j=true;m.ok=true;count++;}}});});
+// Clôturer les tours dont tous les matchs sont validés
+var tis=[];
+T.tours.forEach(function(tour,ti){
+if(!tour.ok&&tour.ms.every(function(m){return m.ok;})){tis.push(ti);}});
+if(tis.length>0){vGTous(tis);}
+else{save();rPoules();}
+if(count>0)notify('✅ '+count+' match'+(count>1?'s':''),'Tous validés');}
 
 function vGTous(tis){
 // Valider que tous les pools sont prêts
