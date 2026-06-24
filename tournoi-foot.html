@@ -896,10 +896,14 @@ notify('✅ Horaires appliqués','Départ '+heure);
 rPlanningEditor();checkConflits();}
 
 
-function rPlanning(){var d=document.getElementById('planning-content');if(!T){d.innerHTML='<div class="empty-state"><div class="icon">🗓️</div>Le planning apparaît après le lancement du tournoi</div>';return}var ms=getAllMatchs();if(!ms.length){d.innerHTML='<div class="empty-state"><div class="icon">🗓️</div>Aucun match</div>';return}
+function rPlanning(){var d=document.getElementById('planning-content');if(!T)loadLocal();if(!T){d.innerHTML='<div class="empty-state"><div class="icon">🗓️</div>Le planning apparaît après le lancement du tournoi</div>';return}var ms=getAllMatchs();if(!ms.length){d.innerHTML='<div class="empty-state"><div class="icon">🗓️</div>Aucun match</div>';return}
 var poolMs=ms.filter(function(m){return!m.isSlot});var elimMs=ms.filter(function(m){return m.isSlot});
 var anyPlanned=ms.some(function(m){return m.heure||m.terrain});
-if(!anyPlanned){d.innerHTML='<div class="card"><h2>🗓️ Planning des matchs</h2><div class="alert alert-info">L\'organisateur n\'a pas encore assigné les horaires et terrains.</div></div>';return}
+if(!anyPlanned){
+// Montrer quand même tous les matchs sans horaire
+var h='<div class="card"><h2>🗓️ Planning des matchs</h2><div class="alert alert-info">Horaires non encore définis — tous les matchs :</div>';
+poolMs.forEach(function(m){h+='<div style="display:flex;justify-content:space-between;background:var(--gris-fonce);padding:.3rem .7rem;border-radius:4px;margin-bottom:.15rem;font-size:.82rem"><span>'+m.e1+'</span><span style="color:var(--muted)">VS</span><span>'+m.e2+'</span></div>'});
+h+='</div>';d.innerHTML=h;return;}
 var h=renderConflitAlert();
 // POULES — groupées par poule
 if(poolMs.length){h+='<div class="card"><h2><span class="phase-tag phase-poules">📋 Phase de poules</span></h2>';
