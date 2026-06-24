@@ -584,12 +584,15 @@ var arb=m.e1&&m.e2?getElimArb(m.id,busyIds):null;
 h+='<div class="match-card '+(m.j?'joue':'')+'"><div class="match-label">'+(m.lb||r.nm)+slotInfo+'</div><div class="match-body"><div class="match-eq"><div class="match-eq-nom" style="color:'+(w1?'var(--vert-pale)':'')+'">'+n1+(w1?' ✓':'')+'</div></div><div style="display:flex;align-items:center;gap:.25rem"><input type="number" class="score-input" value="'+m.s1+'" min="0" placeholder="—" '+dis+' oninput="ssE('+ci+','+ri+',\''+m.id+'\',1,this.value)" onchange="ssE('+ci+','+ri+',\''+m.id+'\',1,this.value)"><span class="vs-badge">—</span><input type="number" class="score-input" value="'+m.s2+'" min="0" placeholder="—" '+dis+' oninput="ssE('+ci+','+ri+',\''+m.id+'\',2,this.value)" onchange="ssE('+ci+','+ri+',\''+m.id+'\',2,this.value)"></div><div class="match-eq right"><div class="match-eq-nom" style="color:'+(w2?'var(--vert-pale)':'')+'">'+(w2?'✓ ':'')+n2+'</div></div></div>';
 if(egal){h+='<div style="display:flex;align-items:center;justify-content:center;gap:.4rem;margin-top:.4rem;padding-top:.4rem;border-top:1px dashed var(--gris-moyen)"><span style="font-size:.72rem;color:#fcd34d;font-weight:700">🥅 Tirs au but</span><input type="number" class="score-input" style="width:46px" value="'+(m.p1!=null?m.p1:'')+'" min="0" placeholder="—" '+(r.ok?'disabled':'')+' oninput="ssEP('+ci+','+ri+',\''+m.id+'\',1,this.value)"><span class="vs-badge">—</span><input type="number" class="score-input" style="width:46px" value="'+(m.p2!=null?m.p2:'')+'" min="0" placeholder="—" '+(r.ok?'disabled':'')+' oninput="ssEP('+ci+','+ri+',\''+m.id+'\',2,this.value)"></div>'}
 if(m.e1&&m.e2&&!r.ok){
-h+='<div style="padding:.25rem .6rem;background:rgba(212,160,23,.08);border-top:1px solid rgba(212,160,23,.2);font-size:.75rem;color:var(--or);display:flex;align-items:center;gap:.4rem">🟨 Arbitre :';
-if(deb){h+='<select onchange="setElimArb(\''+m.id+'\',this.value)" style="background:var(--gris-fonce);color:var(--or);border:1px solid rgba(212,160,23,.3);border-radius:4px;font-size:.72rem;padding:.1rem .3rem">';
-E.forEach(function(e){h+='<option value="'+e.id+'"'+(arb&&arb.id===e.id?' selected':'')+' '+(busyIds.has(e.id)?'disabled style="color:var(--muted)"':'')+'>'+(busyIds.has(e.id)?'(joue) ':'')+e.nom+'</option>';});
-h+='</select>';}else{h+='<strong>'+(arb?arb.nom:'⚠️ Aucun')+'</strong>';}
+var arbNom=arb?arb.nom:'⚠️ Aucun';
+h+='<div style="padding:.25rem .6rem;background:rgba(212,160,23,.08);border-top:1px solid rgba(212,160,23,.2);font-size:.75rem;color:var(--or);display:flex;align-items:center;gap:.4rem">🟨 Arbitre : <strong>'+arbNom+'</strong>';
+if(deb)h+='<button onclick="(function(){var d=document.getElementById(\'earb-'+m.id+'\');d.style.display=d.style.display===\'none\'?\'block\':\'none\'})()" style="border:none;cursor:pointer;background:rgba(212,160,23,.15);color:var(--or);border-radius:4px;padding:.1rem .3rem;font-size:.66rem;margin-left:auto">✏️</button>';
 h+='</div>';
-h+='<div style="padding:.3rem .5rem;border-top:1px solid var(--gris-moyen);display:flex;gap:.4rem"><button class="btn btn-primary btn-sm" onclick="notifElimMatch('+ci+','+ri+',\''+m.id+'\')">📢 Notifier</button></div>';}
+if(deb){h+='<div id="earb-'+m.id+'" style="display:none;padding:.3rem .5rem;border-top:1px solid rgba(212,160,23,.15)">';
+h+='<select onchange="setElimArb(\''+m.id+'\',this.value)" style="background:var(--gris-fonce);color:var(--or);border:1px solid rgba(212,160,23,.3);border-radius:4px;font-size:.75rem;padding:.2rem .4rem;width:100%">';
+E.forEach(function(e){h+='<option value="'+e.id+'"'+(arb&&arb.id===e.id?' selected':'')+'>'+e.nom+(busyIds.has(e.id)?' ⚠️ joue':'')+'</option>';});
+h+='</select></div>';}
+h+='<div style="padding:.3rem .5rem;border-top:1px solid var(--gris-moyen)"><button class="btn btn-primary btn-sm" onclick="notifElimMatch('+ci+','+ri+',\''+m.id+'\')">📢 Notifier</button></div>';}
 h+='</div>'});
 if(!r.ok){var allReady=r.ms.every(function(m){return m.bye||(m.e1&&m.e2)}),allPlayed=r.ms.every(function(m){return m.j}),allDecided=r.ms.every(function(m){return mDecided(m)}),nulNonDep=r.ms.some(function(m){return!m.bye&&m.j&&+m.s1===+m.s2&&!(hasTab(m)&&+m.p1!==+m.p2)});
 if(nulNonDep)h+='<div class="alert alert-warning">🥅 Égalité : saisissez les tirs au but pour départager.</div>';
@@ -610,8 +613,9 @@ try{
 r.ms.forEach(function(m){if(!m.e1||!m.e2||m.bye)return;
 var w=mWinner(m),l=mLoser(m);
 var score=m.s1+'–'+m.s2+(m.p1!==''&&m.p2!==''?' ('+m.p1+'-'+m.p2+' TAB)':'');
-if(w)notifEq(w.id,{round:r.nm,icon:c.icon,score:score},'resultat_match');
-if(l)notifEq(l.id,{round:r.nm,icon:c.icon,score:score},'resultat_match');});
+var vic=w?' · Victoire '+w.nom:'';
+if(w)notifEq(w.id,{tour:r.nm,poule:c.icon,e1:m.e1.nom,s1:String(m.s1),s2:String(m.s2),e2:m.e2.nom,victoire:vic},'resultat_match');
+if(l)notifEq(l.id,{tour:r.nm,poule:c.icon,e1:m.e1.nom,s1:String(m.s1),s2:String(m.s2),e2:m.e2.nom,victoire:vic},'resultat_match');});
 var bracketRounds=c.rs.filter(function(x){return x.type==='bracket'});
 var finaleLevel=bracketRounds.reduce(function(mx,x){return Math.max(mx,x.level)},0);
 if(r.type==='petite'){var pm=r.ms[0];if(pm.e1&&pm.e2)c.troisieme=mWinner(pm);
