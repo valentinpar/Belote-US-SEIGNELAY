@@ -849,16 +849,15 @@ function saveLocal(){localStorage.setItem('foot_E',JSON.stringify(E));localStora
 var _sPending=0;
 function saveFB(){
 if(!fbOk||!db)return;
-_s=true;
-clearTimeout(window._sTimer);
-window._sTimer=setTimeout(function(){_s=false;},2000);
-db.ref('foot').set({E,C,T,mdp,terrains,qSec,rSec,historique,reglement:reglementTexte}).then(function(){
-clearTimeout(window._sTimer);
-window._sTimer=setTimeout(function(){_s=false;},500);
+_sPending++;_s=true;
+db.ref('foot').set({E,C,T,mdp,terrains,qSec,rSec,historique,reglement:reglementTexte})
+.then(function(){
+_sPending=Math.max(0,_sPending-1);
+if(_sPending===0)setTimeout(function(){if(_sPending===0)_s=false;},400);
 }).catch(function(err){
-notify('❌ Erreur save',err&&err.message?err.message:'Firebase write error');
-clearTimeout(window._sTimer);
-_s=false;
+_sPending=Math.max(0,_sPending-1);
+if(_sPending===0)_s=false;
+notify('❌ Erreur save',err&&err.message?err.message:'write error');
 })}
 function save(){saveLocal();saveFB()}
 function loadLocal(){try{const e=localStorage.getItem('foot_E'),c=localStorage.getItem('foot_C'),t=localStorage.getItem('foot_T');if(e)E=JSON.parse(e);if(c)C=JSON.parse(c);if(t)T=JSON.parse(t)}catch(e){}}
