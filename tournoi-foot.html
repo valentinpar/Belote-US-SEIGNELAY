@@ -234,7 +234,7 @@ h+='</tbody></table></div>';}
 if(av&&!T.el)h+='<div class="card" style="text-align:center"><h2 style="justify-content:center">🏆 Poules terminées !</h2><button class="btn btn-gold" onclick="lancerEl()">🚀 Éliminatoires</button></div>';
 d.innerHTML=h;window.scrollTo(0,scrollY)}
 
-function ssG(ti,mid,eq,v){if(!T||!T.tours)return;var tour=T.tours[ti];if(!tour)return;var m=tour.ms.find(function(x){return x.id===mid});if(!m||m.ok)return;if(eq===1)m.s1=v===''?'':+v;else m.s2=v===''?'':+v;m.j=m.s1!==''&&m.s2!=='';var poule=T.ps.find(function(p){return p.nm===tour.poule});if(poule){var pm=poule.ms.find(function(x){return x.id===mid});if(pm){pm.s1=m.s1;pm.s2=m.s2;pm.j=m.j}}_s=true;save();setTimeout(function(){_s=false},1500);
+function ssG(ti,mid,eq,v){if(!T||!T.tours)return;var tour=T.tours[ti];if(!tour)return;var m=tour.ms.find(function(x){return x.id===mid});if(!m||m.ok)return;if(eq===1)m.s1=v===''?'':+v;else m.s2=v===''?'':+v;m.j=m.s1!==''&&m.s2!=='';var poule=T.ps.find(function(p){return p.nm===tour.poule});if(poule){var pm=poule.ms.find(function(x){return x.id===mid});if(pm){pm.s1=m.s1;pm.s2=m.s2;pm.j=m.j}}save();
 // Debounce rPoules pour éviter le scroll pendant la frappe
 clearTimeout(window._ssGTimer);
 window._ssGTimer=setTimeout(function(){
@@ -310,7 +310,7 @@ if(tour.ok){
 tour.ok=false;
 var poule=T.ps.find(function(p){return p.nm===tour.poule});
 if(poule)recalcPoule(poule);}
-_s=true;save();setTimeout(function(){_s=false},1000);rPoules()}
+save();rPoules()}
 
 var _arbMap={};
 function buildArbMap(){
@@ -353,6 +353,7 @@ if(!T||!T.tours)return;
 var tour=T.tours[ti];if(!tour)return;
 var m=tour.ms.find(function(x){return x.id===mid});
 if(!m||!m.j)return;
+_s=true; // Bloquer Firebase AVANT toute modification
 m.ok=true;
 // Notification résultat pour les équipes abonnées
 if(notifSettings.resultat_match!==false&&m.e1&&m.e2){
@@ -371,7 +372,7 @@ logNotif(vars.e1+' '+vars.s1+'–'+vars.s2+' '+vars.e2,'',m.e1.id+','+m.e2.id,'a
 if(tour.ms.every(function(x){return x.ok;})){
 vG(ti);
 }else{
-_s=true;save();setTimeout(function(){_s=false},1000);rPoules();}}
+save();rPoules();}}
 
 function notifMatchDirect(m,tour,slotNum){
 if(!m||!tour){alert('notifMatchDirect: m ou tour manquant');return;}
@@ -499,8 +500,8 @@ var canValid=allReady&&allPlayed&&allDecided;
 h+='<button class="btn btn-green mt-1" onclick="vE('+ci+','+ri+')" '+(canValid?'':'disabled style="opacity:.4;cursor:not-allowed"')+'>'+(canValid?'✅ Valider '+r.nm:'En attente / scores incomplets')+'</button>'}
 h+='</div>'});
 h+='</div>'});d.innerHTML=h;window.scrollTo(0,scrollY)}
-function ssE(ci,ri,mid,eq,v){if(!T||!T.el||!T.el.cups)return;var c=T.el.cups[ci];if(!c)return;var r=c.rs[ri];if(!r||r.ok)return;var m=r.ms.find(function(x){return x.id===mid});if(!m||m.bye)return;if(eq===1)m.s1=v===''?'':+v;else m.s2=v===''?'':+v;m.j=m.s1!==''&&m.s2!=='';if(m.s1===''||m.s2===''||+m.s1!==+m.s2){m.p1='';m.p2=''}_s=true;save();setTimeout(function(){_s=false},1000);rElim();rPlanningEditor()}
-function ssEP(ci,ri,mid,eq,v){if(!T||!T.el||!T.el.cups)return;var c=T.el.cups[ci];if(!c)return;var r=c.rs[ri];if(!r||r.ok)return;var m=r.ms.find(function(x){return x.id===mid});if(!m||m.bye)return;if(eq===1)m.p1=v===''?'':+v;else m.p2=v===''?'':+v;_s=true;save();setTimeout(function(){_s=false},1000);rElim();rPlanningEditor()}
+function ssE(ci,ri,mid,eq,v){if(!T||!T.el||!T.el.cups)return;var c=T.el.cups[ci];if(!c)return;var r=c.rs[ri];if(!r||r.ok)return;var m=r.ms.find(function(x){return x.id===mid});if(!m||m.bye)return;if(eq===1)m.s1=v===''?'':+v;else m.s2=v===''?'':+v;m.j=m.s1!==''&&m.s2!=='';if(m.s1===''||m.s2===''||+m.s1!==+m.s2){m.p1='';m.p2=''}save();rElim();rPlanningEditor()}
+function ssEP(ci,ri,mid,eq,v){if(!T||!T.el||!T.el.cups)return;var c=T.el.cups[ci];if(!c)return;var r=c.rs[ri];if(!r||r.ok)return;var m=r.ms.find(function(x){return x.id===mid});if(!m||m.bye)return;if(eq===1)m.p1=v===''?'':+v;else m.p2=v===''?'':+v;save();rElim();rPlanningEditor()}
 function vE(ci,ri){if(!T||!T.el||!T.el.cups)return;var c=T.el.cups[ci];if(!c)return;var r=c.rs[ri];if(!r||r.ok)return;
 if(!r.ms.every(function(m){return m.bye||(m.e1&&m.e2)})){notify('⚠️','Des équipes ne sont pas encore déterminées');return;}
 if(!r.ms.every(function(m){return m.j})){notify('⚠️','Entrez tous les scores avant de valider');return;}
@@ -834,7 +835,8 @@ else{ok=!!notifTeams[target];}
 if(ok)notify(d.title||'📢 Annonce',d.body||'');});
 }catch(e){document.getElementById('bandeau-firebase').style.display='flex';loadLocal();rEq()}}
 function saveLocal(){localStorage.setItem('foot_E',JSON.stringify(E));localStorage.setItem('foot_C',JSON.stringify(C));localStorage.setItem('foot_T',JSON.stringify(T));localStorage.setItem('foot_terrains',JSON.stringify(terrains))}
-function saveFB(){if(!fbOk||!db)return;_s=true;db.ref('foot').set({E,C,T,mdp,terrains,qSec,rSec,historique,reglement:reglementTexte}).then(()=>setTimeout(()=>_s=false,1e3)).catch(()=>_s=false)}
+var _sPending=0;
+function saveFB(){if(!fbOk||!db)return;_sPending++;_s=true;db.ref('foot').set({E,C,T,mdp,terrains,qSec,rSec,historique,reglement:reglementTexte}).then(function(){_sPending--;if(_sPending<=0){_sPending=0;setTimeout(function(){_s=false},300);}}).catch(function(){_sPending--;if(_sPending<=0){_sPending=0;_s=false}})}
 function save(){saveLocal();saveFB()}
 function loadLocal(){try{const e=localStorage.getItem('foot_E'),c=localStorage.getItem('foot_C'),t=localStorage.getItem('foot_T');if(e)E=JSON.parse(e);if(c)C=JSON.parse(c);if(t)T=JSON.parse(t)}catch(e){}}
 
