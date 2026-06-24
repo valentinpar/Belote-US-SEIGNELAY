@@ -500,15 +500,14 @@ var toutesOk=T.tours.every(function(t){return t.ok});
 // Notif tour global + prochain match
 setTimeout(function(){try{
 if(notifSettings.resultat_tour!==false){
-var joues=tour.ms.filter(function(m){return m.e1&&m.e2});
+var joues=tour.ms.filter(function(m){return m.j&&m.e1&&m.e2&&m.s1!==''&&m.s2!==''});
 if(joues.length){
 var titT='📊 Tour '+tour.num+' · Poule '+tour.poule;
 var bodT=joues.map(function(m){return m.e1.nom+' '+m.s1+'–'+m.s2+' '+m.e2.nom}).join(' | ');
-notify(titT,bodT);
-// Envoyer uniquement aux équipes de ce tour (pas à tout le monde)
+// Envoyer uniquement aux équipes concernées
 var eqIds=new Set();
 joues.forEach(function(m){if(m.e1)eqIds.add(m.e1.id);if(m.e2)eqIds.add(m.e2.id);});
-eqIds.forEach(function(id){queuePush(titT,bodT,id);});
+eqIds.forEach(function(id){if(notifTeams[id])notify(titT,bodT);queuePush(titT,bodT,id);});
 if(fbOk&&db){_lastNotifWriteTs=Date.now()+(++_bcCounter);
 db.ref('foot_broadcast').set({title:titT,body:bodT,target:Array.from(eqIds).join(','),ts:_lastNotifWriteTs});}}}
 }catch(e){console.warn(e)}},200);
@@ -537,12 +536,17 @@ if(cSeeds.length>=2)cups.push(buildCup(cSeeds,'C','Coupe de consolation','🛡�
 T.el={cups:cups};T.ph='elim';T.fin=false;regenElimSlots();save();
 autoNotif('elim_lance',{},'all');
 goTab('elim',document.getElementById('tab-elim'))}
-var _elimArbMap={};
+var _elimArbMap={};var _elimArbCounter=0;
 function getElimArb(mid,busyIds){
 if(_elimArbMap[mid]){var stored=E.find(function(e){return e.id===_elimArbMap[mid]});if(stored)return stored;}
-var arb=E.find(function(e){return!busyIds.has(e.id)});
-if(arb)_elimArbMap[mid]=arb.id;
-return arb||null;}
+var candidates=E.filter(function(e){return!busyIds.has(e.id);});
+if(!candidates.length)return null;
+// Rotation basée sur le compteur pour varier les arbitres
+var idx=_elimArbCounter%candidates.length;
+_elimArbCounter++;
+var arb=candidates[idx];
+_elimArbMap[mid]=arb.id;
+return arb;}
 function setElimArb(mid,eqId){_elimArbMap[mid]=eqId;rElim();}
 function notifElimMatch(ci,ri,mid){
 if(!T||!T.el||!T.el.cups)return;
@@ -599,38 +603,35 @@ function vE(ci,ri){if(!T||!T.el||!T.el.cups)return;var c=T.el.cups[ci];if(!c)ret
 if(!r.ms.every(function(m){return m.bye||(m.e1&&m.e2)})){notify('⚠️','Des équipes ne sont pas encore déterminées');return;}
 if(!r.ms.every(function(m){return m.j})){notify('⚠️','Entrez tous les scores avant de valider');return;}
 if(r.ms.some(function(m){return!mDecided(m)})){notify('⚠️','Match nul — entrez les tirs au but');return;}
-_s=true; // Bloquer Firebase AVANT toute modification
+_s=true;
 r.ok=true;
-// Notifs résultats élim pour les équipes abonnées
+var _isFinale=false;
+try{
 r.ms.forEach(function(m){if(!m.e1||!m.e2||m.bye)return;
 var w=mWinner(m),l=mLoser(m);
 var score=m.s1+'–'+m.s2+(m.p1!==''&&m.p2!==''?' ('+m.p1+'-'+m.p2+' TAB)':'');
-var titR='⚽ '+r.nm+' · '+c.icon;
-var bodW=w?w.nom+' gagne '+score+' contre '+(w.id===m.e1.id?m.e2.nom:m.e1.nom):'';
-var bodL=l?l.nom+' — '+score+' contre '+(l.id===m.e1.id?m.e2.nom:m.e1.nom):'';
 if(w)notifEq(w.id,{round:r.nm,icon:c.icon,score:score},'resultat_match');
 if(l)notifEq(l.id,{round:r.nm,icon:c.icon,score:score},'resultat_match');});
 var bracketRounds=c.rs.filter(function(x){return x.type==='bracket'});
 var finaleLevel=bracketRounds.reduce(function(mx,x){return Math.max(mx,x.level)},0);
 if(r.type==='petite'){var pm=r.ms[0];if(pm.e1&&pm.e2)c.troisieme=mWinner(pm);
 autoNotif('petite_finale',{equipe:c.troisieme?c.troisieme.nom:'—'},'all');
-save();rElim();rRes();return}
-if(r.level===finaleLevel){var fm=r.ms[0];c.champion=mWinner(fm);c.second=mLoser(fm);if(c.key==='P')T.fin=true;
+_isFinale=true;}
+else if(r.level===finaleLevel){var fm=r.ms[0];c.champion=mWinner(fm);c.second=mLoser(fm);if(c.key==='P')T.fin=true;
 if(c.key==='P'){autoNotif('champion',{equipe:c.champion?c.champion.nom:''},'all');
 if(c.champion)notifEq(c.champion.id,{equipe:c.champion.nom},'champion');
 if(c.second)notifEq(c.second.id,{equipe:c.second.nom},'champion');}
 else{autoNotif('consolation',{equipe:c.champion?c.champion.nom:''},'all');
 if(c.champion)notifEq(c.champion.id,{equipe:c.champion.nom},'consolation');}
-save();rElim();rRes();return}
-var nextR=c.rs.find(function(x){return x.type==='bracket'&&x.level===r.level+1});
-r.ms.forEach(function(m,i){var w=mWinner(m);var tgt=nextR.ms[Math.floor(i/2)];if(i%2===0)tgt.e1=w;else tgt.e2=w;
-if(w)notifEq(w.id,{round:nextR.nm,icon:c.icon},'equipe_qualif');
-});
-if(nextR.level===finaleLevel){var pet=c.rs.find(function(x){return x.type==='petite'});if(pet){var ls=r.ms.map(function(m){return mLoser(m)});pet.ms[0].e1=ls[0]||null;pet.ms[0].e2=ls[1]||null;
-ls.forEach(function(loser){if(loser)notifEq(loser.id,{},'equipe_loser')})}}
-resolveByesRound(nextR);
-autoNotif('round_elim',{icon:c.icon,round:r.nm,next:nextR.nm},'all');
-save();rElim();rPlanningEditor()}
+_isFinale=true;}
+else{var nextR=c.rs.find(function(x){return x.type==='bracket'&&x.level===r.level+1});
+if(nextR){r.ms.forEach(function(m,i){var w=mWinner(m);if(!nextR.ms[Math.floor(i/2)])return;var tgt=nextR.ms[Math.floor(i/2)];if(i%2===0)tgt.e1=w;else tgt.e2=w;
+if(w)notifEq(w.id,{round:nextR.nm,icon:c.icon},'equipe_qualif');});
+if(nextR.level===finaleLevel){var pet=c.rs.find(function(x){return x.type==='petite'});if(pet){var ls=r.ms.map(function(m){return mLoser(m)});pet.ms[0].e1=ls[0]||null;pet.ms[0].e2=ls[1]||null;ls.forEach(function(loser){if(loser)notifEq(loser.id,{},'equipe_loser')})}}
+resolveByesRound(nextR);}
+autoNotif('round_elim',{icon:c.icon,round:r.nm,next:nextR?nextR.nm:''},'all');}
+}catch(e){notify('⚠️ Erreur élim',e.message||String(e));}
+save();rElim();if(_isFinale)rRes();else rPlanningEditor();}
 function rFin(d){rElim()}
 function rRes(){const d=document.getElementById('resultats-content');if(!T){d.innerHTML='<div class="empty-state"><div class="icon">📊</div>Lancez le tournoi</div>';return}let h='';
 // Podium si terminé
