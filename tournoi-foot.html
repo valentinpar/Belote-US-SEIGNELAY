@@ -669,10 +669,23 @@ h+='</div>';
 // MATCHS ÉLIMINATOIRES
 if(T.el&&T.el.cups){
 var hasResults=T.el.cups.some(function(c){return c.rs.some(function(r){return r.ms.some(function(m){return m.j})})});
-if(hasResults){h+='<div class="card"><h2>🏆 Matchs éliminatoires</h2>';
-T.el.cups.forEach(function(c){var cupHas=c.rs.some(function(r){return r.ms.some(function(m){return m.j})});if(!cupHas)return;h+='<div style="margin:.2rem 0 .5rem;font-weight:800;color:var(--or);font-size:.95rem">'+c.icon+' '+c.nom+'</div>';
-c.rs.forEach(function(r){var joues=r.ms.filter(function(m){return m.j&&(m.e1||m.e2)});if(!joues.length)return;h+='<div style="margin-bottom:.6rem"><div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem"><span class="phase-tag '+r.tg+'">'+r.nm+'</span>'+(r.ok?' ✅':'')+'</div>';
-joues.forEach(function(m){if(m.bye){if(!m.e1&&!m.e2)return;h+='<div style="background:var(--gris-fonce);padding:.35rem .7rem;border-radius:4px;margin-bottom:.15rem;font-size:.8rem;color:var(--vert-pale)">'+((m.e1||m.e2).nom)+' — qualifié d\'office</div>';return}var wn=mWinner(m),w1=wn&&m.e1&&wn.id===m.e1.id,w2=wn&&m.e2&&wn.id===m.e2.id,tab=(+m.s1===+m.s2&&hasTab(m))?'<div style="font-size:.66rem;color:#fcd34d;text-align:center">🥅 tab '+m.p1+'–'+m.p2+'</div>':'';h+='<div style="background:var(--gris-fonce);padding:.35rem .7rem;border-radius:4px;margin-bottom:.15rem"><div style="display:flex;justify-content:space-between;align-items:center;font-size:.82rem"><span style="flex:1;color:'+(w1?'var(--vert-pale)':'var(--muted)')+';font-weight:'+(w1?'700':'400')+'">'+(m.e1?m.e1.nom:'—')+'</span><span style="color:var(--or);font-weight:800;font-family:monospace;min-width:50px;text-align:center">'+m.s1+' — '+m.s2+'</span><span style="flex:1;text-align:right;color:'+(w2?'var(--vert-pale)':'var(--muted)')+';font-weight:'+(w2?'700':'400')+'">'+(m.e2?m.e2.nom:'—')+'</span></div>'+tab+'</div>'});h+='</div>'})});
+if(hasResults){h+='<div class="card"><h2>🏆 Résultats éliminatoires</h2>';
+T.el.cups.forEach(function(c){var cupHas=c.rs.some(function(r){return r.ms.some(function(m){return m.j})});if(!cupHas)return;
+h+='<div style="margin:.4rem 0 .6rem;font-weight:800;color:var(--or);font-size:.95rem">'+c.icon+' '+c.nom+'</div>';
+c.rs.forEach(function(r){var joues=r.ms.filter(function(m){return m.j&&(m.e1||m.e2)&&!m.bye});if(!joues.length)return;
+h+='<div style="margin-bottom:.5rem"><div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.25rem"><span class="phase-tag '+r.tg+'">'+r.nm+'</span>'+(r.ok?'<span style="color:var(--vert-pale);font-size:.7rem">✅</span>':'')+'</div>';
+joues.forEach(function(m){
+var wn=mWinner(m),w1=wn&&m.e1&&wn.id===m.e1.id,w2=wn&&m.e2&&wn.id===m.e2.id;
+var score=m.s1+' — '+m.s2;var tab=(+m.s1===+m.s2&&hasTab(m));
+h+='<div style="background:var(--gris-fonce);border-radius:6px;margin-bottom:.2rem;overflow:hidden">';
+h+='<div style="display:flex;justify-content:space-between;align-items:center;padding:.35rem .7rem;font-size:.85rem">';
+h+='<span style="flex:1;color:'+(w1?'var(--vert-pale)':'var(--muted)')+';font-weight:'+(w1?'700':'400')+'">'+(w1?'🏅 ':'')+( m.e1?m.e1.nom:'—')+'</span>';
+h+='<span style="color:var(--or);font-weight:800;font-family:monospace;min-width:55px;text-align:center">'+score+'</span>';
+h+='<span style="flex:1;text-align:right;color:'+(w2?'var(--vert-pale)':'var(--muted)')+';font-weight:'+(w2?'700':'400')+'">'+(m.e2?m.e2.nom:'—')+(w2?' 🏅':'')+'</span>';
+h+='</div>';
+if(tab)h+='<div style="font-size:.7rem;color:#fcd34d;text-align:center;padding:.15rem;background:rgba(252,211,77,.08);border-top:1px dashed rgba(252,211,77,.2)">🥅 Tirs au but : '+m.p1+' – '+m.p2+'</div>';
+h+='</div>'});
+h+='</div>'});h+='<div style="height:.3rem"></div>'});
 h+='</div>'}}
 d.innerHTML=h}
 // ══════ QUESTION SECRÈTE ══════
@@ -690,7 +703,13 @@ function rTerrains(){const u=document.getElementById('liste-terrains');if(!terra
 rTerrains();
 
 // ══════ PLANNING ══════
-function getAllMatchs(){var ms=[];if(!T)return ms;T.ps.forEach(function(p){p.ms.forEach(function(m){var ti=T.tours?T.tours.findIndex(function(t){return t.poule===p.nm&&t.ms.some(function(x){return x.id===m.id})}):-1;ms.push({id:m.id,e1:m.e1.nom,e2:m.e2.nom,e1id:m.e1.id,e2id:m.e2.id,ti:(ti>=0?ti:0),ok:m.ok||false,phase:'Poule '+p.nm,poule:p.nm,heure:m.heure||'',terrain:m.terrain||''})})});
+function getAllMatchs(){var ms=[];if(!T)return ms;T.ps.forEach(function(p){p.ms.forEach(function(m){
+// Trouver le match dans T.tours pour récupérer heure/terrain
+var tourMatch=null;if(T.tours){T.tours.some(function(t){if(t.poule!==p.nm)return false;var found=t.ms.find(function(x){return x.id===m.id});if(found){tourMatch=found;return true;}return false;});}
+var ti=T.tours?T.tours.findIndex(function(t){return t.poule===p.nm&&t.ms.some(function(x){return x.id===m.id})}):-1;
+var h=(tourMatch&&tourMatch.heure)||m.heure||'';
+var tr=(tourMatch&&tourMatch.terrain)||m.terrain||'';
+ms.push({id:m.id,e1:m.e1.nom,e2:m.e2.nom,e1id:m.e1.id,e2id:m.e2.id,ti:(ti>=0?ti:0),ok:m.ok||false,phase:'Poule '+p.nm,poule:p.nm,heure:h,terrain:tr})})});
 // Elim slots (pré-planifiés)
 if(T.elimSlots){T.elimSlots.forEach(function(s){if(s.bye)return;
 var realMatch=findMatch(s.id);
