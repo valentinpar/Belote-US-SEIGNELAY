@@ -383,22 +383,29 @@ var arb=_arbMap[m.id]||null;
 if(!arb){buildArbMap();arb=_arbMap[m.id]||null;}
 var tourLabel='Tour '+numTour+' · Poule '+tour.poule;
 var matchLabel=m.e1.nom+' vs '+m.e2.nom+(arb?' · 🟨 '+arb.nom:'')+heure+terrain;
-// Notif match - un broadcast combiné e1+e2
-var tmplM=notifTemplates.equipe_match||{title:'{tour} · Poule {poule}',body:'⚽ {equipe} vs {adversaire}{heure}{terrain}'};
+// Notification match pour les équipes qui jouent
+var tmplM=notifTemplates.equipe_match||{title:'{tour}',body:'⚽ {equipe} vs {adversaire}{heure}{terrain}'};
 var titM=fillT(tmplM.title,{tour:tourLabel,poule:tour.poule,equipe:m.e1.nom,adversaire:m.e2.nom,heure:heure,terrain:terrain});
 var bodM=fillT(tmplM.body,{tour:tourLabel,poule:tour.poule,equipe:m.e1.nom,adversaire:m.e2.nom,heure:heure,terrain:terrain});
 if(notifTeams[m.e1.id]||notifTeams[m.e2.id])notify(titM,bodM);
-queuePush(titM,bodM,m.e1.id);queuePush(titM,bodM,m.e2.id);
-if(fbOk&&db){var _bt1=Date.now()+(++_bcCounter);db.ref('foot_broadcast').set({title:titM,body:bodM,target:m.e1.id+','+m.e2.id,ts:_bt1});}
-// Notif arbitre - broadcast séparé
+queuePush(titM,bodM,m.e1.id);
+queuePush(titM,bodM,m.e2.id);
+// Notification arbitre
 if(arb&&notifSettings.arbitre_match!==false){
-var tmplArb=notifTemplates.arbitre_match||{title:'🟨 Tu arbitres · {tour} · Poule {poule}',body:'{e1} vs {e2}{heure}{terrain}'};
+var tmplArb=notifTemplates.arbitre_match||{title:'🟨 Tu arbitres · Tour {tour} · Poule {poule}',body:'{e1} vs {e2}{heure}{terrain}'};
 var titA=fillT(tmplArb.title,{tour:'Tour '+numTour,poule:tour.poule,e1:m.e1.nom,e2:m.e2.nom,heure:heure,terrain:terrain});
 var bodA=fillT(tmplArb.body,{tour:'Tour '+numTour,poule:tour.poule,e1:m.e1.nom,e2:m.e2.nom,heure:heure,terrain:terrain});
-queuePush(titA,bodA,arb.id);
 if(notifTeams[arb.id])notify(titA,bodA);
-setTimeout(function(){if(fbOk&&db){var _bt2=Date.now()+(++_bcCounter);db.ref('foot_broadcast').set({title:titA,body:bodA,target:arb.id,ts:_bt2});}},100);
+queuePush(titA,bodA,arb.id);
 logNotif(titA,bodA,arb.id,'auto');}
+// Broadcast Firebase pour les équipes qui jouent
+if(fbOk&&db){
+var _bt1=Date.now()+(++_bcCounter);
+db.ref('foot_broadcast').set({title:titM,body:bodM,target:m.e1.id+','+m.e2.id,ts:_bt1});}
+// Broadcast Firebase pour l'arbitre sur un chemin SÉPARÉ (évite l'écrasement)
+if(arb&&notifSettings.arbitre_match!==false&&fbOk&&db){
+var _bt2=Date.now()+(++_bcCounter);
+db.ref('foot_broadcast_arb').set({title:titA,body:bodA,target:arb.id,ts:_bt2});}
 logNotif(tourLabel,matchLabel,'all','manual')}
 
 function notifyMatchSuivant(currentM,currentTour){
@@ -826,6 +833,7 @@ if(_myTokenKey){db.ref('foot_token_reset/'+_myTokenKey).on('value',function(snap
 // Listener buvette (sync temps réel entre appareils)
 db.ref('foot_buvette').on('value',function(snap){var d=snap.val();if(!d)return;buvette=Array.isArray(d)?d:Object.values(d);localStorage.setItem('foot_buvette',JSON.stringify(buvette));var sec=document.querySelector('#sec-buvette.active');if(sec)rBuvette()});
 var _lastBroadcastTs=Date.now();var _lastNotifWriteTs=0;var _bcCounter=0;
+var _lastArbTs=Date.now();
 db.ref('foot_broadcast').on('value',function(snap){var d=snap.val();if(!d||!d.ts)return;if(d.ts<=_lastBroadcastTs)return;_lastBroadcastTs=d.ts;if(d.ts===_lastNotifWriteTs)return;if(Date.now()-d.ts>30000)return;
 var target=d.target||'all';
 var ok=false;
@@ -833,6 +841,9 @@ if(target==='all'||target==='tournoi'){ok=Object.values(notifTeams).some(functio
 else if(target.indexOf(',')>=0){var ids=target.split(',');ok=ids.some(function(id){return !!notifTeams[id.trim()];});}
 else{ok=!!notifTeams[target];}
 if(ok)notify(d.title||'📢 Annonce',d.body||'');});
+// Listener séparé pour les notifications d'arbitrage
+db.ref('foot_broadcast_arb').on('value',function(snap){var d=snap.val();if(!d||!d.ts)return;if(d.ts<=_lastArbTs)return;_lastArbTs=d.ts;if(Date.now()-d.ts>30000)return;
+if(notifTeams[d.target])notify(d.title||'🟨 Arbitrage',d.body||'');});
 }catch(e){document.getElementById('bandeau-firebase').style.display='flex';loadLocal();rEq()}}
 function saveLocal(){localStorage.setItem('foot_E',JSON.stringify(E));localStorage.setItem('foot_C',JSON.stringify(C));localStorage.setItem('foot_T',JSON.stringify(T));localStorage.setItem('foot_terrains',JSON.stringify(terrains))}
 var _sPending=0;
