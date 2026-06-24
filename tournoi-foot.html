@@ -896,12 +896,13 @@ notify('✅ Horaires appliqués','Départ '+heure);
 rPlanningEditor();checkConflits();}
 
 
-function rPlanning(){var d=document.getElementById('planning-content');if(!T)loadLocal();if(!T){d.innerHTML='<div class="empty-state"><div class="icon">🗓️</div>Le planning apparaît après le lancement du tournoi</div>';return}var ms=getAllMatchs();if(!ms.length){d.innerHTML='<div class="empty-state"><div class="icon">🗓️</div>Aucun match</div>';return}
+function rPlanning(){var d=document.getElementById('planning-content');if(!T)loadLocal();if(!T){d.innerHTML='<div class="empty-state"><div class="icon">🗓️</div>Le planning apparaît après le lancement du tournoi</div>';return}
+try{
+var ms=getAllMatchs();if(!ms.length){d.innerHTML='<div class="empty-state"><div class="icon">🗓️</div>Aucun match (T.ps:'+( T.ps?T.ps.length:'null')+')</div>';return}
 var poolMs=ms.filter(function(m){return!m.isSlot});var elimMs=ms.filter(function(m){return m.isSlot});
 var anyPlanned=ms.some(function(m){return m.heure||m.terrain});
 if(!anyPlanned){
-// Montrer quand même tous les matchs sans horaire
-var h='<div class="card"><h2>🗓️ Planning des matchs</h2><div class="alert alert-info">Horaires non encore définis — tous les matchs :</div>';
+var h='<div class="card"><h2>🗓️ Planning des matchs</h2><div class="alert alert-info">'+poolMs.length+' matchs de poule · '+(elimMs.length)+' matchs élim</div>';
 poolMs.forEach(function(m){h+='<div style="display:flex;justify-content:space-between;background:var(--gris-fonce);padding:.3rem .7rem;border-radius:4px;margin-bottom:.15rem;font-size:.82rem"><span>'+m.e1+'</span><span style="color:var(--muted)">VS</span><span>'+m.e2+'</span></div>'});
 h+='</div>';d.innerHTML=h;return;}
 var h=renderConflitAlert();
@@ -940,7 +941,8 @@ if(unplanned.length){unplanned.forEach(function(m){var isKnown=m.e1.indexOf('⏳
 h+='<div style="display:flex;justify-content:space-between;align-items:center;background:var(--gris-fonce);padding:.3rem .6rem;border-radius:4px;margin-bottom:.1rem;font-size:.78rem;color:var(--muted);border-left:3px solid '+(tg==='phase-quarts'?'var(--or)':tg==='phase-demis'?'var(--rouge-clair)':tg==='phase-petite'?'#94a3b8':'var(--or)')+'"><span>'+m.label+'</span><span>'+(isKnown?m.e1+' vs '+m.e2:'⏳ à déterminer')+'</span></div>'})}
 h+='</div>'});
 h+='</div>'}
-d.innerHTML=h}
+d.innerHTML=h
+}catch(err){d.innerHTML='<div class="card"><h2>🗓️ Planning</h2><div class="alert alert-warning">Erreur : '+err.message+'</div></div>';notify('❌ rPlanning',err.message);}}
 function renderReglement(){const d=document.getElementById('regl-display');if(!d)return;if(!reglementTexte.trim()){d.textContent='Aucun règlement n\'a encore été défini par l\'organisateur.';d.classList.add('empty')}else{d.textContent=reglementTexte;d.classList.remove('empty')}}
 function ouvrirEditionReglement(){const ta=document.getElementById('regl-textarea');ta.value=reglementTexte;document.getElementById('regl-editor').style.display='block';document.getElementById('regl-saved-hint').textContent='';ta.focus()}
 function annulerEditionReglement(){document.getElementById('regl-editor').style.display='none'}
