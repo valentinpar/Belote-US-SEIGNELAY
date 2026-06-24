@@ -847,7 +847,19 @@ if(notifTeams[d.target])notify(d.title||'🟨 Arbitrage',d.body||'');});
 }catch(e){document.getElementById('bandeau-firebase').style.display='flex';loadLocal();rEq()}}
 function saveLocal(){localStorage.setItem('foot_E',JSON.stringify(E));localStorage.setItem('foot_C',JSON.stringify(C));localStorage.setItem('foot_T',JSON.stringify(T));localStorage.setItem('foot_terrains',JSON.stringify(terrains))}
 var _sPending=0;
-function saveFB(){if(!fbOk||!db)return;_sPending++;_s=true;db.ref('foot').set({E,C,T,mdp,terrains,qSec,rSec,historique,reglement:reglementTexte}).then(function(){_sPending--;if(_sPending<=0){_sPending=0;setTimeout(function(){_s=false},300);}}).catch(function(err){notify('❌ Erreur Firebase','Save échoué: '+(err&&err.message||String(err)));_sPending--;if(_sPending<=0){_sPending=0;_s=false}})}
+function saveFB(){
+if(!fbOk||!db)return;
+_s=true;
+clearTimeout(window._sTimer);
+window._sTimer=setTimeout(function(){_s=false;},2000);
+db.ref('foot').set({E,C,T,mdp,terrains,qSec,rSec,historique,reglement:reglementTexte}).then(function(){
+clearTimeout(window._sTimer);
+window._sTimer=setTimeout(function(){_s=false;},500);
+}).catch(function(err){
+notify('❌ Erreur save',err&&err.message?err.message:'Firebase write error');
+clearTimeout(window._sTimer);
+_s=false;
+})}
 function save(){saveLocal();saveFB()}
 function loadLocal(){try{const e=localStorage.getItem('foot_E'),c=localStorage.getItem('foot_C'),t=localStorage.getItem('foot_T');if(e)E=JSON.parse(e);if(c)C=JSON.parse(c);if(t)T=JSON.parse(t)}catch(e){}}
 
