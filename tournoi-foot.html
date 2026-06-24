@@ -918,7 +918,7 @@ pPlanned.sort(function(a,b){if(!a.heure)return 1;if(!b.heure)return-1;return a.h
 pPlanned.forEach(function(m){
 var fakeM={e1:{id:m.e1id,nom:m.e1},e2:{id:m.e2id,nom:m.e2}};
 var fakeTour=T.tours&&T.tours[m.ti];
-var arbPlanning=getArbitre(fakeM,fakeTour,null);
+var arbPlanning=_arbMap&&_arbMap[m.id]||null;
 h+='<div class="planning-pub-row"><span class="pp-heure">'+(m.heure||'—')+'</span><span class="pp-eq">'+m.e1+'</span><span class="pp-vs">VS</span><span class="pp-eq" style="text-align:right">'+m.e2+'</span><span class="pp-terrain">🏟️ '+(m.terrain||'—')+'</span>'+(arbPlanning&&!m.ok?'<span style="font-size:.68rem;color:var(--or);margin-left:.3rem">🟨 '+arbPlanning.nom+'</span>':'')+'</div>'});
 if(pUnplanned.length){h+='<div style="margin-top:.3rem"><div style="color:var(--muted);font-size:.72rem;margin-bottom:.2rem">⏳ Horaire à définir :</div>';pUnplanned.forEach(function(m){h+='<div style="display:flex;justify-content:space-between;background:var(--gris-fonce);padding:.25rem .6rem;border-radius:4px;margin-bottom:.1rem;font-size:.78rem;color:var(--muted)"><span>'+m.e1+'</span><span style="font-size:.68rem">VS</span><span>'+m.e2+'</span></div>'});h+='</div>'}
 h+='</div>'});
