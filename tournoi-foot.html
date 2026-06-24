@@ -383,7 +383,9 @@ var numTour=slotNum||tour.num;
 // Si absent, reconstruire _arbMap
 var arb=_arbMap[m.id]||null;
 if(!arb){buildArbMap();arb=_arbMap[m.id]||null;}
-notify('🔍 Debug arbitre',arb?'Arbitre: '+arb.nom+' (id:'+arb.id+')':'⚠️ Aucun arbitre trouvé pour '+m.id);
+notify('🔍 Debug arbitre',arb?'Arbitre: '+arb.nom+' | notifTeams[arb]='+notifTeams[arb.id]+' | abonnés: '+Object.keys(notifTeams).filter(function(k){return notifTeams[k]}).length:'⚠️ Pas d\'arbitre');
+// Forcer la notif arbitre directement (sans vérification)
+if(arb){notify('🟨 Tu arbitres','(test direct) '+m.e1.nom+' vs '+m.e2.nom);}
 var tourLabel='Tour '+numTour+' · Poule '+tour.poule;
 var matchLabel=m.e1.nom+' vs '+m.e2.nom+(arb?' · 🟨 '+arb.nom:'')+heure+terrain;
 // Notif match - un broadcast combiné e1+e2
