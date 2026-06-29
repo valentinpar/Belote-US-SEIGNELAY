@@ -974,20 +974,7 @@ db.ref('foot_broadcast_arb').on('value',function(snap){var d=snap.val();if(!d||!
 if(notifTeams[d.target])notify(d.title||'🟨 Arbitrage',d.body||'');});
 }catch(e){document.getElementById('bandeau-firebase').style.display='flex';loadLocal();rEq()}}
 function saveLocal(){localStorage.setItem('foot_E',JSON.stringify(E));localStorage.setItem('foot_C',JSON.stringify(C));localStorage.setItem('foot_T',JSON.stringify(T));localStorage.setItem('foot_terrains',JSON.stringify(terrains))}
-var _sPending=0;
-function saveFB(){
-if(!fbOk||!db){notify('⚠️ Firebase non prêt','fbOk='+fbOk+' db='+(db?'ok':'null'));return;}
-_s=true;
-clearTimeout(window._sRT);
-db.ref('foot').set({E,C,T,mdp,terrains,qSec,rSec,historique,reglement:reglementTexte})
-.then(function(){
-clearTimeout(window._sRT);
-window._sRT=setTimeout(function(){_s=false;},500);
-}).catch(function(err){
-clearTimeout(window._sRT);
-_s=false;
-notify('❌ Erreur Firebase save',err&&err.message?err.message:String(err));
-});}
+function saveFB(){if(!fbOk||!db)return;_s=true;db.ref('foot').set({E,C,T,mdp,terrains,qSec,rSec,historique,reglement:reglementTexte}).then(()=>setTimeout(()=>_s=false,1e3)).catch((err)=>{_s=false;notify('❌ Firebase',err&&err.message?err.message:'write error');})}
 function save(){saveLocal();saveFB()}
 function loadLocal(){try{const e=localStorage.getItem('foot_E'),c=localStorage.getItem('foot_C'),t=localStorage.getItem('foot_T');if(e)E=JSON.parse(e);if(c)C=JSON.parse(c);if(t)T=JSON.parse(t)}catch(e){}}
 
