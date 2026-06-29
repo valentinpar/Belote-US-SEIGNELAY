@@ -820,7 +820,7 @@ var ok=target==='all'||target==='tournoi'||!!notifTeams[target];
 if(ok)notify(d.title||'📢 Annonce',d.body||'');});
 }catch(e){document.getElementById('bandeau-firebase').style.display='flex';loadLocal();rEq()}}
 function saveLocal(){localStorage.setItem('foot_E',JSON.stringify(E));localStorage.setItem('foot_C',JSON.stringify(C));localStorage.setItem('foot_T',JSON.stringify(T));localStorage.setItem('foot_terrains',JSON.stringify(terrains))}
-function saveFB(){if(!fbOk||!db)return;_s=true;db.ref('foot').set({E,C,T,mdp,terrains,qSec,rSec,historique,reglement:reglementTexte}).then(()=>setTimeout(()=>_s=false,1e3)).catch(()=>_s=false)}
+function saveFB(){if(!fbOk||!db)return;_s=true;db.ref('foot').set({E,C,T,mdp,terrains,qSec,rSec,historique,reglement:reglementTexte}).then(()=>setTimeout(()=>_s=false,1e3)).catch((err)=>{_s=false;notify('🔴 Erreur save foot',err&&err.message?err.message:'permission denied?');})}
 function save(){saveLocal();saveFB()}
 function loadLocal(){try{const e=localStorage.getItem('foot_E'),c=localStorage.getItem('foot_C'),t=localStorage.getItem('foot_T');if(e)E=JSON.parse(e);if(c)C=JSON.parse(c);if(t)T=JSON.parse(t)}catch(e){}}
 
@@ -901,6 +901,11 @@ if(localStorage.getItem('foot_session')==='1'){deb=true;['tab-equipes','tab-setu
 setTimeout(function(){
 if(!fbOk||!db){notify('🔴 Firebase non initialisé','Vérifiez la connexion');return;}
 var testRef=db.ref('_test_write');
+// Test aussi sur le chemin foot
+db.ref('foot').once('value').then(function(snap){
+  var d=snap.val();
+  notify('📊 Lecture foot', d?'Données trouvées (E:'+JSON.stringify(d.E?d.E.length:'?')+')':'Aucune donnée sur foot');
+}).catch(function(e){notify('🔴 Lecture foot impossible',e.message);});
 testRef.set({ts:Date.now(),ok:true})
 .then(function(){notify('🟢 Firebase OK','Écriture réussie - la sync fonctionne');testRef.remove();})
 .catch(function(e){notify('🔴 Firebase ERREUR écriture',e.message||String(e));});
