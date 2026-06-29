@@ -954,6 +954,19 @@ function initFB(){try{firebase.initializeApp(fCfg);db=firebase.database();fbOk=t
 // Listener reset abonnements global
 var _notifResetTs=parseInt(localStorage.getItem('foot_notif_reset_ts')||'0');
 db.ref('foot_notif_reset').on('value',function(snap){var d=snap.val();if(!d||!d.ts)return;if(d.ts>_notifResetTs){_notifResetTs=d.ts;localStorage.setItem('foot_notif_reset_ts',d.ts);_resetNotifLocal();notify('🔕 Notifications réinitialisées','Vos abonnements ont été réinitialisés par l\'organisateur.')}});
+// Listener de sync : quand l'admin sauvegarde, relire tout Firebase
+var _lastSyncTs=0;
+db.ref('foot_sync').on('value',function(snap){var ts=snap.val();if(!ts||ts<=_lastSyncTs)return;_lastSyncTs=ts;if(_s)return;
+db.ref('foot').once('value').then(function(s){var d=s.val();if(!d)return;
+if(Array.isArray(d.E))E=d.E;else if(d.E)E=Object.values(d.E);
+if(d.C)C=d.C;if(d.T)T=d.T;if(d.mdp)mdp=d.mdp;if(d.terrains)terrains=d.terrains;
+if(d.qSec)qSec=d.qSec;if(d.rSec)rSec=d.rSec;
+if(d.historique)historique=Array.isArray(d.historique)?d.historique:Object.values(d.historique);
+if(d.reglement!==undefined)reglementTexte=d.reglement;
+saveLocal();rEq();rTerrains();
+var ac=document.querySelector('.section.active');if(ac){var n=ac.id.replace('sec-','');
+if(n==='resultats')rRes();if(n==='poules')rPoules();if(n==='elim')rElim();
+if(n==='planning')rPlanning();if(n==='setup')rPlanningEditor();}});});
 // Listener reset individuel (quand admin désabonne cet appareil)
 var _myTokenKey=localStorage.getItem('foot_fcm_key')||null;
 if(_myTokenKey){db.ref('foot_token_reset/'+_myTokenKey).on('value',function(snap){if(snap.val()){_resetNotifLocal();db.ref('foot_token_reset/'+_myTokenKey).remove();notify('🔕 Désabonné','L\'organisateur vous a retiré des notifications.')}})}
@@ -986,7 +999,11 @@ db.ref('foot/rSec').set(rSec||''),
 db.ref('foot/historique').set(historique||[]),
 db.ref('foot/reglement').set(reglementTexte||'')
 ];
-Promise.all(saves).then(function(){setTimeout(function(){_s=false},500);}).catch(function(err){_s=false;notify('❌ Firebase save',err&&err.message?err.message:String(err));});}function save(){saveLocal();saveFB()}
+Promise.all(saves).then(function(){
+_s=false;
+// Déclencher manuellement le listener pour mettre à jour les autres clients
+db.ref('foot_sync').set(Date.now());
+}).catch(function(err){_s=false;notify('❌ Firebase save',err&&err.message?err.message:String(err));});}function save(){saveLocal();saveFB()}
 function loadLocal(){try{const e=localStorage.getItem('foot_E'),c=localStorage.getItem('foot_C'),t=localStorage.getItem('foot_T');if(e)E=JSON.parse(e);if(c)C=JSON.parse(c);if(t)T=JSON.parse(t)}catch(e){}}
 
 // ── FCM Push Notifications ──
