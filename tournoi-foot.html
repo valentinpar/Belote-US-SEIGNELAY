@@ -117,8 +117,6 @@ function goTab(n,b){document.querySelectorAll('.tab').forEach(t=>t.classList.rem
 const NE=['FC Seignelay','AS Auxerre B','US Chablis','RC Migennes','ES Joigny','FC Tonnerre','AS Avallon','SC Sens','US Toucy','RC Vermenton','FC Pont','AS Charny','US Aillant','ES Villeneuve','RC Bléneau','AS Courson'],CO=['Martin','Dupont','Lefebvre','Moreau','Bernard','Thomas','Petit','Robert','Durand','Simon','Laurent','Michel','Garcia','Roux'];
 function uid(){return'eq_'+Date.now()+'_'+Math.floor(Math.random()*1e4)}
 function addEquipe(){const n=document.getElementById('inp-nom').value.trim(),r=document.getElementById('inp-resp').value.trim(),a=document.getElementById('alert-eq');if(!n){flash(a,'warning','⚠️ Nom requis.');return}if(E.find(e=>e.nom.toLowerCase()===n.toLowerCase())){flash(a,'warning','⚠️ Existe déjà.');return}E.push({id:uid(),nom:n,resp:r});document.getElementById('inp-nom').value='';document.getElementById('inp-resp').value='';flash(a,'success','✅ '+n+' (E='+E.length+')');rEq();
-notify('💾 Sauvegarde équipe','E='+E.length+' → Firebase');
-db.ref('foot/E').set(E).then(function(){notify('✅ E sauvé!',''+E.length+' équipe(s) dans Firebase');}).catch(function(err){notify('🔴 ERREUR save E',err.message||String(err));});
 save();}
 function delEquipe(id){E=E.filter(e=>e.id!==id);rEq();save()}
 function clearEq(){cConfirm('Effacer toutes les équipes ?','🗑️').then(function(ok){if(ok){E=[];rEq();save()}})}
@@ -823,7 +821,18 @@ var ok=target==='all'||target==='tournoi'||!!notifTeams[target];
 if(ok)notify(d.title||'📢 Annonce',d.body||'');});
 }catch(e){document.getElementById('bandeau-firebase').style.display='flex';loadLocal();rEq()}}
 function saveLocal(){localStorage.setItem('foot_E',JSON.stringify(E));localStorage.setItem('foot_C',JSON.stringify(C));localStorage.setItem('foot_T',JSON.stringify(T));localStorage.setItem('foot_terrains',JSON.stringify(terrains))}
-function saveFB(){if(!fbOk||!db)return;_s=true;db.ref('foot').set({E,C,T,mdp,terrains,qSec,rSec,historique,reglement:reglementTexte}).then(()=>setTimeout(()=>_s=false,1e3)).catch((err)=>{_s=false;notify('🔴 Erreur save foot',err&&err.message?err.message:'permission denied?');})}
+function saveFB(){if(!fbOk||!db)return;_s=true;
+// Sauvegarder par chemins séparés pour contourner les limites
+var saves=[
+  db.ref('foot/E').set(E||[]),
+  db.ref('foot/C').set(C||{}),
+  db.ref('foot/T').set(T||null),
+  db.ref('foot/mdp').set(mdp||''),
+  db.ref('foot/terrains').set(terrains||2),
+  db.ref('foot/qSec').set(qSec||''),
+  db.ref('foot/rSec').set(rSec||'')
+];
+Promise.all(saves).then(function(){setTimeout(function(){_s=false},500);}).catch(function(err){_s=false;notify('🔴 Firebase save',err&&err.message?err.message:String(err));});}
 function save(){saveLocal();saveFB()}
 function loadLocal(){try{const e=localStorage.getItem('foot_E'),c=localStorage.getItem('foot_C'),t=localStorage.getItem('foot_T');if(e)E=JSON.parse(e);if(c)C=JSON.parse(c);if(t)T=JSON.parse(t)}catch(e){}}
 
