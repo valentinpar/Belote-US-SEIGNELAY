@@ -976,24 +976,18 @@ if(notifTeams[d.target])notify(d.title||'🟨 Arbitrage',d.body||'');});
 function saveLocal(){localStorage.setItem('foot_E',JSON.stringify(E));localStorage.setItem('foot_C',JSON.stringify(C));localStorage.setItem('foot_T',JSON.stringify(T));localStorage.setItem('foot_terrains',JSON.stringify(terrains))}
 var _sPending=0;
 function saveFB(){
-if(!fbOk||!db)return;
-_sPending++;_s=true;
-clearTimeout(window._sRelease);
+if(!fbOk||!db){notify('⚠️ Firebase non prêt','fbOk='+fbOk+' db='+(db?'ok':'null'));return;}
+_s=true;
+clearTimeout(window._sRT);
 db.ref('foot').set({E,C,T,mdp,terrains,qSec,rSec,historique,reglement:reglementTexte})
 .then(function(){
-_sPending=Math.max(0,_sPending-1);
-clearTimeout(window._sRelease);
-window._sRelease=setTimeout(function(){_s=false;},500);
+clearTimeout(window._sRT);
+window._sRT=setTimeout(function(){_s=false;},500);
 }).catch(function(err){
-_sPending=0;
-clearTimeout(window._sRelease);
+clearTimeout(window._sRT);
 _s=false;
-notify('❌ Erreur save',err&&err.message?err.message:'Firebase error');
-});
-// Sécurité : forcer _s=false après 5 secondes max
-clearTimeout(window._sTimeout);
-window._sTimeout=setTimeout(function(){_sPending=0;_s=false;},5000);
-}
+notify('❌ Erreur Firebase save',err&&err.message?err.message:String(err));
+});}
 function save(){saveLocal();saveFB()}
 function loadLocal(){try{const e=localStorage.getItem('foot_E'),c=localStorage.getItem('foot_C'),t=localStorage.getItem('foot_T');if(e)E=JSON.parse(e);if(c)C=JSON.parse(c);if(t)T=JSON.parse(t)}catch(e){}}
 
