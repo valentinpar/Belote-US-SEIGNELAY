@@ -978,15 +978,22 @@ var _sPending=0;
 function saveFB(){
 if(!fbOk||!db)return;
 _sPending++;_s=true;
+clearTimeout(window._sRelease);
 db.ref('foot').set({E,C,T,mdp,terrains,qSec,rSec,historique,reglement:reglementTexte})
 .then(function(){
 _sPending=Math.max(0,_sPending-1);
-if(_sPending===0)setTimeout(function(){if(_sPending===0)_s=false;},400);
+clearTimeout(window._sRelease);
+window._sRelease=setTimeout(function(){_s=false;},500);
 }).catch(function(err){
-_sPending=Math.max(0,_sPending-1);
-if(_sPending===0)_s=false;
-notify('❌ Erreur save',err&&err.message?err.message:'write error');
-})}
+_sPending=0;
+clearTimeout(window._sRelease);
+_s=false;
+notify('❌ Erreur save',err&&err.message?err.message:'Firebase error');
+});
+// Sécurité : forcer _s=false après 5 secondes max
+clearTimeout(window._sTimeout);
+window._sTimeout=setTimeout(function(){_sPending=0;_s=false;},5000);
+}
 function save(){saveLocal();saveFB()}
 function loadLocal(){try{const e=localStorage.getItem('foot_E'),c=localStorage.getItem('foot_C'),t=localStorage.getItem('foot_T');if(e)E=JSON.parse(e);if(c)C=JSON.parse(c);if(t)T=JSON.parse(t)}catch(e){}}
 
