@@ -896,6 +896,16 @@ function hideFCMBanner(){
 localStorage.setItem('foot_fcm_asked','1');
 var b=document.getElementById('fcm-banner-prompt');if(b)b.remove()}
 if(localStorage.getItem('foot_session')==='1'){deb=true;['tab-equipes','tab-setup','tab-poules','tab-elim','tab-notifs'].forEach(t=>document.getElementById(t).classList.add('visible'));document.getElementById('btn-orga').style.display='none';document.getElementById('btn-lock').style.display='block';document.getElementById('regl-btn-edit-wrap').style.display=''}
+
+// TEST FIREBASE au chargement
+setTimeout(function(){
+if(!fbOk||!db){notify('🔴 Firebase non initialisé','Vérifiez la connexion');return;}
+var testRef=db.ref('_test_write');
+testRef.set({ts:Date.now(),ok:true})
+.then(function(){notify('🟢 Firebase OK','Écriture réussie - la sync fonctionne');testRef.remove();})
+.catch(function(e){notify('🔴 Firebase ERREUR écriture',e.message||String(e));});
+},2000);
+
 initFB();if(T)rRes();renderReglement();rNotifBtn();
 // Auto-register FCM + charger settings
 setTimeout(function(){
