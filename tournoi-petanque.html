@@ -40,9 +40,6 @@
   footer{text-align:center;padding:.8rem;color:#6a5a3a;font-size:.72rem;border-top:1px solid var(--gris);margin-top:1rem}
   .tour-tag{display:inline-block;padding:.15rem .5rem;border-radius:12px;font-size:.68rem;font-weight:700;text-transform:uppercase;background:rgba(139,105,20,.2);color:var(--ocre-clair);border:1px solid rgba(139,105,20,.4)}
   .subtabs{display:flex;gap:2px;margin-bottom:1rem;background:var(--noir);border-radius:8px;overflow:hidden;border:1px solid var(--gris-moyen);position:sticky;top:0;z-index:5}.subtab{flex:1;padding:.7rem .4rem;background:var(--gris);color:var(--muted);border:none;font-family:inherit;font-size:.8rem;font-weight:700;letter-spacing:.02em;text-transform:uppercase;cursor:pointer;transition:all .2s}.subtab:hover{background:var(--gris-moyen);color:var(--txt)}.subtab.active{background:var(--ocre-fonce);color:var(--sable);box-shadow:inset 0 -3px 0 var(--or)}
-  .planning-edit-row{display:grid;grid-template-columns:1fr 50px 1fr 90px auto;gap:.35rem;align-items:center;background:var(--gris-fonce);border:1px solid var(--gris-moyen);border-radius:6px;padding:.45rem .6rem;margin-bottom:.35rem;font-size:.8rem}
-  .planning-pub-row{display:grid;grid-template-columns:55px 1fr 40px 1fr 1fr;gap:.35rem;align-items:center;background:var(--gris-fonce);border:1px solid var(--gris-moyen);border-radius:6px;padding:.5rem .7rem;margin-bottom:.3rem;font-size:.82rem}.planning-pub-row:hover{border-color:rgba(212,160,23,.3)}.planning-pub-row .pp-heure{color:var(--or);font-weight:800;font-family:monospace;font-size:.88rem}.planning-pub-row .pp-eq{font-weight:600}.planning-pub-row .pp-vs{color:var(--or);font-weight:900;font-size:.68rem;text-align:center}.planning-pub-row .pp-terrain{color:var(--ocre-clair);font-size:.76rem;text-align:right}
-  @media(max-width:600px){.planning-pub-row{grid-template-columns:50px 1fr 30px 1fr;font-size:.76rem}.planning-pub-row .pp-terrain{grid-column:1/-1;text-align:left}.planning-edit-row{grid-template-columns:1fr 1fr;font-size:.74rem}}
   .regl-display{background:var(--gris-fonce);border:1px solid var(--gris-moyen);border-radius:6px;padding:1rem 1.2rem;min-height:100px;color:var(--txt);font-size:.88rem;line-height:1.75;white-space:pre-wrap;word-break:break-word}.regl-display.empty{color:#6a5a3a;font-style:italic}.regl-editor{display:none;margin-top:.8rem}.regl-editor textarea{width:100%;min-height:240px;background:var(--gris-fonce);border:1px solid var(--or);color:var(--txt);border-radius:6px;padding:.9rem;font-family:inherit;font-size:.88rem;line-height:1.7;resize:vertical}.regl-editor textarea:focus{outline:none;border-color:var(--ocre)}.regl-toolbar{display:flex;align-items:center;gap:.5rem;margin-top:.6rem;flex-wrap:wrap}.regl-hint{color:#6a5a3a;font-size:.76rem}
 </style>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -57,7 +54,7 @@
   <button class="tab" id="tab-setup" onclick="goTab('setup',this)">⚙️ Config</button>
   <button class="tab" id="tab-tours" onclick="goTab('tours',this)">🎯 Tours <span class="badge" id="badge-tour">1</span></button>
   <button class="tab visible active" id="tab-resultats" onclick="goTab('resultats',this)">📊 Résultats</button>
-  <button class="tab visible" id="tab-planning" onclick="goTab('planning',this)">🗓️ Planning</button>
+  <button class="tab visible" id="tab-gains" onclick="goTab('gains',this)">💰 Gains</button>
   <button class="tab visible" id="tab-reglement" onclick="goTab('reglement',this)">📋 Règlement</button>
   <button class="tab visible" id="tab-qr" onclick="goTab('qr',this)">📱 QR</button>
 </nav>
@@ -69,8 +66,6 @@
 <!-- CONFIG -->
 <section id="sec-setup" class="section">
 <div class="card"><h2>⚙️ Configuration du tournoi</h2><div class="setup-grid"><div><label>Format</label><select id="cfg-format"><option value="doublette">Doublettes (2 joueurs)</option><option value="triplette">Triplettes (3 joueurs)</option></select></div></div><div id="alert-setup"></div><div class="flex gap-1 wrap mt-1"><button class="btn btn-gold" onclick="startT()">🎱 Lancer le tournoi</button><button class="btn btn-danger btn-sm" onclick="resetT()">🔄 Reset</button></div></div>
-<div class="card"><h2>🏟️ Terrains</h2><div class="equipe-form" style="grid-template-columns:1fr auto"><div><label>Nom du terrain</label><input type="text" id="inp-terrain" placeholder="Ex: Terrain 1, Boulodrome…" onkeydown="if(event.key==='Enter')addTerrain()"></div><button class="btn btn-primary" onclick="addTerrain()">➕</button></div><div id="alert-terrain"></div><ul class="equipe-list" id="liste-terrains"></ul></div>
-<div class="card"><h2>🗓️ Gestion du planning</h2><p style="color:var(--muted);font-size:.8rem;margin-bottom:.7rem">Assignez heure et terrain à chaque match. Visible par tous dans l'onglet Planning.</p><div id="planning-editor"><div class="empty-state" style="padding:.6rem">Lancez le tournoi</div></div></div>
 <div class="card"><h2>❓ Question secrète de récupération</h2><p style="color:var(--muted);font-size:.8rem;margin-bottom:.7rem">En cas d'oubli du mot de passe, cette question permet de le réinitialiser.</p><div style="display:grid;grid-template-columns:1fr auto;gap:.6rem;align-items:end;margin-bottom:.5rem"><div><label>Question secrète</label><input type="text" id="cfg-question" placeholder="Ex: Nom de votre premier chien ?"></div><button class="btn btn-primary" onclick="sauverQuestion()">💾</button></div><div><label>Réponse secrète</label><input type="text" id="cfg-reponse" placeholder="Votre réponse (insensible à la casse)"></div><div id="alert-question" class="mt-1"></div></div>
 <div class="card"><h2>🔑 Mot de passe</h2><div class="pwd-row"><div><label>Nouveau</label><div class="pwd-wrap"><input type="password" id="new-pwd"><button class="pwd-eye" onclick="toggleEye('new-pwd')">👁</button></div></div><div><label>Confirmer</label><input type="password" id="new-pwd2" onkeydown="if(event.key==='Enter')chgMdp()"></div><button class="btn btn-primary" onclick="chgMdp()">💾</button></div><div id="alert-mdp" class="mt-1"></div></div>
 <div class="card"><h2>ℹ️ Règles du concours</h2><p style="color:var(--muted);line-height:1.6;font-size:.82rem"><strong style="color:var(--txt)">🎱 Principe :</strong> Toutes les équipes démarrent dans le groupe <strong style="color:var(--or)">A</strong>. Au tour 1, tirage au sort de tous les matchs : les gagnants restent en A, les perdants descendent en B.<br><br>Au tour 2, les équipes de A s'affrontent entre elles (tirage au sort) : gagnants restent en A, perdants descendent en B. Les équipes de B s'affrontent aussi entre elles : gagnants restent en B, perdants descendent en C.<br><br>À partir du tour 3, chaque groupe (A, B, C) joue son propre tableau à élimination directe jusqu'à une finale par groupe. Le perdant est éliminé — plus de descente.<br><br><strong style="color:var(--txt)">🏖️ Nombre impair :</strong> une équipe sans adversaire est exemptée et qualifiée d'office pour le tour suivant.</p></div>
@@ -80,13 +75,14 @@
 <!-- RÉSULTATS -->
 <section id="sec-resultats" class="section active"><div id="resultats-content"><div class="empty-state"><div class="icon">📊</div>Lancez le tournoi</div></div></section>
 <!-- PLANNING -->
-<section id="sec-planning" class="section"><div id="planning-content"><div class="empty-state"><div class="icon">🗓️</div>Lancez le tournoi</div></div></section>
+<section id="sec-gains" class="section"><div id="gains-content"></div></section>
 <section id="sec-reglement" class="section"><div class="card"><h2>📋 Règlement du tournoi</h2><div id="regl-display" class="regl-display empty">Aucun règlement n'a encore été défini par l'organisateur.</div><div id="regl-editor" class="regl-editor"><label style="margin-top:.8rem;display:block">✏️ Modifier le règlement</label><p style="color:var(--muted);font-size:.78rem;margin-bottom:.4rem">Rédigez librement le règlement. Les sauts de ligne sont conservés.</p><textarea id="regl-textarea" placeholder="Ex: Le tournoi se déroule en système suisse...&#10;&#10;1. Les équipes sont appariées par classement à chaque tour.&#10;2. La victoire se joue en 13 points.&#10;3. ..."></textarea><div class="regl-toolbar"><button class="btn btn-gold" onclick="sauverReglement()">💾 Enregistrer</button><button class="btn btn-ghost btn-sm" onclick="annulerEditionReglement()">✕ Annuler</button><span class="regl-hint" id="regl-saved-hint"></span></div></div><div id="regl-btn-edit-wrap" style="margin-top:.8rem;display:none"><button class="btn btn-primary btn-sm" onclick="ouvrirEditionReglement()">✏️ Modifier le règlement</button></div></div></section>
 <section id="sec-qr" class="section"><div class="card" style="text-align:center"><h2 style="justify-content:center">📱 QR Code du tournoi</h2><p style="color:var(--muted);font-size:.85rem;margin-bottom:1.2rem">Scannez pour accéder directement au tournoi</p><div id="qrcode" style="display:flex;justify-content:center;margin-bottom:1rem"></div><div style="font-family:monospace;font-size:.7rem;color:var(--muted);background:var(--gris-fonce);padding:.4rem .7rem;border-radius:6px;margin-bottom:1rem;word-break:break-all">valentinpar.github.io/Belote-US-SEIGNELAY/</div><button class="btn btn-primary" onclick="telechargerQR()">⬇ Télécharger le QR Code</button></div></section>
 </main>
 <footer>🎱 Tournoi de Pétanque — US Seignelay 🎱</footer>
 <script>
-let E=[],C={fmt:'doublette',nbT:4,scoreMax:13,pV:3,pD:1},T=null,terrains=[],mdp=localStorage.getItem('pet_mdp')||'1234',deb=false,eqCounter=0,groupeTab='A';
+let E=[],C={fmt:'doublette',nbT:4,scoreMax:13,pV:3,pD:1},T=null,mdp=localStorage.getItem('pet_mdp')||'1234',deb=false,eqCounter=0,groupeTab='A';
+let Gains={mise:10,club:0,suppl:0,pctA:55,pctB:35,pctC:10,wG:10,wF:6,wD:3,wQ:2,wH:1.3,w16:1,w32:.8,w64:.6,wCad:.5};
 let reglementTexte='';
 // AUTH
 function ouvrirLogin(){document.getElementById('pwd-input').value='';document.getElementById('pwd-error').textContent='';document.getElementById('modal-pwd').classList.add('open');setTimeout(()=>document.getElementById('pwd-input').focus(),50)}
@@ -96,7 +92,7 @@ function verrouiller(){deb=false;localStorage.removeItem('pet_session');['tab-eq
 function chgMdp(){const a=document.getElementById('new-pwd').value,b=document.getElementById('new-pwd2').value,d=document.getElementById('alert-mdp');if(!a){flash(d,'warning','⚠️ Vide.');return}if(a!==b){flash(d,'warning','⚠️ Différents.');return}mdp=a;localStorage.setItem('pet_mdp',mdp);saveFB();document.getElementById('new-pwd').value='';document.getElementById('new-pwd2').value='';flash(d,'success','✅ OK !')}
 function toggleEye(id){const i=document.getElementById(id);i.type=i.type==='password'?'text':'password'}
 // NAV
-function goTab(n,b){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));if(b)b.classList.add('active');document.getElementById('sec-'+n).classList.add('active');if(n==='resultats')rRes();if(n==='tours')rTour();if(n==='planning')rPlanning();if(n==='qr')setTimeout(initQR,50);if(n==='setup'){rTerrains();rPlanEditor()}if(n==='reglement')renderReglement();}
+function goTab(n,b){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));if(b)b.classList.add('active');document.getElementById('sec-'+n).classList.add('active');if(n==='resultats')rRes();if(n==='tours')rTour();if(n==='gains')rGains();if(n==='qr')setTimeout(initQR,50);if(n==='reglement')renderReglement();}
 // ÉQUIPES
 const JO=['Jean','Pierre','Marie','Luc','Sophie','Paul','Anna','Marc','Léa','Hugo','Emma','Tom','Nadia','Eric','Claire','Louis'];
 function uid(){return'eq_'+Date.now()+'_'+Math.floor(Math.random()*1e4)}
@@ -113,16 +109,12 @@ function ouvrirRecup(){fermerModal();if(!qSec){alert('Aucune question secrète d
 function fermerRecup(){document.getElementById('modal-recup').classList.remove('open')}
 function checkRecup(){const r=document.getElementById('recup-reponse').value.trim().toLowerCase();if(r===rSec){document.getElementById('recup-etape1').style.display='none';document.getElementById('recup-etape2').style.display='block';setTimeout(()=>document.getElementById('recup-new-pwd').focus(),50)}else{const e=document.getElementById('recup-error');e.textContent='❌ Réponse incorrecte';document.getElementById('recup-reponse').value='';setTimeout(()=>e.textContent='',2500)}}
 function sauverNouveauMdp(){const v1=document.getElementById('recup-new-pwd').value,v2=document.getElementById('recup-new-pwd2').value,e=document.getElementById('recup-error2');if(!v1){e.textContent='⚠️ Entrez un mot de passe.';return}if(v1!==v2){e.textContent='⚠️ Ne correspondent pas.';return}mdp=v1;localStorage.setItem('pet_mdp',mdp);saveFB();fermerRecup();deb=true;localStorage.setItem('pet_session','1');['tab-equipes','tab-setup','tab-tours'].forEach(t=>document.getElementById(t).classList.add('visible'));document.getElementById('btn-orga').style.display='none';document.getElementById('btn-lock').style.display='block';goTab('setup',document.getElementById('tab-setup'));setTimeout(()=>{const a=document.createElement('div');a.className='alert alert-success';a.textContent='✅ Mot de passe réinitialisé !';a.style.cssText='position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);z-index:9999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.4)';document.body.appendChild(a);setTimeout(()=>a.remove(),3e3)},200)}
-// TERRAINS
-function addTerrain(){const n=document.getElementById('inp-terrain').value.trim(),a=document.getElementById('alert-terrain');if(!n){flash(a,'warning','⚠️ Nom requis.');return}if(terrains.includes(n)){flash(a,'warning','⚠️ Existe déjà.');return}terrains.push(n);document.getElementById('inp-terrain').value='';flash(a,'success','✅ '+n);rTerrains();save()}
-function delTerrain(i){terrains.splice(i,1);rTerrains();save()}
-function rTerrains(){const u=document.getElementById('liste-terrains');if(!u)return;if(!terrains.length){u.innerHTML='<li class="text-muted" style="padding:.5rem;text-align:center">Aucun terrain</li>';return}u.innerHTML=terrains.map((t,i)=>'<li class="equipe-item"><span class="equipe-num">'+String.fromCharCode(65+i)+'</span><span class="equipe-name">'+t+'</span><button class="btn btn-danger btn-sm" onclick="delTerrain('+i+')">✕</button></li>').join('')}
 // TOURNOI — Concours A/B/C
 function startT(){const a=document.getElementById('alert-setup');if(E.length<4){flash(a,'warning','⚠️ Min 4 équipes.');return}
 C={fmt:document.getElementById('cfg-format').value};
 T={tour:1,phase:'brassage',r1:{ms:pairRandomP(E,'t1'),ok:false},r2:null,groupes:{A:null,B:null,C:null},fin:false};
 save();document.getElementById('badge-tour').textContent='1';flash(a,'success','✅ Concours lancé ! '+E.length+' équipes · tirage au sort tour 1');goTab('tours',document.getElementById('tab-tours'))}
-function resetT(){if(!confirm('Réinitialiser le tournoi ?'))return;T=null;['tours-content','resultats-content','planning-content','planning-editor'].forEach(function(id){var d=document.getElementById(id);if(d)d.innerHTML='<div class="empty-state"><div class="icon">📋</div>Lancez le tournoi</div>'});save();goTab('setup',document.getElementById('tab-setup'))}
+function resetT(){if(!confirm('Réinitialiser le tournoi ?'))return;T=null;['tours-content','resultats-content'].forEach(function(id){var d=document.getElementById(id);if(d)d.innerHTML='<div class="empty-state"><div class="icon">📋</div>Lancez le tournoi</div>'});save();goTab('setup',document.getElementById('tab-setup'))}
 // ══════════ CONCOURS A/B/C (montante/descendante) ══════════
 function pairRandomP(teams,keyPrefix){var arr=[...teams].sort(function(){return Math.random()-.5});var ms=[];for(var i=0;i<arr.length;i+=2){var e1=arr[i],e2=arr[i+1]||null;var m={id:keyPrefix+'_'+i+'_'+Date.now()+Math.floor(Math.random()*1e4),e1:e1,e2:e2,s1:'',s2:'',j:false,bye:false,heure:'',terrain:''};if(!e2){m.bye=true;m.j=true;m.s1=1;m.s2=0}ms.push(m)}return ms}
 function mWinnerP(m){if(m.bye)return m.e1||m.e2;if(!m.e1||!m.e2)return null;if(!m.j)return null;return+m.s1>+m.s2?m.e1:m.e2}
@@ -233,26 +225,99 @@ h+='</div>';d.innerHTML=h}
 function rTour(){rTourABC()}
 // RÉSULTATS
 function rRes(){rResABC()}
-// PLANNING
-function getAllMs(){var ms=[];if(!T)return ms;
-function pushMs(label,list){list.forEach(function(m){if(!m.e1||!m.e2||m.bye)return;ms.push({id:m.id,e1:m.e1.nom,e2:m.e2.nom,phase:label,heure:m.heure||'',terrain:m.terrain||''})})}
-pushMs('Tour 1',T.r1.ms);
-if(T.r2){pushMs('Tour 2 · A',T.r2.A.ms);pushMs('Tour 2 · B',T.r2.B.ms)}
-var icons={A:'🥇',B:'🥈',C:'🥉'};
-['A','B','C'].forEach(function(k){var g=T.groupes[k];if(!g||!g.rs)return;g.rs.forEach(function(r){pushMs(icons[k]+' '+r.nm,r.ms)})});
-return ms}
-function findM(id){if(!T)return null;var pools=[T.r1.ms];if(T.r2)pools.push(T.r2.A.ms,T.r2.B.ms);['A','B','C'].forEach(function(k){var g=T.groupes[k];if(g&&g.rs)g.rs.forEach(function(r){pools.push(r.ms)})});for(var i=0;i<pools.length;i++){var m=pools[i].find(function(x){return x.id===id});if(m)return m}return null}
-function setMP(id,f,v){var m=findM(id);if(m){m[f]=v;save()}}
-function rPlanEditor(){var d=document.getElementById('planning-editor');if(!d)return;if(!T){d.innerHTML='<div class="empty-state" style="padding:.5rem">Lancez le tournoi</div>';return}var ms=getAllMs();if(!ms.length){d.innerHTML='<div class="empty-state" style="padding:.5rem">Aucun match</div>';return}var tOpts='<option value="">— Terrain —</option>';terrains.forEach(function(t){tOpts+='<option value="'+t+'">'+t+'</option>'});var h='';ms.forEach(function(m){h+='<div class="planning-edit-row"><span class="font-bold">'+m.e1+'</span><span style="color:var(--or);font-weight:800;text-align:center;font-size:.7rem">VS</span><span class="font-bold" style="text-align:right">'+m.e2+'</span><input type="time" value="'+m.heure+'" style="background:var(--noir);border:1px solid var(--gris-moyen);color:var(--or);border-radius:4px;padding:.2rem .3rem;font-family:monospace;font-size:.8rem;font-weight:700" onchange="setMP(\''+m.id+'\',\'heure\',this.value)"><select style="background:var(--noir);border:1px solid var(--gris-moyen);color:var(--ocre-clair);border-radius:4px;padding:.2rem .3rem;font-size:.76rem" onchange="setMP(\''+m.id+'\',\'terrain\',this.value)">'+tOpts.replace('value="'+m.terrain+'"','value="'+m.terrain+'" selected')+'</select></div>'});d.innerHTML=h}
-function rPlanning(){var d=document.getElementById('planning-content');if(!T){d.innerHTML='<div class="empty-state"><div class="icon">🗓️</div>Lancez le tournoi</div>';return}var ms=getAllMs(),planned=ms.filter(function(m){return m.heure||m.terrain});
-if(!planned.length&&!ms.length){d.innerHTML='<div class="empty-state"><div class="icon">🗓️</div>Aucun match</div>';return}
-if(!planned.length){d.innerHTML='<div class="card"><h2>🗓️ Planning</h2><div class="alert alert-info">L\'organisateur n\'a pas encore assigné les horaires.</div></div>';return}
-planned.sort(function(a,b){if(!a.heure)return 1;if(!b.heure)return-1;return a.heure.localeCompare(b.heure)});
-var h='<div class="card"><h2>🗓️ Planning des matchs</h2>';
-planned.forEach(function(m){h+='<div class="planning-pub-row"><span class="pp-heure">'+(m.heure||'—')+'</span><span class="pp-eq">'+m.e1+'</span><span class="pp-vs">VS</span><span class="pp-eq" style="text-align:right">'+m.e2+'</span><span class="pp-terrain">🏟️ '+(m.terrain||'—')+'</span></div>'});
-var unp=ms.filter(function(m){return!m.heure&&!m.terrain});
-if(unp.length){h+='<div style="margin-top:.7rem;padding-top:.5rem;border-top:1px solid var(--gris-moyen)"><div style="color:var(--muted);font-size:.76rem;margin-bottom:.3rem">⏳ Horaire à définir :</div>';unp.forEach(function(m){h+='<div style="display:flex;justify-content:space-between;background:var(--gris-fonce);padding:.25rem .6rem;border-radius:4px;margin-bottom:.1rem;font-size:.78rem;color:var(--muted)"><span>'+m.e1+'</span><span style="font-size:.68rem">VS</span><span>'+m.e2+'</span></div>'});h+='</div>'}
-h+='</div>';d.innerHTML=h}
+// ══════════ GAINS (mise & répartition) ══════════
+function setGains(f,v){Gains[f]=v===''?0:+v;save();rGains()}
+function weightKey(label){var m={'Gagnant':'wG','Finaliste':'wF','1/2 finale':'wD','1/4 finale':'wQ','1/8 finale':'wH','1/16 finale':'w16','1/32 finale':'w32','1/64 finale':'w64','Cadrage':'wCad'};return m[label]||'wCad'}
+// Détermine les tours d'un groupe (bracket) et le nombre d'équipes éliminées à chaque tour.
+// Le tout premier tour joué est toujours appelé "Cadrage" ; les tours suivants suivent la nomenclature classique.
+// Calcule la structure des primes par tour d'un groupe (bracket), et les montants pour Gagnant/Finaliste.
+// "Cadrage" désigne toujours le tout premier tour joué. Chaque tour gagné rapporte sa prime, qui se cumule.
+function calcConcoursMoney(g,pot){
+var raw=[],roundUnit=[],finalBonus={win:0,lose:0},tiers=[];
+if(!g)return{tiers:tiers,roundUnit:roundUnit,finalBonus:finalBonus};
+if(!g.rs||!g.rs.length){finalBonus.win=pot;tiers.push({label:'Gagnant',count:1,unit:pot,total:pot});return{tiers:tiers,roundUnit:roundUnit,finalBonus:finalBonus}}
+var n=g.rs.length;
+g.rs.forEach(function(r,idx){
+var depth=n-1-idx;
+if(depth===0){
+var m=r.ms[0];
+raw.push({idx:idx,label:'Gagnant',count:1,wk:'wG',final:true,side:'win'});
+if(!(m&&m.bye))raw.push({idx:idx,label:'Finaliste',count:1,wk:'wF',final:true,side:'lose'});
+return}
+var cnt=idx===0?r.ms.filter(function(m){return!m.bye}).length:r.ms.length;
+if(!cnt)return;
+if(idx===0){raw.push({idx:idx,label:'Cadrage',count:cnt,wk:'wCad',final:false});return}
+var names={1:'1/2 finale',2:'1/4 finale',3:'1/8 finale',4:'1/16 finale',5:'1/32 finale',6:'1/64 finale'};
+var wkMap={'1/2 finale':'wD','1/4 finale':'wQ','1/8 finale':'wH','1/16 finale':'w16','1/32 finale':'w32','1/64 finale':'w64'};
+var lbl=names[depth]||('1/'+Math.pow(2,depth+1)+' finale');
+raw.push({idx:idx,label:lbl,count:cnt,wk:wkMap[lbl]||'wCad',final:false})
+});
+var totalWeight=raw.reduce(function(s,t){return s+(Gains[t.wk]||0)*t.count},0);
+raw.forEach(function(t){var w=Gains[t.wk]||0,unit=totalWeight>0?pot*w/totalWeight:0;
+tiers.push({label:t.label,count:t.count,unit:unit,total:unit*t.count});
+if(t.final){if(t.side==='win')finalBonus.win=unit;else finalBonus.lose=unit}
+else roundUnit[t.idx]=unit});
+return{tiers:tiers,roundUnit:roundUnit,finalBonus:finalBonus}}
+// Suit chaque équipe tour par tour : elle empoche la prime de chaque tour qu'elle remporte, cumulée jusqu'à son élimination.
+function computeTeamPayouts(g,roundUnit,finalBonus){
+var results=[];if(!g||!g.teams)return results;
+var n=g.rs?g.rs.length:0;
+g.teams.forEach(function(team){
+if(!n){results.push({team:team,total:finalBonus.win||0,status:'champion',locked:true});return}
+var total=0,status=null,locked=false;
+for(var i=0;i<n;i++){
+var r=g.rs[i];
+var m=r.ms.find(function(x){return(x.e1&&x.e1.id===team.id)||(x.e2&&x.e2.id===team.id)});
+if(!m){status='attente';break}
+var isFinal=i===n-1;
+if(m.bye){if(isFinal){total+=finalBonus.win||0;status='champion';locked=true;break}total+=roundUnit[i]||0;continue}
+if(!m.j){status='en lice';break}
+var win=mWinnerP(m),isW=win&&win.id===team.id;
+if(isFinal){if(isW){total+=finalBonus.win||0;status='champion'}else{total+=finalBonus.lose||0;status='finaliste'}locked=true;break}
+if(isW){total+=roundUnit[i]||0;continue}
+status='éliminé';locked=true;break}
+results.push({team:team,total:total,status:status,locked:locked})});
+results.sort(function(a,b){return b.total-a.total});
+return results}
+function rGains(){var d=document.getElementById('gains-content');
+var nb=E.length,miseTotale=nb*Gains.mise,total=miseTotale*(1-Gains.club/100)+Gains.suppl;
+var h='';
+h+='<div class="card"><h2>💰 Configuration</h2><div class="setup-grid">';
+h+='<div><label>Mise / équipe (€)</label><input type="number" min="0" step="0.5" value="'+Gains.mise+'" oninput="setGains(\'mise\',this.value)"></div>';
+h+='<div><label>Part club (%)</label><input type="number" min="0" max="100" value="'+Gains.club+'" oninput="setGains(\'club\',this.value)"></div>';
+h+='<div><label>Supplément (€)</label><input type="number" min="0" value="'+Gains.suppl+'" oninput="setGains(\'suppl\',this.value)"></div>';
+h+='</div><div class="flex gap-1 wrap" style="font-size:.85rem;margin-top:.6rem"><span>👥 '+nb+' équipes</span><span>💶 Mise totale : <strong style="color:var(--or)">'+miseTotale.toFixed(2)+' €</strong></span><span>➡️ Total à redistribuer : <strong style="color:var(--or)">'+total.toFixed(2)+' €</strong></span></div></div>';
+h+='<div class="card"><h2>⚖️ Répartition entre concours</h2><div class="setup-grid">';
+h+='<div><label>Concours A (%)</label><input type="number" min="0" max="100" value="'+Gains.pctA+'" oninput="setGains(\'pctA\',this.value)"></div>';
+h+='<div><label>Concours B (%)</label><input type="number" min="0" max="100" value="'+Gains.pctB+'" oninput="setGains(\'pctB\',this.value)"></div>';
+h+='<div><label>Concours C (%)</label><input type="number" min="0" max="100" value="'+Gains.pctC+'" oninput="setGains(\'pctC\',this.value)"></div>';
+h+='</div>';
+var sommePct=Gains.pctA+Gains.pctB+Gains.pctC;
+if(sommePct!==100)h+='<div class="alert alert-warning" style="margin-top:.5rem">⚠️ Le total des pourcentages fait '+sommePct+'% (devrait faire 100%).</div>';
+h+='</div>';
+h+='<div class="card"><h2>🏅 Pondération par tour</h2><p style="color:var(--muted);font-size:.78rem;margin-bottom:.6rem">Chaque tour gagné rapporte sa prime, qui se <strong style="color:var(--txt)">cumule</strong> au fil de la progression de l\'équipe. Le champion touche donc la prime du Gagnant + celles de tous les tours précédents qu\'il a remportés. "Cadrage" désigne toujours le tout premier tour joué dans le groupe.</p><div class="setup-grid">';
+[['wG','Gagnant'],['wF','Finaliste'],['wD','1/2 finale'],['wQ','1/4 finale'],['wH','1/8 finale'],['w16','1/16 finale'],['w32','1/32 finale'],['w64','1/64 finale'],['wCad','Cadrage']].forEach(function(x){
+h+='<div><label>'+x[1]+'</label><input type="number" min="0" step="0.1" value="'+Gains[x[0]]+'" oninput="setGains(\''+x[0]+'\',this.value)"></div>'});
+h+='</div></div>';
+var icons={A:'🥇',B:'🥈',C:'🥉'},pcts={A:Gains.pctA,B:Gains.pctB,C:Gains.pctC};
+['A','B','C'].forEach(function(k){
+var pot=total*pcts[k]/100;
+h+='<div class="card"><h2>'+icons[k]+' Concours '+k+' — '+pot.toFixed(2)+' €</h2>';
+var g=T&&T.phase==='finales'?T.groupes[k]:null;
+if(!g){h+='<div class="empty-state" style="padding:.6rem">'+(T?'En attente des phases finales':'Lancez le tournoi pour calculer la répartition par tour')+'</div></div>';return}
+var mm=calcConcoursMoney(g,pot);
+if(!mm.tiers.length){h+='<div class="empty-state" style="padding:.6rem">Aucune équipe dans ce groupe</div></div>';return}
+h+='<div style="overflow-x:auto"><table><thead><tr><th>Tour</th><th>Nb équipes</th><th>Prime/équipe</th><th>Total</th></tr></thead><tbody>';
+mm.tiers.forEach(function(t){h+='<tr><td class="font-bold">'+t.label+'</td><td>'+t.count+'</td><td class="pts-cell">'+t.unit.toFixed(2)+' €</td><td>'+t.total.toFixed(2)+' €</td></tr>'});
+h+='</tbody></table></div>';
+var payouts=computeTeamPayouts(g,mm.roundUnit,mm.finalBonus);
+var statusInfo={champion:['🏆 Champion','var(--vert-pale)'],finaliste:['🥈 Finaliste','var(--ocre-clair)'],'éliminé':['❌ Éliminé','var(--muted)'],'en lice':['🔵 En lice','var(--bleu)'],'attente':['⏳ En attente','var(--muted)']};
+h+='<div style="margin-top:.8rem;overflow-x:auto"><table><thead><tr><th>Équipe</th><th>Statut</th><th>Gains'+(payouts.some(function(p){return!p.locked})?' (garantis)':'')+'</th></tr></thead><tbody>';
+payouts.forEach(function(p){var si=statusInfo[p.status]||['—','var(--muted)'];
+h+='<tr><td class="font-bold">'+p.team.nom+'</td><td style="color:'+si[1]+'">'+si[0]+'</td><td class="pts-cell">'+p.total.toFixed(2)+' €</td></tr>'});
+h+='</tbody></table></div>';
+h+='</div>'});
+d.innerHTML=h}
 function renderReglement(){const d=document.getElementById('regl-display');if(!d)return;if(!reglementTexte.trim()){d.textContent='Aucun règlement n\'a encore été défini par l\'organisateur.';d.classList.add('empty')}else{d.textContent=reglementTexte;d.classList.remove('empty')}}
 function ouvrirEditionReglement(){const ta=document.getElementById('regl-textarea');ta.value=reglementTexte;document.getElementById('regl-editor').style.display='block';document.getElementById('regl-saved-hint').textContent='';ta.focus()}
 function annulerEditionReglement(){document.getElementById('regl-editor').style.display='none'}
@@ -263,13 +328,13 @@ function flash(e,t,m){e.innerHTML='<div class="alert alert-'+t+'">'+m+'</div>';s
 const fCfg={apiKey:"AIzaSyDnjxRbAzDJPMUcvoNsB5hoHQnMTP7lZb4",authDomain:"belote-us-seignelay.firebaseapp.com",databaseURL:"https://belote-us-seignelay-default-rtdb.europe-west1.firebasedatabase.app",projectId:"belote-us-seignelay",storageBucket:"belote-us-seignelay.firebasestorage.app",messagingSenderId:"881100486907",appId:"1:881100486907:web:a04a29dd9683ad8fa9d85e"};
 let db=null,fbOk=false,_s=false;
 function initFB(){try{firebase.initializeApp(fCfg);db=firebase.database();fbOk=true;document.getElementById('bandeau-firebase').style.display='none';
-db.ref('petanque').on('value',snap=>{if(_s)return;const d=snap.val();if(d){if(Array.isArray(d.E))E=d.E;else if(d.E)E=Object.values(d.E);if(d.C)C=d.C;if(d.T)T=d.T;if(d.mdp)mdp=d.mdp;if(d.terrains)terrains=d.terrains;if(d.qSec)qSec=d.qSec;if(d.rSec)rSec=d.rSec;if(d.reglement!==undefined)reglementTexte=d.reglement;if(d.eqCounter!==undefined)eqCounter=d.eqCounter;rEq();rTerrains();if(T)document.getElementById('badge-tour').textContent=T.tour;const ac=document.querySelector('.section.active');if(ac){const n=ac.id.replace('sec-','');if(n==='resultats')rRes();if(n==='tours')rTour();if(n==='planning')rPlanning();if(n==='setup')rPlanEditor();if(n==='reglement')renderReglement()}}})}catch(e){document.getElementById('bandeau-firebase').style.display='flex';loadLocal();rEq();rTerrains()}}
-function saveLocal(){localStorage.setItem('pet_E',JSON.stringify(E));localStorage.setItem('pet_C',JSON.stringify(C));localStorage.setItem('pet_T',JSON.stringify(T));localStorage.setItem('pet_terrains',JSON.stringify(terrains));localStorage.setItem('pet_counter',String(eqCounter))}
-function saveFB(){if(!fbOk||!db)return;_s=true;db.ref('petanque').set({E,C,T,mdp,terrains,qSec,rSec,reglement:reglementTexte,eqCounter}).then(()=>setTimeout(()=>_s=false,1e3)).catch(()=>_s=false)}
+db.ref('petanque').on('value',snap=>{if(_s)return;const d=snap.val();if(d){if(Array.isArray(d.E))E=d.E;else if(d.E)E=Object.values(d.E);if(d.C)C=d.C;if(d.T)T=d.T;if(d.mdp)mdp=d.mdp;if(d.qSec)qSec=d.qSec;if(d.rSec)rSec=d.rSec;if(d.reglement!==undefined)reglementTexte=d.reglement;if(d.eqCounter!==undefined)eqCounter=d.eqCounter;if(d.gains)Object.assign(Gains,d.gains);rEq();if(T)document.getElementById('badge-tour').textContent=T.tour;const ac=document.querySelector('.section.active');if(ac){const n=ac.id.replace('sec-','');if(n==='resultats')rRes();if(n==='tours')rTour();if(n==='gains')rGains();if(n==='reglement')renderReglement()}}})}catch(e){document.getElementById('bandeau-firebase').style.display='flex';loadLocal();rEq()}}
+function saveLocal(){localStorage.setItem('pet_E',JSON.stringify(E));localStorage.setItem('pet_C',JSON.stringify(C));localStorage.setItem('pet_T',JSON.stringify(T));localStorage.setItem('pet_counter',String(eqCounter));localStorage.setItem('pet_gains',JSON.stringify(Gains))}
+function saveFB(){if(!fbOk||!db)return;_s=true;db.ref('petanque').set({E,C,T,mdp,qSec,rSec,reglement:reglementTexte,eqCounter,gains:Gains}).then(()=>setTimeout(()=>_s=false,1e3)).catch(()=>_s=false)}
 function save(){saveLocal();saveFB()}
 // Écriture ciblée d'un seul match : évite qu'une saisie simultanée sur un autre match ne l'écrase
 function fbUpdateMatch(path,fields){saveLocal();if(!fbOk||!db)return;_s=true;db.ref('petanque/'+path).update(fields).then(()=>setTimeout(()=>_s=false,1e3)).catch(()=>_s=false)}
-function loadLocal(){try{const e=localStorage.getItem('pet_E'),c=localStorage.getItem('pet_C'),t=localStorage.getItem('pet_T'),tr=localStorage.getItem('pet_terrains'),cnt=localStorage.getItem('pet_counter');if(e)E=JSON.parse(e);if(c)C=JSON.parse(c);if(t)T=JSON.parse(t);if(tr)terrains=JSON.parse(tr);if(cnt)eqCounter=+cnt}catch(e){}}
+function loadLocal(){try{const e=localStorage.getItem('pet_E'),c=localStorage.getItem('pet_C'),t=localStorage.getItem('pet_T'),cnt=localStorage.getItem('pet_counter'),gn=localStorage.getItem('pet_gains');if(e)E=JSON.parse(e);if(c)C=JSON.parse(c);if(t)T=JSON.parse(t);if(cnt)eqCounter=+cnt;if(gn)Object.assign(Gains,JSON.parse(gn))}catch(e){}}
 // INIT
 if(localStorage.getItem('pet_session')==='1'){deb=true;['tab-equipes','tab-setup','tab-tours'].forEach(t=>document.getElementById(t).classList.add('visible'));document.getElementById('btn-orga').style.display='none';document.getElementById('btn-lock').style.display='block';document.getElementById('regl-btn-edit-wrap').style.display=''}
 initFB();if(T){document.getElementById('badge-tour').textContent=T.tour;rRes()}
