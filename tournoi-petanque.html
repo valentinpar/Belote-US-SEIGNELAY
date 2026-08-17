@@ -218,13 +218,25 @@ function rResABC(){const d=document.getElementById('resultats-content');if(!T){d
 var icons={A:'🥇',B:'🥈',C:'🥉'};
 if(T.fin)h+='<div class="alert alert-success">🏁 Concours A/B/C terminé !</div>';else h+='<div class="alert alert-info">🎯 Concours A/B/C — '+(T.phase==='finales'?'phase finales (par groupe)':'tour '+T.tour+' (brassage)')+'</div>';
 var anyChamp=['A','B','C'].some(function(k){return T.groupes[k]&&T.groupes[k].champion});
-if(anyChamp){h+='<div class="card"><h2>🏅 Palmarès</h2>';['A','B','C'].forEach(function(k){var g=T.groupes[k];if(!g||!g.champion)return;h+='<div style="margin-bottom:.5rem;font-size:.92rem">'+icons[k]+' Groupe '+k+' : <strong style="color:var(--or)">'+g.champion.nom+'</strong>'+(g.second?' <span style="color:var(--muted)">(finale vs '+g.second.nom+')</span>':'')+'</div>'});h+='</div>'}
-h+='<div class="card"><h2>📋 Tous les matchs</h2>';
-function listMs(label,ms){var joues=ms.filter(function(m){return m.j&&m.e1&&m.e2&&!m.bye});if(!joues.length)return;h+='<div style="margin-bottom:.6rem"><div class="tour-tag" style="margin-bottom:.3rem;display:inline-block">'+label+'</div>';joues.forEach(function(m){var w1=+m.s1>+m.s2,w2=+m.s2>+m.s1;h+='<div style="display:flex;justify-content:space-between;align-items:center;background:var(--gris-fonce);padding:.35rem .7rem;border-radius:4px;margin-bottom:.15rem;font-size:.82rem"><span style="flex:1;color:'+(w1?'var(--vert-pale)':'var(--muted)')+';font-weight:'+(w1?'700':'400')+'">'+m.e1.nom+'</span><span style="color:var(--or);font-weight:800;font-family:monospace;min-width:50px;text-align:center">'+m.s1+' — '+m.s2+'</span><span style="flex:1;text-align:right;color:'+(w2?'var(--vert-pale)':'var(--muted)')+';font-weight:'+(w2?'700':'400')+'">'+m.e2.nom+'</span></div>'});h+='</div>'}
-listMs('Tour 1',T.r1.ms);
-if(T.r2){listMs('Tour 2 · Groupe A',T.r2.A.ms);listMs('Tour 2 · Groupe B',T.r2.B.ms)}
-['A','B','C'].forEach(function(k){var g=T.groupes[k];if(!g||!g.rs)return;g.rs.forEach(function(r){listMs(icons[k]+' Groupe '+k+' · '+r.nm,r.ms)})});
-h+='</div>';d.innerHTML=h}
+if(anyChamp){h+='<div class="card"><h2>🏅 Palmarès</h2>';['A','B','C'].forEach(function(k){var g=T.groupes[k];if(!g||!g.champion)return;
+h+='<div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem;padding:.5rem .7rem;background:var(--gris-fonce);border-radius:6px"><span style="font-size:1.3rem">'+icons[k]+'</span><div><div style="font-weight:800;color:var(--or);font-size:.95rem">'+g.champion.nom+'</div><div style="font-size:.72rem;color:var(--muted)">Vainqueur · Groupe '+k+(g.second?' · finale vs '+g.second.nom:'')+'</div></div></div>'});
+h+='</div>'}
+function matchLine(m){var w1=+m.s1>+m.s2,w2=+m.s2>+m.s1;
+return'<div style="display:flex;justify-content:space-between;align-items:center;background:var(--gris-fonce);padding:.4rem .7rem;border-radius:5px;margin-bottom:.25rem;font-size:.85rem"><span style="flex:1;color:'+(w1?'var(--vert-pale)':'var(--muted)')+';font-weight:'+(w1?'700':'400')+'">'+(w1?'✓ ':'')+m.e1.nom+'</span><span style="color:var(--muted);font-size:.68rem;padding:0 .5rem;flex-shrink:0">vs</span><span style="flex:1;text-align:right;color:'+(w2?'var(--vert-pale)':'var(--muted)')+';font-weight:'+(w2?'700':'400')+'">'+m.e2.nom+(w2?' ✓':'')+'</span></div>'}
+function section(title,ms){var joues=ms.filter(function(m){return m.j&&m.e1&&m.e2&&!m.bye});if(!joues.length)return'';
+var s='<div style="margin-bottom:.9rem"><div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem"><span class="tour-tag">'+title+'</span><span style="color:var(--muted);font-size:.72rem">'+joues.length+' match'+(joues.length>1?'s':'')+'</span></div>';
+joues.forEach(function(m){s+=matchLine(m)});
+return s+'</div>'}
+var brassage='';
+brassage+=section('Tour 1 · Tirage au sort',T.r1.ms);
+if(T.r2){brassage+=section('Tour 2 · Groupe A',T.r2.A.ms);brassage+=section('Tour 2 · Groupe B',T.r2.B.ms)}
+if(brassage)h+='<div class="card"><h2>🎲 Brassage</h2>'+brassage+'</div>';
+var anyFinale=false;
+['A','B','C'].forEach(function(k){var g=T.groupes[k];if(!g||!g.rs||!g.rs.length)return;
+var gh='';g.rs.forEach(function(r){gh+=section(r.nm,r.ms)});
+if(gh){anyFinale=true;h+='<div class="card"><h2>'+icons[k]+' Groupe '+k+'</h2>'+gh+'</div>'}});
+if(!brassage&&!anyFinale)h+='<div class="empty-state"><div class="icon">⏳</div>Aucun match joué pour l\'instant</div>';
+d.innerHTML=h}
 // RENDER TOUR
 function rTour(){rTourABC()}
 // RÉSULTATS
