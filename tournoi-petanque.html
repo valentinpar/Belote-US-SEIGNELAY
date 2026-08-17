@@ -82,7 +82,11 @@
 <footer>🎱 Tournoi de Pétanque — US Seignelay 🎱</footer>
 <script>
 let E=[],C={fmt:'doublette',nbT:4,scoreMax:13,pV:3,pD:1},T=null,mdp=localStorage.getItem('pet_mdp')||'1234',deb=false,eqCounter=0,groupeTab='A';
-let Gains={mise:10,club:0,suppl:0,pctA:55,pctB:35,pctC:10,wG:10,wF:6,wD:3,wQ:2,wH:1.3,w16:1,w32:.8,w64:.6,wCad:.5};
+let Gains={mise:10,club:0,suppl:0,pctA:55,pctB:35,pctC:10,pct:{
+A:{gagnant:27.27,finaliste:19.32,demi:15.34,quart:0,huit:0,s16:0,s32:0,s64:0,cadrage:5.68},
+B:{gagnant:35.71,finaliste:25,demi:19.64,quart:0,huit:0,s16:0,s32:0,s64:0,cadrage:0},
+C:{gagnant:62.5,finaliste:37.5,demi:0,quart:0,huit:0,s16:0,s32:0,s64:0,cadrage:0}
+}};
 let reglementTexte='';
 // AUTH
 function ouvrirLogin(){document.getElementById('pwd-input').value='';document.getElementById('pwd-error').textContent='';document.getElementById('modal-pwd').classList.add('open');setTimeout(()=>document.getElementById('pwd-input').focus(),50)}
@@ -227,38 +231,38 @@ function rTour(){rTourABC()}
 function rRes(){rResABC()}
 // ══════════ GAINS (mise & répartition) ══════════
 function setGains(f,v){Gains[f]=v===''?0:+v;save();rGains()}
-function weightKey(label){var m={'Gagnant':'wG','Finaliste':'wF','1/2 finale':'wD','1/4 finale':'wQ','1/8 finale':'wH','1/16 finale':'w16','1/32 finale':'w32','1/64 finale':'w64','Cadrage':'wCad'};return m[label]||'wCad'}
-// Détermine les tours d'un groupe (bracket) et le nombre d'équipes éliminées à chaque tour.
-// Le tout premier tour joué est toujours appelé "Cadrage" ; les tours suivants suivent la nomenclature classique.
-// Calcule la structure des primes par tour d'un groupe (bracket), et les montants pour Gagnant/Finaliste.
-// "Cadrage" désigne toujours le tout premier tour joué. Chaque tour gagné rapporte sa prime, qui se cumule.
-function calcConcoursMoney(g,pot){
+function setPct(k,tier,v){Gains.pct[k][tier]=v===''?0:+v;save();rGains()}
+var TIER_KEYS=[['gagnant','Gagnant'],['finaliste','Finaliste'],['demi','1/2 finale'],['quart','1/4 finale'],['huit','1/8 finale'],['s16','1/16 finale'],['s32','1/32 finale'],['s64','1/64 finale'],['cadrage','Cadrage']];
+var DEPTH2KEY={0:'demi',1:'quart',2:'huit',3:'s16',4:'s32',5:'s64'};
+// Détermine les tours d'un groupe (bracket) : le tout premier tour joué est toujours "Cadrage",
+// les suivants suivent la nomenclature classique (1/2 finale, 1/4 finale...), jusqu'à Gagnant/Finaliste.
+// Chaque montant est calculé via le pourcentage fixe propre au concours (Gains.pct[k]), arrondi à l'euro.
+function calcConcoursMoney(g,pot,k){
 var raw=[],roundUnit=[],finalBonus={win:0,lose:0},tiers=[];
+var pctTbl=Gains.pct[k]||{};
 if(!g)return{tiers:tiers,roundUnit:roundUnit,finalBonus:finalBonus};
-if(!g.rs||!g.rs.length){finalBonus.win=pot;tiers.push({label:'Gagnant',count:1,unit:pot,total:pot});return{tiers:tiers,roundUnit:roundUnit,finalBonus:finalBonus}}
+if(!g.rs||!g.rs.length){var u=Math.round(pot*(pctTbl.gagnant||0)/100);finalBonus.win=u;tiers.push({label:'Gagnant',count:1,unit:u,total:u});return{tiers:tiers,roundUnit:roundUnit,finalBonus:finalBonus}}
 var n=g.rs.length;
 g.rs.forEach(function(r,idx){
 var depth=n-1-idx;
 if(depth===0){
 var m=r.ms[0];
-raw.push({idx:idx,label:'Gagnant',count:1,wk:'wG',final:true,side:'win'});
-if(!(m&&m.bye))raw.push({idx:idx,label:'Finaliste',count:1,wk:'wF',final:true,side:'lose'});
+raw.push({idx:idx,label:'Gagnant',key:'gagnant',count:1,final:true,side:'win'});
+if(!(m&&m.bye))raw.push({idx:idx,label:'Finaliste',key:'finaliste',count:1,final:true,side:'lose'});
 return}
 var cnt=idx===0?r.ms.filter(function(m){return!m.bye}).length:r.ms.length;
 if(!cnt)return;
-if(idx===0){raw.push({idx:idx,label:'Cadrage',count:cnt,wk:'wCad',final:false});return}
-var names={1:'1/2 finale',2:'1/4 finale',3:'1/8 finale',4:'1/16 finale',5:'1/32 finale',6:'1/64 finale'};
-var wkMap={'1/2 finale':'wD','1/4 finale':'wQ','1/8 finale':'wH','1/16 finale':'w16','1/32 finale':'w32','1/64 finale':'w64'};
-var lbl=names[depth]||('1/'+Math.pow(2,depth+1)+' finale');
-raw.push({idx:idx,label:lbl,count:cnt,wk:wkMap[lbl]||'wCad',final:false})
+if(idx===0){raw.push({idx:idx,label:'Cadrage',key:'cadrage',count:cnt,final:false});return}
+var tkey=DEPTH2KEY[depth-1]||'cadrage';
+var names={demi:'1/2 finale',quart:'1/4 finale',huit:'1/8 finale',s16:'1/16 finale',s32:'1/32 finale',s64:'1/64 finale'};
+raw.push({idx:idx,label:names[tkey]||('1/'+Math.pow(2,depth+1)+' finale'),key:tkey,count:cnt,final:false})
 });
-var totalWeight=raw.reduce(function(s,t){return s+(Gains[t.wk]||0)*t.count},0);
-raw.forEach(function(t){var w=Gains[t.wk]||0,unit=totalWeight>0?pot*w/totalWeight:0;
+raw.forEach(function(t){var pct=pctTbl[t.key]||0,unit=Math.round(pot*pct/100);
 tiers.push({label:t.label,count:t.count,unit:unit,total:unit*t.count});
 if(t.final){if(t.side==='win')finalBonus.win=unit;else finalBonus.lose=unit}
 else roundUnit[t.idx]=unit});
 return{tiers:tiers,roundUnit:roundUnit,finalBonus:finalBonus}}
-// Suit chaque équipe tour par tour : elle empoche la prime de chaque tour qu'elle remporte, cumulée jusqu'à son élimination.
+// Suit chaque équipe tour par tour : elle ne touche que le montant du tour où elle s'arrête (pas de cumul).
 function computeTeamPayouts(g,roundUnit,finalBonus){
 var results=[];if(!g||!g.teams)return results;
 var n=g.rs?g.rs.length:0;
@@ -270,18 +274,19 @@ var r=g.rs[i];
 var m=r.ms.find(function(x){return(x.e1&&x.e1.id===team.id)||(x.e2&&x.e2.id===team.id)});
 if(!m){status='attente';break}
 var isFinal=i===n-1;
-if(m.bye){if(isFinal){total+=finalBonus.win||0;status='champion';locked=true;break}total+=roundUnit[i]||0;continue}
+if(m.bye){if(isFinal){total=finalBonus.win||0;status='champion';locked=true;break}continue}
 if(!m.j){status='en lice';break}
 var win=mWinnerP(m),isW=win&&win.id===team.id;
-if(isFinal){if(isW){total+=finalBonus.win||0;status='champion'}else{total+=finalBonus.lose||0;status='finaliste'}locked=true;break}
-if(isW){total+=roundUnit[i]||0;continue}
-status='éliminé';locked=true;break}
+if(isFinal){if(isW){total=finalBonus.win||0;status='champion'}else{total=finalBonus.lose||0;status='finaliste'}locked=true;break}
+if(isW){continue}
+total=roundUnit[i]||0;status='éliminé';locked=true;break}
 results.push({team:team,total:total,status:status,locked:locked})});
 results.sort(function(a,b){return b.total-a.total});
 return results}
 function rGains(){var d=document.getElementById('gains-content');
 var nb=E.length,miseTotale=nb*Gains.mise,total=miseTotale*(1-Gains.club/100)+Gains.suppl;
 var h='';
+if(deb){
 h+='<div class="card"><h2>💰 Configuration</h2><div class="setup-grid">';
 h+='<div><label>Mise / équipe (€)</label><input type="number" min="0" step="0.5" value="'+Gains.mise+'" oninput="setGains(\'mise\',this.value)"></div>';
 h+='<div><label>Part club (%)</label><input type="number" min="0" max="100" value="'+Gains.club+'" oninput="setGains(\'club\',this.value)"></div>';
@@ -295,26 +300,27 @@ h+='</div>';
 var sommePct=Gains.pctA+Gains.pctB+Gains.pctC;
 if(sommePct!==100)h+='<div class="alert alert-warning" style="margin-top:.5rem">⚠️ Le total des pourcentages fait '+sommePct+'% (devrait faire 100%).</div>';
 h+='</div>';
-h+='<div class="card"><h2>🏅 Pondération par tour</h2><p style="color:var(--muted);font-size:.78rem;margin-bottom:.6rem">Chaque tour gagné rapporte sa prime, qui se <strong style="color:var(--txt)">cumule</strong> au fil de la progression de l\'équipe. Le champion touche donc la prime du Gagnant + celles de tous les tours précédents qu\'il a remportés. "Cadrage" désigne toujours le tout premier tour joué dans le groupe.</p><div class="setup-grid">';
-[['wG','Gagnant'],['wF','Finaliste'],['wD','1/2 finale'],['wQ','1/4 finale'],['wH','1/8 finale'],['w16','1/16 finale'],['w32','1/32 finale'],['w64','1/64 finale'],['wCad','Cadrage']].forEach(function(x){
-h+='<div><label>'+x[1]+'</label><input type="number" min="0" step="0.1" value="'+Gains[x[0]]+'" oninput="setGains(\''+x[0]+'\',this.value)"></div>'});
-h+='</div></div>';
+var iconsAdmin={A:'🥇',B:'🥈',C:'🥉'};
+['A','B','C'].forEach(function(k){
+h+='<div class="card"><h2>'+iconsAdmin[k]+' Pourcentages — Concours '+k+'</h2><p style="color:var(--muted);font-size:.78rem;margin-bottom:.6rem">% du pot du concours '+k+' touché par équipe à ce tour (modifiable au centième). Chaque équipe ne touche <strong style="color:var(--txt)">qu\'un seul montant</strong> : celui du tour où elle s\'arrête.</p><div class="setup-grid">';
+TIER_KEYS.forEach(function(x){h+='<div><label>'+x[1]+' (%)</label><input type="number" min="0" max="100" step="0.01" value="'+(Gains.pct[k][x[0]]||0)+'" oninput="setPct(\''+k+'\',\''+x[0]+'\',this.value)"></div>'});
+h+='</div></div>'})}
 var icons={A:'🥇',B:'🥈',C:'🥉'},pcts={A:Gains.pctA,B:Gains.pctB,C:Gains.pctC};
 ['A','B','C'].forEach(function(k){
 var pot=total*pcts[k]/100;
 h+='<div class="card"><h2>'+icons[k]+' Concours '+k+' — '+pot.toFixed(2)+' €</h2>';
 var g=T&&T.phase==='finales'?T.groupes[k]:null;
 if(!g){h+='<div class="empty-state" style="padding:.6rem">'+(T?'En attente des phases finales':'Lancez le tournoi pour calculer la répartition par tour')+'</div></div>';return}
-var mm=calcConcoursMoney(g,pot);
+var mm=calcConcoursMoney(g,pot,k);
 if(!mm.tiers.length){h+='<div class="empty-state" style="padding:.6rem">Aucune équipe dans ce groupe</div></div>';return}
 h+='<div style="overflow-x:auto"><table><thead><tr><th>Tour</th><th>Nb équipes</th><th>Prime/équipe</th><th>Total</th></tr></thead><tbody>';
-mm.tiers.forEach(function(t){h+='<tr><td class="font-bold">'+t.label+'</td><td>'+t.count+'</td><td class="pts-cell">'+t.unit.toFixed(2)+' €</td><td>'+t.total.toFixed(2)+' €</td></tr>'});
+mm.tiers.forEach(function(t){h+='<tr><td class="font-bold">'+t.label+'</td><td>'+t.count+'</td><td class="pts-cell">'+t.unit+' €</td><td>'+t.total+' €</td></tr>'});
 h+='</tbody></table></div>';
 var payouts=computeTeamPayouts(g,mm.roundUnit,mm.finalBonus);
 var statusInfo={champion:['🏆 Champion','var(--vert-pale)'],finaliste:['🥈 Finaliste','var(--ocre-clair)'],'éliminé':['❌ Éliminé','var(--muted)'],'en lice':['🔵 En lice','var(--bleu)'],'attente':['⏳ En attente','var(--muted)']};
 h+='<div style="margin-top:.8rem;overflow-x:auto"><table><thead><tr><th>Équipe</th><th>Statut</th><th>Gains'+(payouts.some(function(p){return!p.locked})?' (garantis)':'')+'</th></tr></thead><tbody>';
 payouts.forEach(function(p){var si=statusInfo[p.status]||['—','var(--muted)'];
-h+='<tr><td class="font-bold">'+p.team.nom+'</td><td style="color:'+si[1]+'">'+si[0]+'</td><td class="pts-cell">'+p.total.toFixed(2)+' €</td></tr>'});
+h+='<tr><td class="font-bold">'+p.team.nom+'</td><td style="color:'+si[1]+'">'+si[0]+'</td><td class="pts-cell">'+p.total+' €</td></tr>'});
 h+='</tbody></table></div>';
 h+='</div>'});
 d.innerHTML=h}
