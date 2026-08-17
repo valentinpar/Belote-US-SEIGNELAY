@@ -82,7 +82,7 @@
 <footer>🎱 Tournoi de Pétanque — US Seignelay 🎱</footer>
 <script>
 let E=[],C={fmt:'doublette',nbT:4,scoreMax:13,pV:3,pD:1},T=null,mdp=localStorage.getItem('pet_mdp')||'1234',deb=false,eqCounter=0,groupeTab='A';
-let Gains={mise:10,club:0,suppl:0,pctA:55,pctB:35,pctC:10,pct:{
+let Gains={mise:10,club:0,suppl:0,pctA:55,pctB:35,pctC:10,paid:{},pct:{
 A:{gagnant:27.27,finaliste:19.32,demi:15.34,quart:0,huit:0,s16:0,s32:0,s64:0,cadrage:5.68},
 B:{gagnant:35.71,finaliste:25,demi:19.64,quart:0,huit:0,s16:0,s32:0,s64:0,cadrage:0},
 C:{gagnant:62.5,finaliste:37.5,demi:0,quart:0,huit:0,s16:0,s32:0,s64:0,cadrage:0}
@@ -118,7 +118,8 @@ function startT(){const a=document.getElementById('alert-setup');if(E.length<4){
 C={fmt:document.getElementById('cfg-format').value};
 T={tour:1,phase:'brassage',r1:{ms:pairRandomP(E,'t1'),ok:false},r2:null,groupes:{A:null,B:null,C:null},fin:false};
 save();document.getElementById('badge-tour').textContent='1';flash(a,'success','✅ Concours lancé ! '+E.length+' équipes · tirage au sort tour 1');goTab('tours',document.getElementById('tab-tours'))}
-function resetT(){if(!confirm('Réinitialiser le tournoi ?'))return;T=null;['tours-content','resultats-content'].forEach(function(id){var d=document.getElementById(id);if(d)d.innerHTML='<div class="empty-state"><div class="icon">📋</div>Lancez le tournoi</div>'});save();goTab('setup',document.getElementById('tab-setup'))}
+function resetT(){if(!confirm('Réinitialiser le tournoi ?'))return;T=null;Gains.paid={};['tours-content','resultats-content'].forEach(function(id){var d=document.getElementById(id);if(d)d.innerHTML='<div class="empty-state"><div class="icon">📋</div>Lancez le tournoi</div>'});save();goTab('setup',document.getElementById('tab-setup'))}
+function togglePaid(id){Gains.paid[id]=!Gains.paid[id];save();rGains()}
 // ══════════ CONCOURS A/B/C (montante/descendante) ══════════
 function pairRandomP(teams,keyPrefix){var arr=[...teams].sort(function(){return Math.random()-.5});var ms=[];for(var i=0;i<arr.length;i+=2){var e1=arr[i],e2=arr[i+1]||null;var m={id:keyPrefix+'_'+i+'_'+Date.now()+Math.floor(Math.random()*1e4),e1:e1,e2:e2,s1:'',s2:'',j:false,bye:false,heure:'',terrain:''};if(!e2){m.bye=true;m.j=true;m.s1=1;m.s2=0}ms.push(m)}return ms}
 function mWinnerP(m){if(m.bye)return m.e1||m.e2;if(!m.e1||!m.e2)return null;if(!m.j)return null;return+m.s1>+m.s2?m.e1:m.e2}
@@ -330,9 +331,12 @@ mm.tiers.forEach(function(t){h+='<tr><td class="font-bold">'+t.label+'</td><td>'
 h+='</tbody></table></div>';
 var payouts=computeTeamPayouts(g,mm.roundUnit,mm.finalBonus);
 var statusInfo={champion:['🏆 Champion','var(--vert-pale)'],finaliste:['🥈 Finaliste','var(--ocre-clair)'],'éliminé':['❌ Éliminé','var(--muted)'],'en lice':['🔵 En lice','var(--bleu)'],'attente':['⏳ En attente','var(--muted)']};
-h+='<div style="margin-top:.8rem;overflow-x:auto"><table><thead><tr><th>Équipe</th><th>Statut</th><th>Gains'+(payouts.some(function(p){return!p.locked})?' (garantis)':'')+'</th></tr></thead><tbody>';
-payouts.forEach(function(p){var si=statusInfo[p.status]||['—','var(--muted)'];
-h+='<tr><td class="font-bold">'+p.team.nom+'</td><td style="color:'+si[1]+'">'+si[0]+'</td><td class="pts-cell">'+p.total+' €</td></tr>'});
+h+='<div style="margin-top:.8rem;overflow-x:auto"><table><thead><tr><th>Équipe</th><th>Statut</th><th>Gains'+(payouts.some(function(p){return!p.locked})?' (garantis)':'')+'</th><th>Payé</th></tr></thead><tbody>';
+payouts.forEach(function(p){var si=statusInfo[p.status]||['—','var(--muted)'];var isPaid=!!Gains.paid[p.team.id];
+h+='<tr'+(isPaid?' style="opacity:.55"':'')+'><td class="font-bold">'+p.team.nom+'</td><td style="color:'+si[1]+'">'+si[0]+'</td><td class="pts-cell">'+p.total+' €</td><td style="text-align:center">';
+if(deb)h+='<input type="checkbox" style="width:18px;height:18px;cursor:pointer" '+(isPaid?'checked':'')+' onchange="togglePaid(\''+p.team.id+'\')">';
+else h+=isPaid?'<span style="color:var(--vert-pale)">✅</span>':'<span style="color:var(--muted)">—</span>';
+h+='</td></tr>'});
 h+='</tbody></table></div>';
 h+='</div>'});
 d.innerHTML=h}
