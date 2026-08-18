@@ -56,15 +56,6 @@
 
   /* MAIN */
   main { max-width: 860px; margin: 0 auto; padding: 2rem 1.5rem; }
-  main.has-sidebar { max-width: 1180px; }
-
-  /* LAYOUT AVEC SIDEBAR RÉSULTATS */
-  .page-layout { display: grid; grid-template-columns: 300px 1fr; gap: 1.8rem; align-items: start; }
-  .sidebar-resultats { position: sticky; top: 1.2rem; }
-  @media (max-width: 820px) {
-    .page-layout { grid-template-columns: 1fr; }
-    .sidebar-resultats { position: static; }
-  }
 
   /* SECTION TITRE */
   .section-titre {
@@ -322,7 +313,7 @@
   </div>
 </div>
 
-<main class="has-sidebar">
+<main>
   <!-- PANEL ADMIN -->
   <div class="admin-panel" id="admin-panel">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:0.5rem">
@@ -398,21 +389,15 @@
     <div id="alert-mdp"></div>
   </div>
 
-  <div class="page-layout">
-    <!-- RÉSULTATS DU CLUB (SIDEBAR GAUCHE) -->
-    <div class="sidebar-resultats">
-      <div class="section-titre">⚽ Derniers résultats</div>
-      <div style="background:var(--gris);border:1px solid var(--gris-moyen);border-radius:12px;padding:0.8rem;overflow:hidden">
-        <iframe src='https://www.sportcorico.com/widget/a288db27-5b75-4c72-a3ee-17c86b419af6' width="100%" id="adbbcaeecbaf" style="border:none;display:block"></iframe>
-      </div>
-    </div>
-
-    <!-- LISTE ÉVÉNEMENTS -->
-    <div>
-      <div class="section-titre">📅 Prochains événements</div>
-      <div id="events-container"></div>
-    </div>
+  <!-- RÉSULTATS DU CLUB -->
+  <div class="section-titre">⚽ Derniers résultats</div>
+  <div style="background:var(--gris);border:1px solid var(--gris-moyen);border-radius:12px;padding:0.8rem;margin-bottom:2rem;overflow:hidden">
+    <iframe src='https://www.sportcorico.com/widget/a288db27-5b75-4c72-a3ee-17c86b419af6' width="100%" id="adbbcaeecbaf" style="border:none;display:block;width:100%;min-height:420px"></iframe>
   </div>
+
+  <!-- LISTE ÉVÉNEMENTS -->
+  <div class="section-titre">📅 Prochains événements</div>
+  <div id="events-container"></div>
 </main>
 
 <footer>⚽ US Seignelay Football — Tous droits réservés</footer>
