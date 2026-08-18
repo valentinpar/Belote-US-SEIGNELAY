@@ -347,15 +347,17 @@
 
 <!-- CHANGEMENT DE MOT DE PASSE OBLIGATOIRE (première connexion) -->
 <div class="modal-overlay" id="modal-forcechange">
-  <div class="modal-login">
+  <div class="modal-login" style="width:min(400px,92vw)">
     <div class="icon">🆕</div>
     <h3>Première connexion</h3>
-    <p>Pour la sécurité de votre compte, choisissez un nouveau mot de passe avant de continuer.</p>
+    <p>Pour la sécurité de votre compte, choisissez un nouveau mot de passe et une question secrète avant de continuer.</p>
     <div class="pwd-wrap" style="margin-bottom:0.5rem">
-      <input type="password" id="force-new-pwd" placeholder="Nouveau mot de passe…" onkeydown="if(event.key==='Enter')forceChangePwd()">
+      <input type="password" id="force-new-pwd" placeholder="Nouveau mot de passe…">
       <button class="pwd-eye" onclick="toggleEyeForce()">👁</button>
     </div>
-    <input type="password" id="force-new-pwd2" placeholder="Confirmer…" style="margin-bottom:0.8rem" onkeydown="if(event.key==='Enter')forceChangePwd()">
+    <input type="password" id="force-new-pwd2" placeholder="Confirmer le mot de passe…" style="margin-bottom:0.8rem">
+    <input type="text" id="force-question" placeholder="Votre question secrète (ex: Nom de votre premier chien ?)" style="margin-bottom:0.6rem">
+    <input type="text" id="force-reponse" placeholder="Réponse à cette question…" style="margin-bottom:0.8rem" onkeydown="if(event.key==='Enter')forceChangePwd()">
     <div class="modal-error" id="force-error"></div>
     <div style="display:flex;gap:0.6rem;justify-content:center">
       <button class="btn-login" onclick="forceChangePwd()">💾 Valider et continuer</button>
@@ -578,7 +580,7 @@
   </script>
 
   <!-- RÉSEAUX (toujours visibles, en bas de page) -->
-  <div class="section-titre">🔗 Nos réseaux</div>
+  <div class="section-titre" style="border-top:1px solid var(--gris-moyen);padding-top:1.5rem;margin-top:0.5rem">🔗 Nos réseaux</div>
   <div id="reseaux-container" style="margin-bottom:1rem"></div>
 </main>
 
@@ -1084,6 +1086,8 @@ function checkPwd() {
       forceChangePending = found;
       document.getElementById('force-new-pwd').value = '';
       document.getElementById('force-new-pwd2').value = '';
+      document.getElementById('force-question').value = '';
+      document.getElementById('force-reponse').value = '';
       document.getElementById('force-error').textContent = '';
       document.getElementById('modal-forcechange').classList.add('open');
       setTimeout(() => document.getElementById('force-new-pwd').focus(), 50);
@@ -1114,15 +1118,20 @@ function finishLogin(compte) {
 function forceChangePwd() {
   const v1 = document.getElementById('force-new-pwd').value;
   const v2 = document.getElementById('force-new-pwd2').value;
+  const q  = document.getElementById('force-question').value.trim();
+  const r  = document.getElementById('force-reponse').value.trim();
   const err = document.getElementById('force-error');
   if (!v1) { err.textContent = '⚠️ Entrez un mot de passe.'; return; }
   if (v1.length < 4) { err.textContent = '⚠️ 4 caractères minimum.'; return; }
   if (v1 !== v2) { err.textContent = '⚠️ Les mots de passe ne correspondent pas.'; return; }
+  if (!q || !r) { err.textContent = '⚠️ Renseignez aussi la question secrète et sa réponse.'; return; }
   if (!forceChangePending) { err.textContent = '⚠️ Session expirée, reconnectez-vous.'; return; }
   forceChangePending.mdp = v1;
+  forceChangePending.question = q;
+  forceChangePending.reponse = r.toLowerCase();
   delete forceChangePending.mustChange;
   const compte = forceChangePending;
-  logAction('a défini son mot de passe lors de sa première connexion');
+  logAction('a défini son mot de passe et sa question secrète lors de sa première connexion');
   sauvegarder();
   document.getElementById('modal-forcechange').classList.remove('open');
   finishLogin(compte);
