@@ -199,7 +199,7 @@
   .alert-success { background: rgba(20,83,45,0.3); border: 1px solid #166534; color: var(--vert-pale); }
   .alert-warning { background: rgba(120,53,15,0.3); border: 1px solid #92400e; color: #fcd34d; }
 
-  footer { text-align: center; padding: 1.5rem; color: #3d5c3d; font-size: 0.78rem; border-top: 1px solid var(--gris); margin-top: 2rem; }
+  footer { text-align: center; padding: 1.5rem; color: #3d5c3d; font-size: 0.78rem; margin-top: 2rem; }
 </style>
 </head>
 <body>
@@ -234,11 +234,21 @@
 <!-- MODAL RÉCUPÉRATION -->
 <div class="modal-overlay" id="modal-recup">
   <div class="modal-login">
-    <div id="recup-etape1">
+    <div id="recup-etape0">
+      <div class="icon">🔮</div>
+      <h3>Récupération</h3>
+      <p>Entrez votre identifiant pour afficher votre question secrète.</p>
+      <input type="text" id="recup-identifiant" placeholder="Votre identifiant…" style="margin-bottom:0.8rem" onkeydown="if(event.key==='Enter')checkIdentifiantRecup()">
+      <div class="modal-error" id="recup-error0"></div>
+      <div style="display:flex;gap:0.6rem;justify-content:center">
+        <button class="btn-login" onclick="checkIdentifiantRecup()">➡️ Continuer</button>
+        <button class="btn-cancel" onclick="fermerRecup()">Annuler</button>
+      </div>
+    </div>
+    <div id="recup-etape1" style="display:none">
       <div class="icon">🔮</div>
       <h3>Récupération</h3>
       <p>Répondez à votre question secrète pour réinitialiser le mot de passe.</p>
-      <input type="text" id="recup-identifiant" placeholder="Votre identifiant…" style="margin-bottom:0.6rem">
       <div style="background:var(--gris-fonce);border:1px solid var(--gris-moyen);border-radius:5px;padding:0.6rem 0.9rem;color:var(--or);font-size:0.9rem;font-weight:600;margin-bottom:0.6rem" id="recup-question">Aucune question définie</div>
       <input type="text" id="recup-reponse" placeholder="Votre réponse…" style="margin-bottom:0.8rem" onkeydown="if(event.key==='Enter')checkRecup()">
       <div class="modal-error" id="recup-error"></div>
@@ -332,6 +342,24 @@
     </div>
     <div class="modal-hint">Identifiant / mot de passe par défaut : <strong>admin</strong> / <strong>1234</strong></div>
     <div style="margin-top:0.5rem"><button onclick="ouvrirRecup()" style="background:none;border:none;color:var(--or);font-size:0.78rem;cursor:pointer;text-decoration:underline;font-family:'Source Sans 3',sans-serif">Mot de passe oublié ?</button></div>
+  </div>
+</div>
+
+<!-- CHANGEMENT DE MOT DE PASSE OBLIGATOIRE (première connexion) -->
+<div class="modal-overlay" id="modal-forcechange">
+  <div class="modal-login">
+    <div class="icon">🆕</div>
+    <h3>Première connexion</h3>
+    <p>Pour la sécurité de votre compte, choisissez un nouveau mot de passe avant de continuer.</p>
+    <div class="pwd-wrap" style="margin-bottom:0.5rem">
+      <input type="password" id="force-new-pwd" placeholder="Nouveau mot de passe…" onkeydown="if(event.key==='Enter')forceChangePwd()">
+      <button class="pwd-eye" onclick="toggleEyeForce()">👁</button>
+    </div>
+    <input type="password" id="force-new-pwd2" placeholder="Confirmer…" style="margin-bottom:0.8rem" onkeydown="if(event.key==='Enter')forceChangePwd()">
+    <div class="modal-error" id="force-error"></div>
+    <div style="display:flex;gap:0.6rem;justify-content:center">
+      <button class="btn-login" onclick="forceChangePwd()">💾 Valider et continuer</button>
+    </div>
   </div>
 </div>
 
@@ -492,6 +520,11 @@
       subs.forEach(function(s){
         document.getElementById('admin-sub-'+s).style.display = (s === value) ? 'block' : 'none';
       });
+      if (value === 'pwd' && typeof admins !== 'undefined') {
+        var moi = admins.find(function(a){ return a.id === loggedInId; });
+        document.getElementById('cfg-question').value = (moi && moi.question) ? moi.question : '';
+        document.getElementById('cfg-reponse').value = '';
+      }
     }
   </script>
 
@@ -567,7 +600,7 @@ const firebaseConfig = {
   appId: "1:881100486907:web:a04a29dd9683ad8fa9d85e"
 };
 
-let db, events = [], sponsors = [], reseaux = [], trombi = [], admins = [], mdp = '1234', connecte = false, loggedInId = null;
+let db, events = [], sponsors = [], reseaux = [], trombi = [], admins = [], mdp = '1234', connecte = false, loggedInId = null, forceChangePending = null;
 
 // Init Firebase
 try {
@@ -1046,23 +1079,59 @@ function checkPwd() {
   const val = document.getElementById('pwd-input').value;
   const found = admins.find(a => a.identifiant.toLowerCase() === identifiant.toLowerCase() && a.mdp === val);
   if (found) {
-    connecte = true;
-    loggedInId = found.id;
-    localStorage.setItem('uss_admin', '1');
-    localStorage.setItem('uss_admin_id', found.id);
     fermerLogin();
-    document.getElementById('admin-panel').classList.add('open');
-    document.getElementById('btn-admin').style.opacity = '0.4';
-    document.getElementById('btn-deconnexion').style.display = 'block';
-    document.getElementById('btn-tournois').style.display = 'inline-flex';
-    renderEvents();
-    renderComptes();
+    if (found.mustChange) {
+      forceChangePending = found;
+      document.getElementById('force-new-pwd').value = '';
+      document.getElementById('force-new-pwd2').value = '';
+      document.getElementById('force-error').textContent = '';
+      document.getElementById('modal-forcechange').classList.add('open');
+      setTimeout(() => document.getElementById('force-new-pwd').focus(), 50);
+      return;
+    }
+    finishLogin(found);
   } else {
     const err = document.getElementById('pwd-error');
     err.textContent = '❌ Identifiant ou mot de passe incorrect';
     document.getElementById('pwd-input').value = '';
     setTimeout(() => err.textContent = '', 2500);
   }
+}
+
+function finishLogin(compte) {
+  connecte = true;
+  loggedInId = compte.id;
+  localStorage.setItem('uss_admin', '1');
+  localStorage.setItem('uss_admin_id', compte.id);
+  document.getElementById('admin-panel').classList.add('open');
+  document.getElementById('btn-admin').style.opacity = '0.4';
+  document.getElementById('btn-deconnexion').style.display = 'block';
+  document.getElementById('btn-tournois').style.display = 'inline-flex';
+  renderEvents();
+  renderComptes();
+}
+
+function forceChangePwd() {
+  const v1 = document.getElementById('force-new-pwd').value;
+  const v2 = document.getElementById('force-new-pwd2').value;
+  const err = document.getElementById('force-error');
+  if (!v1) { err.textContent = '⚠️ Entrez un mot de passe.'; return; }
+  if (v1.length < 4) { err.textContent = '⚠️ 4 caractères minimum.'; return; }
+  if (v1 !== v2) { err.textContent = '⚠️ Les mots de passe ne correspondent pas.'; return; }
+  if (!forceChangePending) { err.textContent = '⚠️ Session expirée, reconnectez-vous.'; return; }
+  forceChangePending.mdp = v1;
+  delete forceChangePending.mustChange;
+  const compte = forceChangePending;
+  logAction('a défini son mot de passe lors de sa première connexion');
+  sauvegarder();
+  document.getElementById('modal-forcechange').classList.remove('open');
+  finishLogin(compte);
+  forceChangePending = null;
+}
+
+function toggleEyeForce() {
+  const inp = document.getElementById('force-new-pwd');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
 }
 
 function ouvrirModifier(id) {
@@ -1126,19 +1195,18 @@ function changerMdp() {
   logAction(`a changé son mot de passe`);
 }
 
-// Question secrète
-let questionSecrete = localStorage.getItem('uss_question') || '';
-let reponseSecrete  = localStorage.getItem('uss_reponse')  || '';
-
+// Question secrète (propre à chaque compte)
 function sauverQuestion() {
   const q = document.getElementById('cfg-question').value.trim();
   const r = document.getElementById('cfg-reponse').value.trim();
   const alertDiv = document.getElementById('alert-mdp');
   if (!q || !r) { flash(alertDiv, 'warning', '⚠️ Entrez la question et la réponse.'); return; }
-  questionSecrete = q;
-  reponseSecrete  = r.toLowerCase();
-  localStorage.setItem('uss_question', questionSecrete);
-  localStorage.setItem('uss_reponse',  reponseSecrete);
+  const moi = admins.find(a => a.id === loggedInId);
+  if (!moi) { flash(alertDiv, 'warning', '⚠️ Compte introuvable.'); return; }
+  moi.question = q;
+  moi.reponse  = r.toLowerCase();
+  sauvegarder();
+  logAction('a défini sa question secrète');
   flash(alertDiv, 'success', '✅ Question secrète enregistrée !');
 }
 
@@ -1152,7 +1220,7 @@ function addCompte() {
   if (admins.some(a => a.identifiant.toLowerCase() === identifiant.toLowerCase())) {
     flash(alertDiv, 'warning', '⚠️ Cet identifiant existe déjà.'); return;
   }
-  admins.push({ id: 'admin_' + Date.now(), identifiant, mdp: mdpCompte });
+  admins.push({ id: 'admin_' + Date.now(), identifiant, mdp: mdpCompte, mustChange: true });
   document.getElementById('cp-identifiant').value = '';
   document.getElementById('cp-mdp').value = '';
   flash(alertDiv, 'success', '✅ Compte créé !');
@@ -1175,7 +1243,7 @@ function renderComptes() {
   if (!list) return;
   list.innerHTML = admins.map(a => `
     <div style="display:flex;justify-content:space-between;align-items:center;background:var(--gris-fonce);border:1px solid var(--gris-moyen);border-radius:8px;padding:0.5rem 0.8rem">
-      <span>👤 ${a.identifiant}${a.protected ? ' <span style="color:var(--or);font-size:0.75rem">⭐ protégé</span>' : ''}${a.id === loggedInId ? ' <span style="color:var(--or);font-size:0.75rem">(vous)</span>' : ''}</span>
+      <span>👤 ${a.identifiant}${a.protected ? ' <span style="color:var(--or);font-size:0.75rem">⭐ protégé</span>' : ''}${a.mustChange ? ' <span style="color:#fbbf24;font-size:0.75rem">⏳ 1re connexion en attente</span>' : ''}${a.id === loggedInId ? ' <span style="color:var(--or);font-size:0.75rem">(vous)</span>' : ''}</span>
       ${a.protected ? '' : `<button class="btn-del" onclick="delCompte('${a.id}')">🗑</button>`}
     </div>
   `).join('');
@@ -1187,33 +1255,52 @@ function toggleEyeCompte() {
 }
 
 // Récupération
+let recupCompte = null;
+
 function ouvrirRecup() {
   fermerLogin();
-  if (!questionSecrete) { alert('Aucune question secrète définie.'); return; }
+  recupCompte = null;
   document.getElementById('recup-identifiant').value = '';
-  document.getElementById('recup-question').textContent = questionSecrete;
+  document.getElementById('recup-error0').textContent = '';
   document.getElementById('recup-reponse').value = '';
   document.getElementById('recup-error').textContent = '';
   document.getElementById('recup-new-pwd').value = '';
   document.getElementById('recup-new-pwd2').value = '';
   document.getElementById('recup-error2').textContent = '';
-  document.getElementById('recup-etape1').style.display = 'block';
+  document.getElementById('recup-etape0').style.display = 'block';
+  document.getElementById('recup-etape1').style.display = 'none';
   document.getElementById('recup-etape2').style.display = 'none';
   document.getElementById('modal-recup').classList.add('open');
   setTimeout(() => document.getElementById('recup-identifiant').focus(), 50);
 }
 function fermerRecup() { document.getElementById('modal-recup').classList.remove('open'); }
 
-function checkRecup() {
+function checkIdentifiantRecup() {
   const identifiant = document.getElementById('recup-identifiant').value.trim();
-  const rep = document.getElementById('recup-reponse').value.trim().toLowerCase();
-  const err = document.getElementById('recup-error');
-  if (!admins.some(a => a.identifiant.toLowerCase() === identifiant.toLowerCase())) {
+  const err = document.getElementById('recup-error0');
+  const compte = admins.find(a => a.identifiant.toLowerCase() === identifiant.toLowerCase());
+  if (!compte) {
     err.textContent = '❌ Identifiant inconnu';
     setTimeout(() => err.textContent = '', 2500);
     return;
   }
-  if (rep === reponseSecrete) {
+  if (!compte.question) {
+    err.textContent = '❌ Aucune question secrète définie pour ce compte';
+    setTimeout(() => err.textContent = '', 3000);
+    return;
+  }
+  recupCompte = compte;
+  document.getElementById('recup-question').textContent = compte.question;
+  document.getElementById('recup-etape0').style.display = 'none';
+  document.getElementById('recup-etape1').style.display = 'block';
+  setTimeout(() => document.getElementById('recup-reponse').focus(), 50);
+}
+
+function checkRecup() {
+  const rep = document.getElementById('recup-reponse').value.trim().toLowerCase();
+  const err = document.getElementById('recup-error');
+  if (!recupCompte) { fermerRecup(); return; }
+  if (rep === recupCompte.reponse) {
     document.getElementById('recup-etape1').style.display = 'none';
     document.getElementById('recup-etape2').style.display = 'block';
   } else {
@@ -1224,15 +1311,15 @@ function checkRecup() {
 }
 
 function sauverNouveauMdp() {
-  const identifiant = document.getElementById('recup-identifiant').value.trim();
   const v1 = document.getElementById('recup-new-pwd').value;
   const v2 = document.getElementById('recup-new-pwd2').value;
   const err = document.getElementById('recup-error2');
   if (!v1) { err.textContent = '⚠️ Entrez un mot de passe.'; return; }
   if (v1 !== v2) { err.textContent = '⚠️ Les mots de passe ne correspondent pas.'; return; }
-  const compte = admins.find(a => a.identifiant.toLowerCase() === identifiant.toLowerCase());
-  if (!compte) { err.textContent = '⚠️ Identifiant introuvable.'; return; }
-  compte.mdp = v1;
+  if (!recupCompte) { err.textContent = '⚠️ Session expirée, recommencez.'; return; }
+  recupCompte.mdp = v1;
+  logAction(`a réinitialisé son mot de passe via la question secrète`);
+  const compte = recupCompte;
   sauvegarder();
   fermerRecup();
   // Connecter automatiquement
