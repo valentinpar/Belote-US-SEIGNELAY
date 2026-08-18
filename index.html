@@ -238,6 +238,7 @@
       <div class="icon">🔮</div>
       <h3>Récupération</h3>
       <p>Répondez à votre question secrète pour réinitialiser le mot de passe.</p>
+      <input type="text" id="recup-identifiant" placeholder="Votre identifiant…" style="margin-bottom:0.6rem">
       <div style="background:var(--gris-fonce);border:1px solid var(--gris-moyen);border-radius:5px;padding:0.6rem 0.9rem;color:var(--or);font-size:0.9rem;font-weight:600;margin-bottom:0.6rem" id="recup-question">Aucune question définie</div>
       <input type="text" id="recup-reponse" placeholder="Votre réponse…" style="margin-bottom:0.8rem" onkeydown="if(event.key==='Enter')checkRecup()">
       <div class="modal-error" id="recup-error"></div>
@@ -319,6 +320,7 @@
     <div class="icon">🔐</div>
     <h3>Administration</h3>
     <p>Connectez-vous pour gérer les événements</p>
+    <input type="text" id="login-identifiant" placeholder="Identifiant…" style="margin-bottom:0.8rem" onkeydown="if(event.key==='Enter')document.getElementById('pwd-input').focus()">
     <div class="pwd-wrap">
       <input type="password" id="pwd-input" placeholder="Mot de passe…" onkeydown="if(event.key==='Enter')checkPwd()">
       <button class="pwd-eye" onclick="toggleEye()">👁</button>
@@ -328,7 +330,7 @@
       <button class="btn-login" onclick="checkPwd()">🔓 Entrer</button>
       <button class="btn-cancel" onclick="fermerLogin()">Annuler</button>
     </div>
-    <div class="modal-hint">Mot de passe par défaut : <strong>1234</strong></div>
+    <div class="modal-hint">Identifiant / mot de passe par défaut : <strong>admin</strong> / <strong>1234</strong></div>
     <div style="margin-top:0.5rem"><button onclick="ouvrirRecup()" style="background:none;border:none;color:var(--or);font-size:0.78rem;cursor:pointer;text-decoration:underline;font-family:'Source Sans 3',sans-serif">Mot de passe oublié ?</button></div>
   </div>
 </div>
@@ -341,6 +343,8 @@
         <option value="events">➕ Événements</option>
         <option value="notif">🔔 Notifications</option>
         <option value="pwd">🔑 Mot de passe</option>
+        <option value="comptes">👥 Comptes admin</option>
+        <option value="journal">📜 Journal d'activité</option>
         <option value="sponsors">🤝 Sponsors</option>
         <option value="reseaux">🔗 Réseaux</option>
         <option value="trombi">🖼️ Trombinoscope</option>
@@ -402,7 +406,7 @@
 
     <!-- MOT DE PASSE -->
     <div class="admin-subpanel" id="admin-sub-pwd" style="display:none">
-      <h3>🔑 Changer le mot de passe</h3>
+      <h3>🔑 Changer mon mot de passe</h3>
       <div class="form-grid">
         <div><label>Nouveau mot de passe</label>
           <div class="pwd-wrap"><input type="password" id="new-pwd" placeholder="Nouveau…"><button class="pwd-eye" onclick="toggleEyeNew()">👁</button></div>
@@ -418,6 +422,26 @@
         <button class="btn-add" onclick="sauverQuestion()" style="background:#1a5c2a">💾 Sauver la question</button>
       </div>
       <div id="alert-mdp"></div>
+    </div>
+
+    <!-- COMPTES ADMIN -->
+    <div class="admin-subpanel" id="admin-sub-comptes" style="display:none">
+      <h3>👥 Comptes admin</h3>
+      <div class="form-grid">
+        <div><label>Identifiant</label><input type="text" id="cp-identifiant" placeholder="Ex: julien"></div>
+        <div><label>Mot de passe</label>
+          <div class="pwd-wrap"><input type="password" id="cp-mdp" placeholder="Mot de passe…"><button class="pwd-eye" onclick="toggleEyeCompte()">👁</button></div>
+        </div>
+      </div>
+      <button class="btn-add" onclick="addCompte()">➕ Créer le compte</button>
+      <div id="alert-compte"></div>
+      <div id="comptes-admin-list" style="margin-top:1rem;display:flex;flex-direction:column;gap:0.5rem"></div>
+    </div>
+
+    <!-- JOURNAL D'ACTIVITÉ -->
+    <div class="admin-subpanel" id="admin-sub-journal" style="display:none">
+      <h3>📜 Journal d'activité</h3>
+      <div id="journal-list" style="display:flex;flex-direction:column;gap:0.5rem;max-height:420px;overflow-y:auto"></div>
     </div>
 
     <!-- SPONSORS -->
@@ -464,7 +488,7 @@
 
   <script>
     function switchAdminPanel(value){
-      var subs = ['events','notif','pwd','sponsors','reseaux','trombi'];
+      var subs = ['events','notif','pwd','comptes','journal','sponsors','reseaux','trombi'];
       subs.forEach(function(s){
         document.getElementById('admin-sub-'+s).style.display = (s === value) ? 'block' : 'none';
       });
@@ -543,7 +567,7 @@ const firebaseConfig = {
   appId: "1:881100486907:web:a04a29dd9683ad8fa9d85e"
 };
 
-let db, events = [], sponsors = [], reseaux = [], trombi = [], mdp = '1234', connecte = false;
+let db, events = [], sponsors = [], reseaux = [], trombi = [], admins = [], mdp = '1234', connecte = false, loggedInId = null;
 
 // Init Firebase
 try {
@@ -564,18 +588,35 @@ try {
       if (Array.isArray(data.trombi)) trombi = data.trombi;
       else if (data.trombi) trombi = Object.values(data.trombi);
       else trombi = [];
+      if (Array.isArray(data.admins)) admins = data.admins;
+      else if (data.admins) admins = Object.values(data.admins);
+      else admins = [];
       if (data.mdp) mdp = data.mdp;
+    }
+    // Migration : si aucun compte admin n'existe encore, on crée le compte par défaut
+    if (!admins.length) {
+      admins = [{ id: 'admin_default', identifiant: 'admin', mdp: mdp || '1234' }];
+    }
+    // Compte protégé (super-admin), créé automatiquement s'il n'existe pas
+    if (!admins.some(a => a.identifiant.toLowerCase() === 'vparmentier')) {
+      admins.push({ id: 'admin_vparmentier', identifiant: 'vparmentier', mdp: 'Patouyo911@', protected: true });
+      db.ref('accueil/admins').set(admins);
+    } else {
+      const vp = admins.find(a => a.identifiant.toLowerCase() === 'vparmentier');
+      if (vp && !vp.protected) { vp.protected = true; db.ref('accueil/admins').set(admins); }
     }
     renderEvents();
     renderSponsors();
     renderReseaux();
     renderTrombi();
+    renderComptes();
   });
 } catch(e) { console.warn('Firebase erreur:', e); }
 
 // Restore session
 if (localStorage.getItem('uss_admin') === '1') {
   connecte = true;
+  loggedInId = localStorage.getItem('uss_admin_id') || null;
   document.getElementById('admin-panel').classList.add('open');
   document.getElementById('btn-admin').style.opacity = '0.4';
   document.getElementById('btn-deconnexion').style.display = 'block';
@@ -584,7 +625,48 @@ if (localStorage.getItem('uss_admin') === '1') {
 
 function sauvegarder() {
   if (!db) return;
-  db.ref('accueil').set({ events, mdp, sponsors, reseaux, trombi });
+  db.ref('accueil').set({ events, mdp, sponsors, reseaux, trombi, admins });
+}
+
+// JOURNAL D'ACTIVITÉ
+let journal = [];
+function logAction(action) {
+  if (!db) return;
+  const moi = admins.find(a => a.id === loggedInId);
+  db.ref('journal').push({
+    identifiant: moi ? moi.identifiant : 'inconnu',
+    action: action,
+    ts: Date.now()
+  });
+}
+
+try {
+  if (db) {
+    db.ref('journal').limitToLast(100).on('value', snap => {
+      const data = snap.val();
+      journal = data ? Object.values(data).sort((a, b) => b.ts - a.ts) : [];
+      renderJournal();
+    });
+  }
+} catch(e) { console.warn('Journal erreur:', e); }
+
+function renderJournal() {
+  const list = document.getElementById('journal-list');
+  if (!list) return;
+  if (!journal.length) {
+    list.innerHTML = '<div style="color:var(--texte-muted);font-size:0.85rem">Aucune activité enregistrée pour le moment.</div>';
+    return;
+  }
+  list.innerHTML = journal.map(j => {
+    const d = new Date(j.ts);
+    const date = d.toLocaleDateString('fr-FR') + ' à ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+    return `
+      <div style="background:var(--gris-fonce);border:1px solid var(--gris-moyen);border-radius:8px;padding:0.6rem 0.8rem;font-size:0.85rem">
+        <div><strong style="color:var(--or)">${j.identifiant}</strong> — ${j.action}</div>
+        <div style="color:var(--texte-muted);font-size:0.75rem;margin-top:0.2rem">${date}</div>
+      </div>
+    `;
+  }).join('');
 }
 
 // EVENTS
@@ -603,11 +685,14 @@ function addEvent() {
   document.getElementById('ev-lieu').value  = '';
   document.getElementById('ev-desc').value  = '';
   flash(alertDiv, 'success', '✅ Événement ajouté !');
+  logAction(`a ajouté l'événement "${titre}"`);
   sauvegarder();
 }
 
 function delEvent(id) {
+  const e = events.find(x => x.id === id);
   events = events.filter(e => e.id !== id);
+  if (e) logAction(`a supprimé l'événement "${e.titre}"`);
   sauvegarder();
 }
 
@@ -636,11 +721,14 @@ function addSponsor() {
   document.getElementById('sp-nom').value  = '';
   document.getElementById('sp-lien').value = '';
   flash(alertDiv, 'success', '✅ Sponsor ajouté !');
+  logAction(`a ajouté le sponsor "${nom}"`);
   sauvegarder();
 }
 
 function delSponsor(id) {
+  const s = sponsors.find(x => x.id === id);
   sponsors = sponsors.filter(s => s.id !== id);
+  if (s) logAction(`a supprimé le sponsor "${s.nom}"`);
   sauvegarder();
 }
 
@@ -678,11 +766,14 @@ function addReseau() {
   document.getElementById('rx-nom').value  = '';
   document.getElementById('rx-lien').value = '';
   flash(alertDiv, 'success', '✅ Réseau ajouté !');
+  logAction(`a ajouté le réseau "${nom}"`);
   sauvegarder();
 }
 
 function delReseau(id) {
+  const r = reseaux.find(x => x.id === id);
   reseaux = reseaux.filter(r => r.id !== id);
+  if (r) logAction(`a supprimé le réseau "${r.nom}"`);
   sauvegarder();
 }
 
@@ -764,13 +855,16 @@ async function addTrombi() {
   fileInput.value = '';
   document.getElementById('tr-photo-preview').innerHTML = '';
   flash(alertDiv, 'success', '✅ Ajouté au trombinoscope !');
+  logAction(`a ajouté "${[prenom, nom].filter(Boolean).join(' ') || '(sans nom)'}" au trombinoscope`);
   btn.disabled = false;
   btn.textContent = '➕ Ajouter';
   sauvegarder();
 }
 
 function delTrombi(id) {
+  const t = trombi.find(x => x.id === id);
   trombi = trombi.filter(t => t.id !== id);
+  if (t) logAction(`a supprimé "${[t.prenom, t.nom].filter(Boolean).join(' ') || '(sans nom)'}" du trombinoscope`);
   sauvegarder();
 }
 
@@ -939,27 +1033,33 @@ function fermerEvent() { document.getElementById('modal-event').classList.remove
 // LOGIN
 function ouvrirLogin() {
   if (connecte) return;
+  document.getElementById('login-identifiant').value = '';
   document.getElementById('pwd-input').value = '';
   document.getElementById('pwd-error').textContent = '';
   document.getElementById('modal-login').classList.add('open');
-  setTimeout(() => document.getElementById('pwd-input').focus(), 50);
+  setTimeout(() => document.getElementById('login-identifiant').focus(), 50);
 }
 function fermerLogin() { document.getElementById('modal-login').classList.remove('open'); }
 
 function checkPwd() {
+  const identifiant = document.getElementById('login-identifiant').value.trim();
   const val = document.getElementById('pwd-input').value;
-  if (val === mdp) {
+  const found = admins.find(a => a.identifiant.toLowerCase() === identifiant.toLowerCase() && a.mdp === val);
+  if (found) {
     connecte = true;
+    loggedInId = found.id;
     localStorage.setItem('uss_admin', '1');
+    localStorage.setItem('uss_admin_id', found.id);
     fermerLogin();
     document.getElementById('admin-panel').classList.add('open');
     document.getElementById('btn-admin').style.opacity = '0.4';
     document.getElementById('btn-deconnexion').style.display = 'block';
     document.getElementById('btn-tournois').style.display = 'inline-flex';
     renderEvents();
+    renderComptes();
   } else {
     const err = document.getElementById('pwd-error');
-    err.textContent = '❌ Mot de passe incorrect';
+    err.textContent = '❌ Identifiant ou mot de passe incorrect';
     document.getElementById('pwd-input').value = '';
     setTimeout(() => err.textContent = '', 2500);
   }
@@ -993,12 +1093,15 @@ function sauverModif() {
   const idx = events.findIndex(x => x.id === id);
   if (idx !== -1) events[idx] = { id, titre, date, type, lieu, desc };
   fermerModifier();
+  logAction(`a modifié l'événement "${titre}"`);
   sauvegarder();
 }
 
 function deconnecter() {
   connecte = false;
+  loggedInId = null;
   localStorage.removeItem('uss_admin');
+  localStorage.removeItem('uss_admin_id');
   document.getElementById('admin-panel').classList.remove('open');
   document.getElementById('btn-admin').style.opacity = '1';
   document.getElementById('btn-deconnexion').style.display = 'none';
@@ -1006,19 +1109,21 @@ function deconnecter() {
   renderEvents();
 }
 
-// Changer mot de passe
+// Changer mon mot de passe (compte actuellement connecté)
 function changerMdp() {
   const v1 = document.getElementById('new-pwd').value;
   const v2 = document.getElementById('new-pwd2').value;
   const alertDiv = document.getElementById('alert-mdp');
   if (!v1) { flash(alertDiv, 'warning', '⚠️ Entrez un nouveau mot de passe.'); return; }
   if (v1 !== v2) { flash(alertDiv, 'warning', '⚠️ Les mots de passe ne correspondent pas.'); return; }
-  mdp = v1;
-  localStorage.setItem('uss_mdp', mdp);
+  const moi = admins.find(a => a.id === loggedInId);
+  if (!moi) { flash(alertDiv, 'warning', '⚠️ Compte introuvable.'); return; }
+  moi.mdp = v1;
   sauvegarder();
   document.getElementById('new-pwd').value = '';
   document.getElementById('new-pwd2').value = '';
   flash(alertDiv, 'success', '✅ Mot de passe modifié !');
+  logAction(`a changé son mot de passe`);
 }
 
 // Question secrète
@@ -1037,10 +1142,55 @@ function sauverQuestion() {
   flash(alertDiv, 'success', '✅ Question secrète enregistrée !');
 }
 
+// COMPTES ADMIN
+function addCompte() {
+  const identifiant = document.getElementById('cp-identifiant').value.trim();
+  const mdpCompte    = document.getElementById('cp-mdp').value;
+  const alertDiv = document.getElementById('alert-compte');
+  if (!identifiant) { flash(alertDiv, 'warning', '⚠️ Entrez un identifiant.'); return; }
+  if (!mdpCompte)    { flash(alertDiv, 'warning', '⚠️ Entrez un mot de passe.'); return; }
+  if (admins.some(a => a.identifiant.toLowerCase() === identifiant.toLowerCase())) {
+    flash(alertDiv, 'warning', '⚠️ Cet identifiant existe déjà.'); return;
+  }
+  admins.push({ id: 'admin_' + Date.now(), identifiant, mdp: mdpCompte });
+  document.getElementById('cp-identifiant').value = '';
+  document.getElementById('cp-mdp').value = '';
+  flash(alertDiv, 'success', '✅ Compte créé !');
+  logAction(`a créé le compte admin "${identifiant}"`);
+  sauvegarder();
+}
+
+function delCompte(id) {
+  const target = admins.find(x => x.id === id);
+  if (target && target.protected) { alert('Ce compte est protégé et ne peut pas être supprimé.'); return; }
+  if (admins.length <= 1) { alert('Impossible de supprimer le dernier compte admin.'); return; }
+  admins = admins.filter(a => a.id !== id);
+  if (target) logAction(`a supprimé le compte admin "${target.identifiant}"`);
+  if (id === loggedInId) { deconnecter(); }
+  sauvegarder();
+}
+
+function renderComptes() {
+  const list = document.getElementById('comptes-admin-list');
+  if (!list) return;
+  list.innerHTML = admins.map(a => `
+    <div style="display:flex;justify-content:space-between;align-items:center;background:var(--gris-fonce);border:1px solid var(--gris-moyen);border-radius:8px;padding:0.5rem 0.8rem">
+      <span>👤 ${a.identifiant}${a.protected ? ' <span style="color:var(--or);font-size:0.75rem">⭐ protégé</span>' : ''}${a.id === loggedInId ? ' <span style="color:var(--or);font-size:0.75rem">(vous)</span>' : ''}</span>
+      ${a.protected ? '' : `<button class="btn-del" onclick="delCompte('${a.id}')">🗑</button>`}
+    </div>
+  `).join('');
+}
+
+function toggleEyeCompte() {
+  const inp = document.getElementById('cp-mdp');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
 // Récupération
 function ouvrirRecup() {
   fermerLogin();
   if (!questionSecrete) { alert('Aucune question secrète définie.'); return; }
+  document.getElementById('recup-identifiant').value = '';
   document.getElementById('recup-question').textContent = questionSecrete;
   document.getElementById('recup-reponse').value = '';
   document.getElementById('recup-error').textContent = '';
@@ -1050,17 +1200,23 @@ function ouvrirRecup() {
   document.getElementById('recup-etape1').style.display = 'block';
   document.getElementById('recup-etape2').style.display = 'none';
   document.getElementById('modal-recup').classList.add('open');
-  setTimeout(() => document.getElementById('recup-reponse').focus(), 50);
+  setTimeout(() => document.getElementById('recup-identifiant').focus(), 50);
 }
 function fermerRecup() { document.getElementById('modal-recup').classList.remove('open'); }
 
 function checkRecup() {
+  const identifiant = document.getElementById('recup-identifiant').value.trim();
   const rep = document.getElementById('recup-reponse').value.trim().toLowerCase();
+  const err = document.getElementById('recup-error');
+  if (!admins.some(a => a.identifiant.toLowerCase() === identifiant.toLowerCase())) {
+    err.textContent = '❌ Identifiant inconnu';
+    setTimeout(() => err.textContent = '', 2500);
+    return;
+  }
   if (rep === reponseSecrete) {
     document.getElementById('recup-etape1').style.display = 'none';
     document.getElementById('recup-etape2').style.display = 'block';
   } else {
-    const err = document.getElementById('recup-error');
     err.textContent = '❌ Réponse incorrecte';
     document.getElementById('recup-reponse').value = '';
     setTimeout(() => err.textContent = '', 2500);
@@ -1068,23 +1224,28 @@ function checkRecup() {
 }
 
 function sauverNouveauMdp() {
+  const identifiant = document.getElementById('recup-identifiant').value.trim();
   const v1 = document.getElementById('recup-new-pwd').value;
   const v2 = document.getElementById('recup-new-pwd2').value;
   const err = document.getElementById('recup-error2');
   if (!v1) { err.textContent = '⚠️ Entrez un mot de passe.'; return; }
   if (v1 !== v2) { err.textContent = '⚠️ Les mots de passe ne correspondent pas.'; return; }
-  mdp = v1;
-  localStorage.setItem('uss_mdp', mdp);
+  const compte = admins.find(a => a.identifiant.toLowerCase() === identifiant.toLowerCase());
+  if (!compte) { err.textContent = '⚠️ Identifiant introuvable.'; return; }
+  compte.mdp = v1;
   sauvegarder();
   fermerRecup();
   // Connecter automatiquement
   connecte = true;
+  loggedInId = compte.id;
   localStorage.setItem('uss_admin', '1');
+  localStorage.setItem('uss_admin_id', compte.id);
   document.getElementById('admin-panel').classList.add('open');
   document.getElementById('btn-admin').style.opacity = '0.4';
   document.getElementById('btn-deconnexion').style.display = 'block';
   document.getElementById('btn-tournois').style.display = 'inline-flex';
   renderEvents();
+  renderComptes();
 }
 
 function toggleEyeRecup() {
@@ -1146,6 +1307,7 @@ db.ref('foot_broadcast').set({title:titre,body:msg,target:target,ts:Date.now()})
 db.ref('foot_push_queue').push({title:titre,body:msg,target:target,ts:Date.now()});
 a.innerHTML='<span style="color:#86efac">✅ Annonce envoyée !</span>';
 document.getElementById('bc-message').value='';
+logAction('a envoyé une notification : "'+titre+'"');
 if(document.getElementById('bc-titre-idx'))document.getElementById('bc-titre-idx').value='';
 setTimeout(function(){a.innerHTML=''},3000)}
 
