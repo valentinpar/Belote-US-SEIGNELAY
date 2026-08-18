@@ -179,6 +179,8 @@
   .admin-panel { display: none; background: var(--gris); border: 1px solid var(--gris-moyen); border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
   .admin-panel.open { display: block; }
   .admin-panel h3 { font-family: 'Playfair Display', serif; color: var(--or); font-size: 1.1rem; margin-bottom: 1rem; }
+  .admin-subpanel { background: var(--gris-fonce); border: 1px solid var(--gris-moyen); border-radius: 10px; padding: 1.25rem; }
+  .admin-subpanel h3 { font-family: 'Playfair Display', serif; color: var(--or); font-size: 1.05rem; margin-bottom: 1rem; }
   .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem; }
   @media(max-width:500px) { .form-grid { grid-template-columns: 1fr; } }
   label { display: block; font-size: 0.78rem; color: var(--texte-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem; }
@@ -332,106 +334,142 @@
 </div>
 
 <main>
-  <!-- PANEL ADMIN -->
+  <!-- ESPACE ADMIN -->
   <div class="admin-panel" id="admin-panel">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:0.5rem">
-      <h3 style="margin:0">➕ Nouvel événement</h3>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;flex-wrap:wrap;gap:0.6rem">
+      <select id="admin-manage-select" onchange="switchAdminPanel(this.value)" style="background:var(--gris-fonce);border:1px solid var(--or);color:var(--or);border-radius:8px;padding:0.45rem 0.8rem;font-size:0.85rem;font-weight:700;font-family:'Source Sans 3',sans-serif;cursor:pointer">
+        <option value="events">➕ Événements</option>
+        <option value="notif">🔔 Notifications</option>
+        <option value="pwd">🔑 Mot de passe</option>
+        <option value="sponsors">🤝 Sponsors</option>
+        <option value="reseaux">🔗 Réseaux</option>
+        <option value="trombi">🖼️ Trombinoscope</option>
+      </select>
       <button class="btn-logout" onclick="deconnecter()">🔒 Déconnexion</button>
     </div>
-    <div class="form-grid">
-      <div><label>Titre</label><input type="text" id="ev-titre" placeholder="Tournoi de belote…"></div>
-      <div><label>Date</label><input type="text" id="ev-date" placeholder="15 avril 2025"></div>
-      <div><label>Type</label>
-        <select id="ev-type">
-          <option value="belote">🃏 Tournoi de belote</option>
-          <option value="foot">⚽ Football</option>
-          <option value="petanque">🎱 Pétanque</option>
-          <option value="loto">🎰 Loto</option>
-          <option value="autre">📌 Autre</option>
+
+    <!-- ÉVÉNEMENTS -->
+    <div class="admin-subpanel" id="admin-sub-events">
+      <h3>➕ Nouvel événement</h3>
+      <div class="form-grid">
+        <div><label>Titre</label><input type="text" id="ev-titre" placeholder="Tournoi de belote…"></div>
+        <div><label>Date</label><input type="text" id="ev-date" placeholder="15 avril 2025"></div>
+        <div><label>Type</label>
+          <select id="ev-type">
+            <option value="belote">🃏 Tournoi de belote</option>
+            <option value="foot">⚽ Football</option>
+            <option value="petanque">🎱 Pétanque</option>
+            <option value="loto">🎰 Loto</option>
+            <option value="autre">📌 Autre</option>
+          </select>
+        </div>
+        <div><label>Lieu</label><input type="text" id="ev-lieu" placeholder="Salle des fêtes…"></div>
+      </div>
+      <div><label>Description</label><textarea id="ev-desc" placeholder="Informations complémentaires…"></textarea></div>
+      <div style="margin-top:0.75rem">
+        <button class="btn-add" onclick="addEvent()">➕ Ajouter l'événement</button>
+      </div>
+      <div id="alert-ev"></div>
+    </div>
+
+    <!-- NOTIFICATIONS -->
+    <div class="admin-subpanel" id="admin-sub-notif" style="display:none">
+      <h3>🔔 Notifications</h3>
+      <div id="notif-status" style="font-size:.82rem;color:#86efac;margin-bottom:.8rem">✅ Actif sur tous les appareils connectés</div>
+      <!-- Test minuteur -->
+      <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid var(--gris-moyen)">
+        <span style="font-size:.8rem;color:var(--texte-muted)">Test :</span>
+        <select id="idx-test-delay" style="background:var(--gris-fonce);border:1px solid var(--gris-moyen);color:var(--texte-clair);border-radius:6px;padding:.2rem .4rem;font-size:.8rem">
+          <option value="5">5s</option><option value="10" selected>10s</option><option value="15">15s</option><option value="30">30s</option>
         </select>
+        <button id="idx-timer-btn" class="btn-add" style="padding:.3rem .8rem;font-size:.8rem" onclick="startIdxTimer()">▶ Lancer</button>
+        <span id="idx-timer-lbl" style="font-size:.8rem;color:#d4a017;font-weight:700;min-width:35px"></span>
+        <button class="btn-add" style="padding:.3rem .8rem;font-size:.8rem" onclick="showBanner('⚽ Test','Notification US Seignelay !')">Tester</button>
       </div>
-      <div><label>Lieu</label><input type="text" id="ev-lieu" placeholder="Salle des fêtes…"></div>
-    </div>
-    <div><label>Description</label><textarea id="ev-desc" placeholder="Informations complémentaires…"></textarea></div>
-    <div style="margin-top:0.75rem">
-      <button class="btn-add" onclick="addEvent()">➕ Ajouter l'événement</button>
-    </div>
-    <div id="alert-ev"></div>
-  </div>
-
-  <!-- PANNEAU ANNONCE PUSH -->
-  <div class="admin-panel" id="notif-panel">
-    <h3>🔔 Notifications</h3>
-    <div id="notif-status" style="font-size:.82rem;color:#86efac;margin-bottom:.8rem">✅ Actif sur tous les appareils connectés</div>
-    <!-- Test minuteur -->
-    <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid var(--gris-moyen)">
-      <span style="font-size:.8rem;color:var(--texte-muted)">Test :</span>
-      <select id="idx-test-delay" style="background:var(--gris-fonce);border:1px solid var(--gris-moyen);color:var(--texte-clair);border-radius:6px;padding:.2rem .4rem;font-size:.8rem">
-        <option value="5">5s</option><option value="10" selected>10s</option><option value="15">15s</option><option value="30">30s</option>
-      </select>
-      <button id="idx-timer-btn" class="btn-add" style="padding:.3rem .8rem;font-size:.8rem" onclick="startIdxTimer()">▶ Lancer</button>
-      <span id="idx-timer-lbl" style="font-size:.8rem;color:#d4a017;font-weight:700;min-width:35px"></span>
-      <button class="btn-add" style="padding:.3rem .8rem;font-size:.8rem" onclick="showBanner('⚽ Test','Notification US Seignelay !')">Tester</button>
-    </div>
-    <!-- Envoyer annonce -->
-    <div style="margin-bottom:.5rem"><label>Titre</label><input type="text" id="bc-titre-idx" placeholder="Ex: Attention !" style="width:100%"></div>
-    <div style="margin-bottom:.5rem"><label>Message</label><textarea id="bc-message" placeholder="Ex: Le tournoi commence dans 10 minutes !" style="width:100%;height:60px;resize:vertical;background:var(--gris-fonce);border:1px solid var(--gris-moyen);color:var(--texte-clair);border-radius:8px;padding:.5rem .7rem;font-family:'Source Sans 3',sans-serif;font-size:.9rem"></textarea></div>
-    <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
-      <select id="bc-target-idx" style="flex:1;min-width:160px;background:var(--gris-fonce);border:1px solid var(--gris-moyen);color:var(--texte-clair);border-radius:6px;padding:.35rem .5rem;font-size:.84rem">
-        <option value="all">📣 Tout le monde</option>
-        <option value="index">🏠 Visiteurs accueil</option>
-        <option value="tournoi">⚽ Équipes tournoi</option>
-      </select>
-      <button class="btn-add" onclick="envoyerAnnonce()">📤 Envoyer</button>
-    </div>
-    <div id="alert-annonce" style="margin-top:.5rem"></div>
-  </div>
-
-  <!-- PANEL MOT DE PASSE -->
-  <div class="admin-panel" id="pwd-panel" style="margin-bottom:1rem">
-    <h3>🔑 Changer le mot de passe</h3>
-    <div class="form-grid">
-      <div><label>Nouveau mot de passe</label>
-        <div class="pwd-wrap"><input type="password" id="new-pwd" placeholder="Nouveau…"><button class="pwd-eye" onclick="toggleEyeNew()">👁</button></div>
+      <!-- Envoyer annonce -->
+      <div style="margin-bottom:.5rem"><label>Titre</label><input type="text" id="bc-titre-idx" placeholder="Ex: Attention !" style="width:100%"></div>
+      <div style="margin-bottom:.5rem"><label>Message</label><textarea id="bc-message" placeholder="Ex: Le tournoi commence dans 10 minutes !" style="width:100%;height:60px;resize:vertical;background:var(--gris-fonce);border:1px solid var(--gris-moyen);color:var(--texte-clair);border-radius:8px;padding:.5rem .7rem;font-family:'Source Sans 3',sans-serif;font-size:.9rem"></textarea></div>
+      <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+        <select id="bc-target-idx" style="flex:1;min-width:160px;background:var(--gris-fonce);border:1px solid var(--gris-moyen);color:var(--texte-clair);border-radius:6px;padding:.35rem .5rem;font-size:.84rem">
+          <option value="all">📣 Tout le monde</option>
+          <option value="index">🏠 Visiteurs accueil</option>
+          <option value="tournoi">⚽ Équipes tournoi</option>
+        </select>
+        <button class="btn-add" onclick="envoyerAnnonce()">📤 Envoyer</button>
       </div>
-      <div><label>Confirmer</label><input type="password" id="new-pwd2" placeholder="Confirmer…" onkeydown="if(event.key==='Enter')changerMdp()"></div>
+      <div id="alert-annonce" style="margin-top:.5rem"></div>
     </div>
-    <div class="form-grid" style="margin-top:0.75rem">
-      <div><label>Question secrète</label><input type="text" id="cfg-question" placeholder="Ex: Nom de votre premier chien ?"></div>
-      <div><label>Réponse secrète</label><input type="text" id="cfg-reponse" placeholder="Votre réponse…"></div>
+
+    <!-- MOT DE PASSE -->
+    <div class="admin-subpanel" id="admin-sub-pwd" style="display:none">
+      <h3>🔑 Changer le mot de passe</h3>
+      <div class="form-grid">
+        <div><label>Nouveau mot de passe</label>
+          <div class="pwd-wrap"><input type="password" id="new-pwd" placeholder="Nouveau…"><button class="pwd-eye" onclick="toggleEyeNew()">👁</button></div>
+        </div>
+        <div><label>Confirmer</label><input type="password" id="new-pwd2" placeholder="Confirmer…" onkeydown="if(event.key==='Enter')changerMdp()"></div>
+      </div>
+      <div class="form-grid" style="margin-top:0.75rem">
+        <div><label>Question secrète</label><input type="text" id="cfg-question" placeholder="Ex: Nom de votre premier chien ?"></div>
+        <div><label>Réponse secrète</label><input type="text" id="cfg-reponse" placeholder="Votre réponse…"></div>
+      </div>
+      <div style="margin-top:0.75rem;display:flex;gap:0.75rem;flex-wrap:wrap">
+        <button class="btn-add" onclick="changerMdp()">💾 Sauver le mot de passe</button>
+        <button class="btn-add" onclick="sauverQuestion()" style="background:#1a5c2a">💾 Sauver la question</button>
+      </div>
+      <div id="alert-mdp"></div>
     </div>
-    <div style="margin-top:0.75rem;display:flex;gap:0.75rem;flex-wrap:wrap">
-      <button class="btn-add" onclick="changerMdp()">💾 Sauver le mot de passe</button>
-      <button class="btn-add" onclick="sauverQuestion()" style="background:#1a5c2a">💾 Sauver la question</button>
+
+    <!-- SPONSORS -->
+    <div class="admin-subpanel" id="admin-sub-sponsors" style="display:none">
+      <h3>🤝 Gérer les sponsors</h3>
+      <div class="form-grid">
+        <div><label>Nom du sponsor</label><input type="text" id="sp-nom" placeholder="Ex: Boulangerie Martin"></div>
+        <div><label>Site web (le logo est récupéré automatiquement)</label><input type="text" id="sp-lien" placeholder="https://…"></div>
+      </div>
+      <button class="btn-add" onclick="addSponsor()">➕ Ajouter le sponsor</button>
+      <div id="alert-sponsor"></div>
+      <div id="sponsors-admin-list" style="margin-top:1rem;display:flex;flex-direction:column;gap:0.5rem"></div>
     </div>
-    <div id="alert-mdp"></div>
+
+    <!-- RÉSEAUX -->
+    <div class="admin-subpanel" id="admin-sub-reseaux" style="display:none">
+      <h3>🔗 Gérer les réseaux</h3>
+      <div class="form-grid">
+        <div><label>Nom (ex: Facebook)</label><input type="text" id="rx-nom" placeholder="Facebook"></div>
+        <div><label>Lien (le logo est récupéré automatiquement)</label><input type="text" id="rx-lien" placeholder="https://facebook.com/…"></div>
+      </div>
+      <button class="btn-add" onclick="addReseau()">➕ Ajouter le réseau</button>
+      <div id="alert-reseau"></div>
+      <div id="reseaux-admin-list" style="margin-top:1rem;display:flex;flex-direction:column;gap:0.5rem"></div>
+    </div>
+
+    <!-- TROMBINOSCOPE -->
+    <div class="admin-subpanel" id="admin-sub-trombi" style="display:none">
+      <h3>🖼️ Gérer le trombinoscope</h3>
+      <div class="form-grid">
+        <div><label>Prénom</label><input type="text" id="tr-prenom" placeholder="Prénom (optionnel)"></div>
+        <div><label>Nom</label><input type="text" id="tr-nom" placeholder="Nom (optionnel)"></div>
+      </div>
+      <div style="margin-bottom:0.75rem">
+        <label>Photo</label>
+        <input type="file" id="tr-photo-file" accept="image/*" style="padding:0.4rem 0">
+        <div id="tr-photo-preview" style="margin-top:0.5rem"></div>
+      </div>
+      <button class="btn-add" id="tr-add-btn" onclick="addTrombi()">➕ Ajouter</button>
+      <div id="alert-trombi"></div>
+      <div id="trombi-admin-list" style="margin-top:1rem;display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:0.6rem"></div>
+    </div>
   </div>
 
-  <!-- ADMIN SPONSORS -->
-  <div class="admin-panel" id="admin-panel-sponsors" style="margin-bottom:1rem">
-    <h3>🤝 Gérer les sponsors</h3>
-    <div class="form-grid">
-      <div><label>Nom du sponsor</label><input type="text" id="sp-nom" placeholder="Ex: Boulangerie Martin"></div>
-      <div><label>Lien (optionnel)</label><input type="text" id="sp-lien" placeholder="https://…"></div>
-    </div>
-    <div style="margin-bottom:0.75rem"><label>Logo (URL image, optionnel)</label><input type="text" id="sp-logo" placeholder="https://…"></div>
-    <button class="btn-add" onclick="addSponsor()">➕ Ajouter le sponsor</button>
-    <div id="alert-sponsor"></div>
-    <div id="sponsors-admin-list" style="margin-top:1rem;display:flex;flex-direction:column;gap:0.5rem"></div>
-  </div>
-
-  <!-- ADMIN RÉSEAUX -->
-  <div class="admin-panel" id="admin-panel-reseaux" style="margin-bottom:1rem">
-    <h3>🔗 Gérer les réseaux</h3>
-    <div class="form-grid">
-      <div><label>Nom (ex: Facebook)</label><input type="text" id="rx-nom" placeholder="Facebook"></div>
-      <div><label>Lien</label><input type="text" id="rx-lien" placeholder="https://facebook.com/…"></div>
-    </div>
-    <div style="margin-bottom:0.75rem"><label>Icône (emoji, optionnel)</label><input type="text" id="rx-icone" placeholder="📘"></div>
-    <button class="btn-add" onclick="addReseau()">➕ Ajouter le réseau</button>
-    <div id="alert-reseau"></div>
-    <div id="reseaux-admin-list" style="margin-top:1rem;display:flex;flex-direction:column;gap:0.5rem"></div>
-  </div>
+  <script>
+    function switchAdminPanel(value){
+      var subs = ['events','notif','pwd','sponsors','reseaux','trombi'];
+      subs.forEach(function(s){
+        document.getElementById('admin-sub-'+s).style.display = (s === value) ? 'block' : 'none';
+      });
+    }
+  </script>
 
   <!-- RÉSULTATS DU CLUB -->
   <div class="section-titre">⚽ Derniers résultats</div>
@@ -459,6 +497,7 @@
       <option value="posts">📸 Derniers posts</option>
       <option value="sponsors">🤝 Nos sponsors</option>
       <option value="reseaux">🔗 Nos réseaux</option>
+      <option value="trombi">🖼️ Trombinoscope</option>
     </select>
   </div>
 
@@ -478,9 +517,13 @@
     <div id="reseaux-container"></div>
   </div>
 
+  <div id="panel-trombi" style="display:none">
+    <div id="trombi-container" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:1rem"></div>
+  </div>
+
   <script>
     function switchPanel(value){
-      var panels = ['events','posts','sponsors','reseaux'];
+      var panels = ['events','posts','sponsors','reseaux','trombi'];
       panels.forEach(function(p){
         document.getElementById('panel-'+p).style.display = (p === value) ? 'block' : 'none';
       });
@@ -506,7 +549,7 @@ const firebaseConfig = {
   appId: "1:881100486907:web:a04a29dd9683ad8fa9d85e"
 };
 
-let db, events = [], sponsors = [], reseaux = [], mdp = '1234', connecte = false;
+let db, events = [], sponsors = [], reseaux = [], trombi = [], mdp = '1234', connecte = false;
 
 // Init Firebase
 try {
@@ -524,11 +567,15 @@ try {
       if (Array.isArray(data.reseaux)) reseaux = data.reseaux;
       else if (data.reseaux) reseaux = Object.values(data.reseaux);
       else reseaux = [];
+      if (Array.isArray(data.trombi)) trombi = data.trombi;
+      else if (data.trombi) trombi = Object.values(data.trombi);
+      else trombi = [];
       if (data.mdp) mdp = data.mdp;
     }
     renderEvents();
     renderSponsors();
     renderReseaux();
+    renderTrombi();
   });
 } catch(e) { console.warn('Firebase erreur:', e); }
 
@@ -536,10 +583,6 @@ try {
 if (localStorage.getItem('uss_admin') === '1') {
   connecte = true;
   document.getElementById('admin-panel').classList.add('open');
-  document.getElementById('pwd-panel').classList.add('open');
-  document.getElementById('notif-panel').classList.add('open');
-  document.getElementById('admin-panel-sponsors').classList.add('open');
-  document.getElementById('admin-panel-reseaux').classList.add('open');
   document.getElementById('btn-admin').style.opacity = '0.4';
   document.getElementById('btn-deconnexion').style.display = 'block';
   document.getElementById('btn-tournois').style.display = 'inline-flex';
@@ -547,7 +590,7 @@ if (localStorage.getItem('uss_admin') === '1') {
 
 function sauvegarder() {
   if (!db) return;
-  db.ref('accueil').set({ events, mdp, sponsors, reseaux });
+  db.ref('accueil').set({ events, mdp, sponsors, reseaux, trombi });
 }
 
 // EVENTS
@@ -581,17 +624,23 @@ function delCustomEvent(fichier) {
   renderEvents();
 }
 
+// FAVICON AUTO (logo récupéré automatiquement depuis Google)
+function faviconUrl(lien) {
+  try {
+    const u = new URL(lien.match(/^https?:\/\//) ? lien : 'https://' + lien);
+    return `https://www.google.com/s2/favicons?sz=64&domain=${u.hostname}`;
+  } catch(e) { return null; }
+}
+
 // SPONSORS
 function addSponsor() {
   const nom  = document.getElementById('sp-nom').value.trim();
   const lien = document.getElementById('sp-lien').value.trim();
-  const logo = document.getElementById('sp-logo').value.trim();
   const alertDiv = document.getElementById('alert-sponsor');
   if (!nom) { flash(alertDiv, 'warning', '⚠️ Entrez un nom.'); return; }
-  sponsors.push({ id: 'sp_' + Date.now(), nom, lien, logo });
+  sponsors.push({ id: 'sp_' + Date.now(), nom, lien });
   document.getElementById('sp-nom').value  = '';
   document.getElementById('sp-lien').value = '';
-  document.getElementById('sp-logo').value = '';
   flash(alertDiv, 'success', '✅ Sponsor ajouté !');
   sauvegarder();
 }
@@ -604,12 +653,14 @@ function delSponsor(id) {
 function renderSponsors() {
   const container = document.getElementById('sponsors-container');
   if (container) {
-    container.innerHTML = sponsors.length ? sponsors.map(s => `
+    container.innerHTML = sponsors.length ? sponsors.map(s => {
+      const favicon = s.lien ? faviconUrl(s.lien) : null;
+      return `
       <a href="${s.lien || '#'}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:0.8rem;background:var(--gris);border:1px solid var(--gris-moyen);border-radius:10px;padding:0.8rem 1rem;text-decoration:none;color:var(--texte-clair);transition:border-color .2s" onmouseover="this.style.borderColor='var(--or)'" onmouseout="this.style.borderColor='var(--gris-moyen)'">
-        ${s.logo ? `<img src="${s.logo}" alt="${s.nom}" style="width:44px;height:44px;object-fit:contain;border-radius:6px;background:white;padding:2px">` : '<span style="font-size:1.6rem">🤝</span>'}
+        ${favicon ? `<img src="${favicon}" alt="${s.nom}" style="width:32px;height:32px;object-fit:contain;border-radius:6px;background:white;padding:4px" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span style="font-size:1.6rem;display:none">🤝</span>` : '<span style="font-size:1.6rem">🤝</span>'}
         <span style="font-weight:700">${s.nom}</span>
       </a>
-    `).join('') : '<div style="background:var(--gris);border:1px solid var(--gris-moyen);border-radius:12px;padding:2rem 1.5rem;text-align:center;color:var(--texte-muted)">🤝 Aucun sponsor pour le moment.</div>';
+    `; }).join('') : '<div style="background:var(--gris);border:1px solid var(--gris-moyen);border-radius:12px;padding:2rem 1.5rem;text-align:center;color:var(--texte-muted)">🤝 La section sponsors arrive bientôt !</div>';
   }
   const list = document.getElementById('sponsors-admin-list');
   if (list) {
@@ -624,16 +675,14 @@ function renderSponsors() {
 
 // RÉSEAUX
 function addReseau() {
-  const nom   = document.getElementById('rx-nom').value.trim();
-  const lien  = document.getElementById('rx-lien').value.trim();
-  const icone = document.getElementById('rx-icone').value.trim();
+  const nom  = document.getElementById('rx-nom').value.trim();
+  const lien = document.getElementById('rx-lien').value.trim();
   const alertDiv = document.getElementById('alert-reseau');
   if (!nom)  { flash(alertDiv, 'warning', '⚠️ Entrez un nom.'); return; }
   if (!lien) { flash(alertDiv, 'warning', '⚠️ Entrez un lien.'); return; }
-  reseaux.push({ id: 'rx_' + Date.now(), nom, lien, icone });
-  document.getElementById('rx-nom').value   = '';
-  document.getElementById('rx-lien').value  = '';
-  document.getElementById('rx-icone').value = '';
+  reseaux.push({ id: 'rx_' + Date.now(), nom, lien });
+  document.getElementById('rx-nom').value  = '';
+  document.getElementById('rx-lien').value = '';
   flash(alertDiv, 'success', '✅ Réseau ajouté !');
   sauvegarder();
 }
@@ -646,20 +695,118 @@ function delReseau(id) {
 function renderReseaux() {
   const container = document.getElementById('reseaux-container');
   if (container) {
-    container.innerHTML = reseaux.length ? `<div style="display:flex;flex-direction:column;gap:0.6rem">` + reseaux.map(r => `
+    container.innerHTML = reseaux.length ? `<div style="display:flex;flex-direction:column;gap:0.6rem">` + reseaux.map(r => {
+      const favicon = faviconUrl(r.lien);
+      return `
       <a href="${r.lien || '#'}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:0.7rem;background:var(--gris);border:1px solid var(--gris-moyen);border-radius:10px;padding:0.7rem 1rem;text-decoration:none;color:var(--texte-clair);font-weight:700;transition:border-color .2s" onmouseover="this.style.borderColor='var(--or)'" onmouseout="this.style.borderColor='var(--gris-moyen)'">
-        <span style="font-size:1.3rem">${r.icone || '🔗'}</span> ${r.nom}
+        ${favicon ? `<img src="${favicon}" alt="${r.nom}" style="width:24px;height:24px;object-fit:contain;border-radius:5px;background:white;padding:3px" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span style="font-size:1.3rem;display:none">🔗</span>` : '<span style="font-size:1.3rem">🔗</span>'} ${r.nom}
       </a>
-    `).join('') + `</div>` : '<div style="background:var(--gris);border:1px solid var(--gris-moyen);border-radius:12px;padding:2rem 1.5rem;text-align:center;color:var(--texte-muted)">🔗 Aucun réseau renseigné pour le moment.</div>';
+    `; }).join('') + `</div>` : '<div style="background:var(--gris);border:1px solid var(--gris-moyen);border-radius:12px;padding:2rem 1.5rem;text-align:center;color:var(--texte-muted)">🔗 Les liens vers nos réseaux arrivent bientôt !</div>';
   }
   const list = document.getElementById('reseaux-admin-list');
   if (list) {
     list.innerHTML = reseaux.map(r => `
       <div style="display:flex;justify-content:space-between;align-items:center;background:var(--gris-fonce);border:1px solid var(--gris-moyen);border-radius:8px;padding:0.5rem 0.8rem">
-        <span>${r.icone || '🔗'} ${r.nom}</span>
+        <span>${r.nom}</span>
         <button class="btn-del" onclick="delReseau('${r.id}')">🗑</button>
       </div>
     `).join('') || '<div style="color:var(--texte-muted);font-size:0.85rem">Aucun réseau.</div>';
+  }
+}
+
+// TROMBINOSCOPE
+
+// Redimensionne et compresse une image (fichier) en data URL, pour rester léger dans Firebase
+function resizeImageFile(file, maxSize) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > height && width > maxSize) { height *= maxSize / width; width = maxSize; }
+        else if (height > maxSize) { width *= maxSize / height; height = maxSize; }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', 0.82));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// Aperçu de la photo sélectionnée
+document.getElementById('tr-photo-file').addEventListener('change', async function() {
+  const preview = document.getElementById('tr-photo-preview');
+  const file = this.files[0];
+  if (!file) { preview.innerHTML = ''; return; }
+  const dataUrl = await resizeImageFile(file, 300);
+  preview.innerHTML = `<img src="${dataUrl}" style="width:56px;height:56px;object-fit:cover;border-radius:50%;border:2px solid var(--or)">`;
+});
+
+async function addTrombi() {
+  const prenom = document.getElementById('tr-prenom').value.trim();
+  const nom    = document.getElementById('tr-nom').value.trim();
+  const fileInput = document.getElementById('tr-photo-file');
+  const file   = fileInput.files[0];
+  const alertDiv = document.getElementById('alert-trombi');
+  if (!prenom && !nom && !file) { flash(alertDiv, 'warning', '⚠️ Ajoutez au moins une photo ou un nom.'); return; }
+  const btn = document.getElementById('tr-add-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Ajout…';
+  let photo = '';
+  if (file) {
+    try { photo = await resizeImageFile(file, 300); }
+    catch(e) { flash(alertDiv, 'warning', '⚠️ Impossible de lire cette image.'); btn.disabled = false; btn.textContent = '➕ Ajouter'; return; }
+  }
+  trombi.push({ id: 'tr_' + Date.now(), prenom, nom, photo });
+  document.getElementById('tr-prenom').value = '';
+  document.getElementById('tr-nom').value    = '';
+  fileInput.value = '';
+  document.getElementById('tr-photo-preview').innerHTML = '';
+  flash(alertDiv, 'success', '✅ Ajouté au trombinoscope !');
+  btn.disabled = false;
+  btn.textContent = '➕ Ajouter';
+  sauvegarder();
+}
+
+function delTrombi(id) {
+  trombi = trombi.filter(t => t.id !== id);
+  sauvegarder();
+}
+
+function renderTrombi() {
+  const container = document.getElementById('trombi-container');
+  if (container) {
+    container.innerHTML = trombi.length ? trombi.map(t => {
+      const nomComplet = [t.prenom, t.nom].filter(Boolean).join(' ');
+      return `
+      <div style="display:flex;flex-direction:column;align-items:center;gap:0.4rem;background:var(--gris);border:1px solid var(--gris-moyen);border-radius:10px;padding:0.8rem 0.5rem;text-align:center">
+        ${t.photo
+          ? `<img src="${t.photo}" alt="${nomComplet}" style="width:72px;height:72px;object-fit:cover;border-radius:50%;border:2px solid var(--or)">`
+          : `<div style="width:72px;height:72px;border-radius:50%;background:var(--gris-fonce);border:2px solid var(--gris-moyen);display:flex;align-items:center;justify-content:center;font-size:1.8rem">👤</div>`}
+        ${nomComplet ? `<span style="font-size:0.82rem;font-weight:700;color:var(--texte-clair)">${nomComplet}</span>` : ''}
+      </div>
+    `; }).join('') : '<div style="grid-column:1/-1;background:var(--gris);border:1px solid var(--gris-moyen);border-radius:12px;padding:2rem 1.5rem;text-align:center;color:var(--texte-muted)">🖼️ Le trombinoscope arrive bientôt !</div>';
+  }
+  const list = document.getElementById('trombi-admin-list');
+  if (list) {
+    list.innerHTML = trombi.map(t => {
+      const nomComplet = [t.prenom, t.nom].filter(Boolean).join(' ') || '(sans nom)';
+      return `
+      <div style="display:flex;flex-direction:column;align-items:center;gap:0.35rem;background:var(--gris-fonce);border:1px solid var(--gris-moyen);border-radius:8px;padding:0.5rem">
+        ${t.photo
+          ? `<img src="${t.photo}" alt="${nomComplet}" style="width:44px;height:44px;object-fit:cover;border-radius:50%">`
+          : `<div style="width:44px;height:44px;border-radius:50%;background:var(--gris);display:flex;align-items:center;justify-content:center;font-size:1.2rem">👤</div>`}
+        <span style="font-size:0.72rem;text-align:center">${nomComplet}</span>
+        <button class="btn-del" onclick="delTrombi('${t.id}')" style="width:100%">🗑</button>
+      </div>
+    `; }).join('') || '<div style="color:var(--texte-muted);font-size:0.85rem;grid-column:1/-1">Personne dans le trombinoscope.</div>';
   }
 }
 
@@ -812,10 +959,6 @@ function checkPwd() {
     localStorage.setItem('uss_admin', '1');
     fermerLogin();
     document.getElementById('admin-panel').classList.add('open');
-    document.getElementById('pwd-panel').classList.add('open');
-    document.getElementById('notif-panel').classList.add('open');
-    document.getElementById('admin-panel-sponsors').classList.add('open');
-    document.getElementById('admin-panel-reseaux').classList.add('open');
     document.getElementById('btn-admin').style.opacity = '0.4';
     document.getElementById('btn-deconnexion').style.display = 'block';
     document.getElementById('btn-tournois').style.display = 'inline-flex';
@@ -863,10 +1006,6 @@ function deconnecter() {
   connecte = false;
   localStorage.removeItem('uss_admin');
   document.getElementById('admin-panel').classList.remove('open');
-  document.getElementById('pwd-panel').classList.remove('open');
-  document.getElementById('notif-panel').classList.remove('open');
-  document.getElementById('admin-panel-sponsors').classList.remove('open');
-  document.getElementById('admin-panel-reseaux').classList.remove('open');
   document.getElementById('btn-admin').style.opacity = '1';
   document.getElementById('btn-deconnexion').style.display = 'none';
   document.getElementById('btn-tournois').style.display = 'none';
@@ -948,9 +1087,6 @@ function sauverNouveauMdp() {
   connecte = true;
   localStorage.setItem('uss_admin', '1');
   document.getElementById('admin-panel').classList.add('open');
-  document.getElementById('pwd-panel').classList.add('open');
-  document.getElementById('admin-panel-sponsors').classList.add('open');
-  document.getElementById('admin-panel-reseaux').classList.add('open');
   document.getElementById('btn-admin').style.opacity = '0.4';
   document.getElementById('btn-deconnexion').style.display = 'block';
   document.getElementById('btn-tournois').style.display = 'inline-flex';
