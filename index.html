@@ -651,7 +651,7 @@ function renderSponsors() {
       const favicon = s.lien ? faviconUrl(s.lien) : null;
       return `
       <a href="${s.lien || '#'}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:0.8rem;background:var(--gris);border:1px solid var(--gris-moyen);border-radius:10px;padding:0.8rem 1rem;text-decoration:none;color:var(--texte-clair);transition:border-color .2s" onmouseover="this.style.borderColor='var(--or)'" onmouseout="this.style.borderColor='var(--gris-moyen)'">
-        ${favicon ? `<img src="${favicon}" alt="${s.nom}" style="width:32px;height:32px;object-fit:contain;border-radius:6px;background:white;padding:4px" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span style="font-size:1.6rem;display:none">🤝</span>` : '<span style="font-size:1.6rem">🤝</span>'}
+        ${favicon ? `<img src="${favicon}" alt="${s.nom}" style="width:32px;height:32px;object-fit:contain;border-radius:6px;background:var(--noir);padding:4px" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span style="font-size:1.6rem;display:none">🤝</span>` : '<span style="font-size:1.6rem">🤝</span>'}
         <span style="font-weight:700">${s.nom}</span>
       </a>
     `; }).join('') : '<div style="background:var(--gris);border:1px solid var(--gris-moyen);border-radius:12px;padding:2rem 1.5rem;text-align:center;color:var(--texte-muted)">🤝 La section sponsors arrive bientôt !</div>';
@@ -693,7 +693,7 @@ function renderReseaux() {
       const favicon = faviconUrl(r.lien);
       return `
       <a href="${r.lien || '#'}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:0.7rem;background:var(--gris);border:1px solid var(--gris-moyen);border-radius:10px;padding:0.7rem 1rem;text-decoration:none;color:var(--texte-clair);font-weight:700;transition:border-color .2s" onmouseover="this.style.borderColor='var(--or)'" onmouseout="this.style.borderColor='var(--gris-moyen)'">
-        ${favicon ? `<img src="${favicon}" alt="${r.nom}" style="width:24px;height:24px;object-fit:contain;border-radius:5px;background:white;padding:3px" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span style="font-size:1.3rem;display:none">🔗</span>` : '<span style="font-size:1.3rem">🔗</span>'} ${r.nom}
+        ${favicon ? `<img src="${favicon}" alt="${r.nom}" style="width:24px;height:24px;object-fit:contain;border-radius:5px;background:var(--noir);padding:3px" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span style="font-size:1.3rem;display:none">🔗</span>` : '<span style="font-size:1.3rem">🔗</span>'} ${r.nom}
       </a>
     `; }).join('') + `</div>` : '<div style="background:var(--gris);border:1px solid var(--gris-moyen);border-radius:12px;padding:2rem 1.5rem;text-align:center;color:var(--texte-muted)">🔗 Les liens vers nos réseaux arrivent bientôt !</div>';
   }
