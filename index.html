@@ -392,20 +392,17 @@
   <!-- RÉSULTATS DU CLUB -->
   <div class="section-titre">⚽ Derniers résultats</div>
   <div style="background:var(--gris);border:1px solid var(--gris-moyen);border-radius:12px;margin-bottom:2rem;overflow:hidden">
-    <div id="resultats-wrap" style="position:relative;max-height:180px;overflow:hidden;transition:max-height 0.35s ease;padding:0.8rem">
+    <div id="resultats-wrap" style="max-height:360px;overflow-y:auto;-webkit-overflow-scrolling:touch;transition:max-height 0.35s ease;padding:0.8rem">
       <iframe src='https://www.sportcorico.com/widget/a288db27-5b75-4c72-a3ee-17c86b419af6' width="100%" id="adbbcaeecbaf" style="border:none;display:block;width:100%;min-height:420px"></iframe>
-      <div id="resultats-fade" style="position:absolute;bottom:0;left:0;right:0;height:60px;background:linear-gradient(transparent, var(--gris));pointer-events:none"></div>
     </div>
     <button id="resultats-toggle" onclick="toggleResultats()" style="width:100%;background:var(--gris-fonce);border:none;border-top:1px solid var(--gris-moyen);color:var(--or);padding:0.55rem;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:'Source Sans 3',sans-serif">▾ Voir plus</button>
   </div>
   <script>
     function toggleResultats(){
       var wrap = document.getElementById('resultats-wrap');
-      var fade = document.getElementById('resultats-fade');
       var btn = document.getElementById('resultats-toggle');
       var open = wrap.style.maxHeight === '2000px';
-      wrap.style.maxHeight = open ? '180px' : '2000px';
-      fade.style.display = open ? 'block' : 'none';
+      wrap.style.maxHeight = open ? '360px' : '2000px';
       btn.textContent = open ? '▾ Voir plus' : '▴ Voir moins';
     }
   </script>
