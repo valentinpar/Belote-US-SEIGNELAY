@@ -407,6 +407,32 @@
     <div id="alert-mdp"></div>
   </div>
 
+  <!-- ADMIN SPONSORS -->
+  <div class="admin-panel" id="admin-panel-sponsors" style="margin-bottom:1rem">
+    <h3>🤝 Gérer les sponsors</h3>
+    <div class="form-grid">
+      <div><label>Nom du sponsor</label><input type="text" id="sp-nom" placeholder="Ex: Boulangerie Martin"></div>
+      <div><label>Lien (optionnel)</label><input type="text" id="sp-lien" placeholder="https://…"></div>
+    </div>
+    <div style="margin-bottom:0.75rem"><label>Logo (URL image, optionnel)</label><input type="text" id="sp-logo" placeholder="https://…"></div>
+    <button class="btn-add" onclick="addSponsor()">➕ Ajouter le sponsor</button>
+    <div id="alert-sponsor"></div>
+    <div id="sponsors-admin-list" style="margin-top:1rem;display:flex;flex-direction:column;gap:0.5rem"></div>
+  </div>
+
+  <!-- ADMIN RÉSEAUX -->
+  <div class="admin-panel" id="admin-panel-reseaux" style="margin-bottom:1rem">
+    <h3>🔗 Gérer les réseaux</h3>
+    <div class="form-grid">
+      <div><label>Nom (ex: Facebook)</label><input type="text" id="rx-nom" placeholder="Facebook"></div>
+      <div><label>Lien</label><input type="text" id="rx-lien" placeholder="https://facebook.com/…"></div>
+    </div>
+    <div style="margin-bottom:0.75rem"><label>Icône (emoji, optionnel)</label><input type="text" id="rx-icone" placeholder="📘"></div>
+    <button class="btn-add" onclick="addReseau()">➕ Ajouter le réseau</button>
+    <div id="alert-reseau"></div>
+    <div id="reseaux-admin-list" style="margin-top:1rem;display:flex;flex-direction:column;gap:0.5rem"></div>
+  </div>
+
   <!-- RÉSULTATS DU CLUB -->
   <div class="section-titre">⚽ Derniers résultats</div>
   <div style="background:var(--gris);border:1px solid var(--gris-moyen);border-radius:12px;margin-bottom:2rem;overflow:hidden">
@@ -425,9 +451,41 @@
     }
   </script>
 
-  <!-- LISTE ÉVÉNEMENTS -->
-  <div class="section-titre">📅 Prochains événements</div>
-  <div id="events-container"></div>
+  <!-- SÉLECTEUR DE SECTION -->
+  <div class="section-titre" style="justify-content:space-between;flex-wrap:wrap;gap:0.6rem">
+    <span>📋 Découvrir</span>
+    <select id="panel-select" onchange="switchPanel(this.value)" style="background:var(--gris-fonce);border:1px solid var(--or);color:var(--or);border-radius:8px;padding:0.45rem 0.8rem;font-size:0.85rem;font-weight:700;font-family:'Source Sans 3',sans-serif;cursor:pointer">
+      <option value="events">📅 Prochains événements</option>
+      <option value="posts">📸 Derniers posts</option>
+      <option value="sponsors">🤝 Nos sponsors</option>
+      <option value="reseaux">🔗 Nos réseaux</option>
+    </select>
+  </div>
+
+  <div id="panel-events">
+    <div id="events-container"></div>
+  </div>
+
+  <div id="panel-posts" style="display:none;background:var(--gris);border:1px solid var(--gris-moyen);border-radius:12px;padding:2rem 1.5rem;text-align:center;color:var(--texte-muted)">
+    📸 Le widget des derniers posts Instagram arrive bientôt !
+  </div>
+
+  <div id="panel-sponsors" style="display:none">
+    <div id="sponsors-container" style="display:flex;flex-direction:column;gap:0.6rem"></div>
+  </div>
+
+  <div id="panel-reseaux" style="display:none">
+    <div id="reseaux-container"></div>
+  </div>
+
+  <script>
+    function switchPanel(value){
+      var panels = ['events','posts','sponsors','reseaux'];
+      panels.forEach(function(p){
+        document.getElementById('panel-'+p).style.display = (p === value) ? 'block' : 'none';
+      });
+    }
+  </script>
 </main>
 
 <footer>⚽ US Seignelay Football — Tous droits réservés</footer>
@@ -448,7 +506,7 @@ const firebaseConfig = {
   appId: "1:881100486907:web:a04a29dd9683ad8fa9d85e"
 };
 
-let db, events = [], mdp = '1234', connecte = false;
+let db, events = [], sponsors = [], reseaux = [], mdp = '1234', connecte = false;
 
 // Init Firebase
 try {
@@ -460,9 +518,17 @@ try {
       if (Array.isArray(data.events)) events = data.events;
       else if (data.events) events = Object.values(data.events);
       else events = [];
+      if (Array.isArray(data.sponsors)) sponsors = data.sponsors;
+      else if (data.sponsors) sponsors = Object.values(data.sponsors);
+      else sponsors = [];
+      if (Array.isArray(data.reseaux)) reseaux = data.reseaux;
+      else if (data.reseaux) reseaux = Object.values(data.reseaux);
+      else reseaux = [];
       if (data.mdp) mdp = data.mdp;
     }
     renderEvents();
+    renderSponsors();
+    renderReseaux();
   });
 } catch(e) { console.warn('Firebase erreur:', e); }
 
@@ -472,6 +538,8 @@ if (localStorage.getItem('uss_admin') === '1') {
   document.getElementById('admin-panel').classList.add('open');
   document.getElementById('pwd-panel').classList.add('open');
   document.getElementById('notif-panel').classList.add('open');
+  document.getElementById('admin-panel-sponsors').classList.add('open');
+  document.getElementById('admin-panel-reseaux').classList.add('open');
   document.getElementById('btn-admin').style.opacity = '0.4';
   document.getElementById('btn-deconnexion').style.display = 'block';
   document.getElementById('btn-tournois').style.display = 'inline-flex';
@@ -479,7 +547,7 @@ if (localStorage.getItem('uss_admin') === '1') {
 
 function sauvegarder() {
   if (!db) return;
-  db.ref('accueil').set({ events, mdp });
+  db.ref('accueil').set({ events, mdp, sponsors, reseaux });
 }
 
 // EVENTS
@@ -511,6 +579,88 @@ function delCustomEvent(fichier) {
   list = list.filter(t => t.fichier !== fichier);
   localStorage.setItem('uss_custom_tournois', JSON.stringify(list));
   renderEvents();
+}
+
+// SPONSORS
+function addSponsor() {
+  const nom  = document.getElementById('sp-nom').value.trim();
+  const lien = document.getElementById('sp-lien').value.trim();
+  const logo = document.getElementById('sp-logo').value.trim();
+  const alertDiv = document.getElementById('alert-sponsor');
+  if (!nom) { flash(alertDiv, 'warning', '⚠️ Entrez un nom.'); return; }
+  sponsors.push({ id: 'sp_' + Date.now(), nom, lien, logo });
+  document.getElementById('sp-nom').value  = '';
+  document.getElementById('sp-lien').value = '';
+  document.getElementById('sp-logo').value = '';
+  flash(alertDiv, 'success', '✅ Sponsor ajouté !');
+  sauvegarder();
+}
+
+function delSponsor(id) {
+  sponsors = sponsors.filter(s => s.id !== id);
+  sauvegarder();
+}
+
+function renderSponsors() {
+  const container = document.getElementById('sponsors-container');
+  if (container) {
+    container.innerHTML = sponsors.length ? sponsors.map(s => `
+      <a href="${s.lien || '#'}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:0.8rem;background:var(--gris);border:1px solid var(--gris-moyen);border-radius:10px;padding:0.8rem 1rem;text-decoration:none;color:var(--texte-clair);transition:border-color .2s" onmouseover="this.style.borderColor='var(--or)'" onmouseout="this.style.borderColor='var(--gris-moyen)'">
+        ${s.logo ? `<img src="${s.logo}" alt="${s.nom}" style="width:44px;height:44px;object-fit:contain;border-radius:6px;background:white;padding:2px">` : '<span style="font-size:1.6rem">🤝</span>'}
+        <span style="font-weight:700">${s.nom}</span>
+      </a>
+    `).join('') : '<div style="background:var(--gris);border:1px solid var(--gris-moyen);border-radius:12px;padding:2rem 1.5rem;text-align:center;color:var(--texte-muted)">🤝 Aucun sponsor pour le moment.</div>';
+  }
+  const list = document.getElementById('sponsors-admin-list');
+  if (list) {
+    list.innerHTML = sponsors.map(s => `
+      <div style="display:flex;justify-content:space-between;align-items:center;background:var(--gris-fonce);border:1px solid var(--gris-moyen);border-radius:8px;padding:0.5rem 0.8rem">
+        <span>${s.nom}</span>
+        <button class="btn-del" onclick="delSponsor('${s.id}')">🗑</button>
+      </div>
+    `).join('') || '<div style="color:var(--texte-muted);font-size:0.85rem">Aucun sponsor.</div>';
+  }
+}
+
+// RÉSEAUX
+function addReseau() {
+  const nom   = document.getElementById('rx-nom').value.trim();
+  const lien  = document.getElementById('rx-lien').value.trim();
+  const icone = document.getElementById('rx-icone').value.trim();
+  const alertDiv = document.getElementById('alert-reseau');
+  if (!nom)  { flash(alertDiv, 'warning', '⚠️ Entrez un nom.'); return; }
+  if (!lien) { flash(alertDiv, 'warning', '⚠️ Entrez un lien.'); return; }
+  reseaux.push({ id: 'rx_' + Date.now(), nom, lien, icone });
+  document.getElementById('rx-nom').value   = '';
+  document.getElementById('rx-lien').value  = '';
+  document.getElementById('rx-icone').value = '';
+  flash(alertDiv, 'success', '✅ Réseau ajouté !');
+  sauvegarder();
+}
+
+function delReseau(id) {
+  reseaux = reseaux.filter(r => r.id !== id);
+  sauvegarder();
+}
+
+function renderReseaux() {
+  const container = document.getElementById('reseaux-container');
+  if (container) {
+    container.innerHTML = reseaux.length ? `<div style="display:flex;flex-direction:column;gap:0.6rem">` + reseaux.map(r => `
+      <a href="${r.lien || '#'}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:0.7rem;background:var(--gris);border:1px solid var(--gris-moyen);border-radius:10px;padding:0.7rem 1rem;text-decoration:none;color:var(--texte-clair);font-weight:700;transition:border-color .2s" onmouseover="this.style.borderColor='var(--or)'" onmouseout="this.style.borderColor='var(--gris-moyen)'">
+        <span style="font-size:1.3rem">${r.icone || '🔗'}</span> ${r.nom}
+      </a>
+    `).join('') + `</div>` : '<div style="background:var(--gris);border:1px solid var(--gris-moyen);border-radius:12px;padding:2rem 1.5rem;text-align:center;color:var(--texte-muted)">🔗 Aucun réseau renseigné pour le moment.</div>';
+  }
+  const list = document.getElementById('reseaux-admin-list');
+  if (list) {
+    list.innerHTML = reseaux.map(r => `
+      <div style="display:flex;justify-content:space-between;align-items:center;background:var(--gris-fonce);border:1px solid var(--gris-moyen);border-radius:8px;padding:0.5rem 0.8rem">
+        <span>${r.icone || '🔗'} ${r.nom}</span>
+        <button class="btn-del" onclick="delReseau('${r.id}')">🗑</button>
+      </div>
+    `).join('') || '<div style="color:var(--texte-muted);font-size:0.85rem">Aucun réseau.</div>';
+  }
 }
 
 function ouvrirModifierCustom(fichier) {
@@ -664,6 +814,8 @@ function checkPwd() {
     document.getElementById('admin-panel').classList.add('open');
     document.getElementById('pwd-panel').classList.add('open');
     document.getElementById('notif-panel').classList.add('open');
+    document.getElementById('admin-panel-sponsors').classList.add('open');
+    document.getElementById('admin-panel-reseaux').classList.add('open');
     document.getElementById('btn-admin').style.opacity = '0.4';
     document.getElementById('btn-deconnexion').style.display = 'block';
     document.getElementById('btn-tournois').style.display = 'inline-flex';
@@ -713,6 +865,8 @@ function deconnecter() {
   document.getElementById('admin-panel').classList.remove('open');
   document.getElementById('pwd-panel').classList.remove('open');
   document.getElementById('notif-panel').classList.remove('open');
+  document.getElementById('admin-panel-sponsors').classList.remove('open');
+  document.getElementById('admin-panel-reseaux').classList.remove('open');
   document.getElementById('btn-admin').style.opacity = '1';
   document.getElementById('btn-deconnexion').style.display = 'none';
   document.getElementById('btn-tournois').style.display = 'none';
@@ -795,6 +949,8 @@ function sauverNouveauMdp() {
   localStorage.setItem('uss_admin', '1');
   document.getElementById('admin-panel').classList.add('open');
   document.getElementById('pwd-panel').classList.add('open');
+  document.getElementById('admin-panel-sponsors').classList.add('open');
+  document.getElementById('admin-panel-reseaux').classList.add('open');
   document.getElementById('btn-admin').style.opacity = '0.4';
   document.getElementById('btn-deconnexion').style.display = 'block';
   document.getElementById('btn-tournois').style.display = 'inline-flex';
