@@ -580,7 +580,7 @@
   </script>
 
   <!-- RÉSEAUX (toujours visibles, en bas de page) -->
-  <div class="section-titre" style="border-top:1px solid var(--gris-moyen);padding-top:1.5rem;margin-top:0.5rem">🔗 Nos réseaux</div>
+  <div class="section-titre" style="border-top:1px solid var(--gris-moyen);border-bottom:none;padding-top:1.5rem;margin-top:0.5rem;margin-bottom:0.75rem">🔗 Nos réseaux</div>
   <div id="reseaux-container" style="margin-bottom:1rem"></div>
 </main>
 
@@ -1076,11 +1076,29 @@ function ouvrirLogin() {
 }
 function fermerLogin() { document.getElementById('modal-login').classList.remove('open'); }
 
+let loginLockouts = {};
+try {
+  if (db) db.ref('login_attempts').on('value', snap => { loginLockouts = snap.val() || {}; });
+} catch(e) { console.warn('Lockout erreur:', e); }
+
 function checkPwd() {
   const identifiant = document.getElementById('login-identifiant').value.trim();
+  const key = identifiant.toLowerCase();
+  const err = document.getElementById('pwd-error');
+  const now = Date.now();
+  const state = loginLockouts[key];
+
+  if (state && state.lockUntil && state.lockUntil > now) {
+    const restant = Math.ceil((state.lockUntil - now) / 1000);
+    err.textContent = `🔒 Trop de tentatives. Réessayez dans ${restant}s.`;
+    document.getElementById('pwd-input').value = '';
+    return;
+  }
+
   const val = document.getElementById('pwd-input').value;
-  const found = admins.find(a => a.identifiant.toLowerCase() === identifiant.toLowerCase() && a.mdp === val);
+  const found = admins.find(a => a.identifiant.toLowerCase() === key && a.mdp === val);
   if (found) {
+    if (db && key) db.ref('login_attempts/' + key).remove();
     fermerLogin();
     if (found.mustChange) {
       forceChangePending = found;
@@ -1095,10 +1113,24 @@ function checkPwd() {
     }
     finishLogin(found);
   } else {
-    const err = document.getElementById('pwd-error');
-    err.textContent = '❌ Identifiant ou mot de passe incorrect';
+    if (db && key) {
+      const count = (state ? state.count : 0) + 1;
+      const entry = { count, lockUntil: 0 };
+      if (count >= 5) {
+        const dureeSec = Math.min(30 * Math.pow(2, count - 5), 3600);
+        entry.lockUntil = now + dureeSec * 1000;
+      }
+      db.ref('login_attempts/' + key).set(entry);
+      if (entry.lockUntil) {
+        err.textContent = `🔒 Trop de tentatives. Réessayez dans ${Math.ceil((entry.lockUntil - now) / 1000)}s.`;
+      } else {
+        err.textContent = '❌ Identifiant ou mot de passe incorrect';
+      }
+    } else {
+      err.textContent = '❌ Identifiant ou mot de passe incorrect';
+    }
     document.getElementById('pwd-input').value = '';
-    setTimeout(() => err.textContent = '', 2500);
+    setTimeout(() => err.textContent = '', 4000);
   }
 }
 
