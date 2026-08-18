@@ -489,14 +489,16 @@
     }
   </script>
 
+  <!-- RÉSEAUX (toujours visibles) -->
+  <div class="section-titre">🔗 Nos réseaux</div>
+  <div id="reseaux-container" style="margin-bottom:2rem"></div>
+
   <!-- SÉLECTEUR DE SECTION -->
   <div class="section-titre" style="justify-content:space-between;flex-wrap:wrap;gap:0.6rem">
     <span>📋 Découvrir</span>
     <select id="panel-select" onchange="switchPanel(this.value)" style="background:var(--gris-fonce);border:1px solid var(--or);color:var(--or);border-radius:8px;padding:0.45rem 0.8rem;font-size:0.85rem;font-weight:700;font-family:'Source Sans 3',sans-serif;cursor:pointer">
       <option value="events">📅 Prochains événements</option>
-      <option value="posts">📸 Derniers posts</option>
       <option value="sponsors">🤝 Nos sponsors</option>
-      <option value="reseaux">🔗 Nos réseaux</option>
       <option value="trombi">🖼️ Trombinoscope</option>
     </select>
   </div>
@@ -505,16 +507,8 @@
     <div id="events-container"></div>
   </div>
 
-  <div id="panel-posts" style="display:none;background:var(--gris);border:1px solid var(--gris-moyen);border-radius:12px;padding:2rem 1.5rem;text-align:center;color:var(--texte-muted)">
-    📸 Le widget des derniers posts Instagram arrive bientôt !
-  </div>
-
   <div id="panel-sponsors" style="display:none">
     <div id="sponsors-container" style="display:flex;flex-direction:column;gap:0.6rem"></div>
-  </div>
-
-  <div id="panel-reseaux" style="display:none">
-    <div id="reseaux-container"></div>
   </div>
 
   <div id="panel-trombi" style="display:none">
@@ -523,7 +517,7 @@
 
   <script>
     function switchPanel(value){
-      var panels = ['events','posts','sponsors','reseaux','trombi'];
+      var panels = ['events','sponsors','trombi'];
       panels.forEach(function(p){
         document.getElementById('panel-'+p).style.display = (p === value) ? 'block' : 'none';
       });
