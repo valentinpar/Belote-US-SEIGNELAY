@@ -126,6 +126,7 @@
 <footer>⚽ Tournoi de Football — US Seignelay ⚽</footer>
 <script>
 let E=[],C={np:4,pV:3,pN:1,pD:0,qual:2},T=null,mdp=localStorage.getItem('foot_mdp')||'1234',deb=false,historique=[];
+let _lastBroadcastTs=Date.now(),_lastNotifWriteTs=0,_bcCounter=0,_lastArbTs=Date.now();
 let reglementTexte='';
 // ── FCM Push ──
 
@@ -997,8 +998,8 @@ var _myTokenKey=localStorage.getItem('foot_fcm_key')||null;
 if(_myTokenKey){db.ref('foot_token_reset/'+_myTokenKey).on('value',function(snap){if(snap.val()){_resetNotifLocal();db.ref('foot_token_reset/'+_myTokenKey).remove();notify('🔕 Désabonné','L\'organisateur vous a retiré des notifications.')}})}
 // Listener buvette (sync temps réel entre appareils)
 db.ref('foot_buvette').on('value',function(snap){var d=snap.val();if(!d)return;buvette=Array.isArray(d)?d:Object.values(d);localStorage.setItem('foot_buvette',JSON.stringify(buvette));var sec=document.querySelector('#sec-buvette.active');if(sec)rBuvette()});
-var _lastBroadcastTs=Date.now();var _lastNotifWriteTs=0;var _bcCounter=0;
-var _lastArbTs=Date.now();
+_lastBroadcastTs=Date.now();_lastNotifWriteTs=0;_bcCounter=0;
+_lastArbTs=Date.now();
 db.ref('foot_broadcast').on('value',function(snap){var d=snap.val();if(!d||!d.ts)return;if(d.ts<=_lastBroadcastTs)return;_lastBroadcastTs=d.ts;if(d.ts===_lastNotifWriteTs)return;if(Date.now()-d.ts>30000)return;
 var target=d.target||'all';
 var ok=false;
