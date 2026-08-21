@@ -394,7 +394,8 @@ var logo=new Image();
 logo.onload=function(){
 var size=canvas.width*.24,x=(canvas.width-size)/2,y=(canvas.height-size)/2,pad=6;
 ctx.fillStyle='#fff';ctx.fillRect(x-pad,y-pad,size+pad*2,size+pad*2);
-ctx.drawImage(logo,x,y,size,size)};
+ctx.drawImage(logo,x,y,size,size);
+var img=document.querySelector('#qrcode img');if(img)img.src=canvas.toDataURL('image/png')};
 logo.src=src})()}
 function telechargerQR(){setTimeout(()=>{const c=document.querySelector('#qrcode canvas');if(c){const a=document.createElement('a');a.download='qrcode-tournoi-petanque.png';a.href=c.toDataURL('image/png');a.click()}},100)}
 </script>
