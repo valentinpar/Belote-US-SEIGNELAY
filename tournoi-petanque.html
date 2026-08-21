@@ -386,6 +386,14 @@ function save(){saveLocal();saveFB()}
 // Écriture ciblée d'un seul match : évite qu'une saisie simultanée sur un autre match ne l'écrase
 function fbUpdateMatch(path,fields){saveLocal();if(!fbOk||!db)return;_s=true;db.ref('petanque/'+path).update(fields).then(()=>setTimeout(()=>_s=false,1e3)).catch(()=>_s=false)}
 function loadLocal(){try{const e=localStorage.getItem('pet_E'),c=localStorage.getItem('pet_C'),t=localStorage.getItem('pet_T'),cnt=localStorage.getItem('pet_counter'),gn=localStorage.getItem('pet_gains');if(e)E=JSON.parse(e);if(c)C=JSON.parse(c);if(t)T=JSON.parse(t);if(cnt)eqCounter=+cnt;if(gn)Object.assign(Gains,JSON.parse(gn))}catch(e){}}
+// Affiche toute erreur JS de façon visible à l'écran (utile sans accès à la console, notamment sur mobile)
+window.onerror=function(msg,src,line,col,err){
+var el=document.getElementById('js-error-banner');
+if(!el){el=document.createElement('div');el.id='js-error-banner';
+el.style.cssText='position:fixed;bottom:0;left:0;right:0;z-index:999999;background:#7f1d1d;color:#fecaca;padding:.7rem 1rem;font-size:.78rem;font-family:monospace;max-height:40vh;overflow-y:auto;box-shadow:0 -4px 20px rgba(0,0,0,.6)';
+document.body.appendChild(el)}
+el.innerHTML+='<div style="margin-bottom:.4rem;padding-bottom:.4rem;border-bottom:1px solid rgba(255,255,255,.2)"><strong>⚠️ Erreur :</strong> '+msg+' <span style="opacity:.7">(ligne '+line+')</span></div>';
+return false};
 // INIT
 if(localStorage.getItem('pet_session')==='1'){deb=true;['tab-equipes','tab-setup','tab-tours'].forEach(t=>document.getElementById(t).classList.add('visible'));document.getElementById('btn-orga').style.display='none';document.getElementById('btn-lock').style.display='block';document.getElementById('regl-btn-edit-wrap').style.display=''}
 initFB();if(T){document.getElementById('badge-tour').textContent=T.tour;rRes()}
