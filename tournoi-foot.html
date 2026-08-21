@@ -1414,6 +1414,7 @@ h+='</div></div>';
 
 // ── Section admin ──
 if(deb){
+h+='<div class="card"><h2>🔔 Test rapide</h2><p style="font-size:.8rem;color:var(--muted);margin-bottom:.6rem">Vérifie que le bandeau de confirmation s\'affiche bien sur cet appareil.</p><div id="notif-btn-wrap"></div></div>';
 var abonnes=E.filter(function(e){return notifTeams[e.id]});
 h+='<div class="card"><h2>📢 Envoyer une annonce</h2>';
 h+='<input type="text" id="bc-titre" value="US Seignelay" placeholder="Titre (ex: Attention !)" style="width:100%;margin-bottom:.5rem">';
@@ -1543,6 +1544,7 @@ h+='<div id="alert-reset-notif" class="mt-1"></div></div></div>'}
 h+='<div class="card" id="notif-history-card"><h2>📋 Historique des annonces</h2><div style="color:var(--muted);font-size:.84rem">Chargement…</div></div>';
 if(deb)h+='<div style="text-align:right;margin-top:-.4rem;margin-bottom:.8rem"><button class="btn btn-danger btn-sm" onclick="effacerHistoriqueNotifs()">🗑️ Effacer l\'historique</button></div>';
 d.innerHTML=h;
+rNotifBtn();
 // Charger les abonnés FCM depuis Firebase
 if(fbOk&&db&&deb){db.ref('foot_fcm_tokens').once('value',function(snap){
 var tokens=snap.val()||{};
