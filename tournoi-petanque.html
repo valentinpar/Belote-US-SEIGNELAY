@@ -384,16 +384,18 @@ renderReglement();
 let qrGenerated=false;
 function initQR(){if(qrGenerated)return;qrGenerated=true;
 new QRCode(document.getElementById('qrcode'),{text:'https://valentinpar.github.io/Belote-US-SEIGNELAY/',width:220,height:220,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});
-setTimeout(function(){
-var canvas=document.querySelector('#qrcode canvas');if(!canvas)return;
-var ctx=canvas.getContext('2d');
 var src=document.getElementById('print-header').querySelector('img').src;
+var tries=0;
+(function drawLogo(){
+var canvas=document.querySelector('#qrcode canvas');
+if(!canvas){if(++tries<40)return setTimeout(drawLogo,50);return}
+var ctx=canvas.getContext('2d');
 var logo=new Image();
 logo.onload=function(){
 var size=canvas.width*.24,x=(canvas.width-size)/2,y=(canvas.height-size)/2,pad=6;
 ctx.fillStyle='#fff';ctx.fillRect(x-pad,y-pad,size+pad*2,size+pad*2);
 ctx.drawImage(logo,x,y,size,size)};
-logo.src=src},80)}
+logo.src=src})()}
 function telechargerQR(){setTimeout(()=>{const c=document.querySelector('#qrcode canvas');if(c){const a=document.createElement('a');a.download='qrcode-tournoi-petanque.png';a.href=c.toDataURL('image/png');a.click()}},100)}
 </script>
 </body>
