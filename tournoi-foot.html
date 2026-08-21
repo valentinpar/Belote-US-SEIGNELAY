@@ -714,8 +714,8 @@ function checkRecup(){const r=document.getElementById('recup-reponse').value.tri
 function sauverNouveauMdp(){const v1=document.getElementById('recup-new-pwd').value,v2=document.getElementById('recup-new-pwd2').value,e=document.getElementById('recup-error2');if(!v1){e.textContent='⚠️ Entrez un mot de passe.';return}if(v1!==v2){e.textContent='⚠️ Ne correspondent pas.';return}mdp=v1;localStorage.setItem('foot_mdp',mdp);saveFB();fermerRecup();deb=true;localStorage.setItem('foot_session','1');['tab-equipes','tab-setup','tab-poules','tab-elim','tab-notifs'].forEach(t=>document.getElementById(t).classList.add('visible'));document.getElementById('btn-orga').style.display='none';document.getElementById('btn-lock').style.display='block';goTab('setup',document.getElementById('tab-setup'));setTimeout(()=>{const a=document.createElement('div');a.className='alert alert-success';a.textContent='✅ Mot de passe réinitialisé !';a.style.cssText='position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);z-index:9999;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.4)';document.body.appendChild(a);setTimeout(()=>a.remove(),3e3)},200)}
 // ══════ TERRAINS ══════
 let terrains=JSON.parse(localStorage.getItem('foot_terrains')||'[]');
-function addTerrain(){const n=document.getElementById('inp-terrain').value.trim(),a=document.getElementById('alert-terrain');if(!n){flash(a,'warning','⚠️ Nom requis.');return}if(terrains.includes(n)){flash(a,'warning','⚠️ Existe déjà.');return}terrains.push(n);document.getElementById('inp-terrain').value='';flash(a,'success','✅ '+n);rTerrains();save()}
-function delTerrain(i){terrains.splice(i,1);rTerrains();save()}
+function addTerrain(){const n=document.getElementById('inp-terrain').value.trim(),a=document.getElementById('alert-terrain');if(!n){flash(a,'warning','⚠️ Nom requis.');return}if(terrains.includes(n)){flash(a,'warning','⚠️ Existe déjà.');return}terrains.push(n);document.getElementById('inp-terrain').value='';flash(a,'success','✅ '+n);rTerrains();rPlanningEditor();save()}
+function delTerrain(i){terrains.splice(i,1);rTerrains();rPlanningEditor();save()}
 function rTerrains(){const u=document.getElementById('liste-terrains');if(!terrains.length){u.innerHTML='<li class="text-muted" style="padding:.5rem;text-align:center">Aucun terrain</li>';return}u.innerHTML=terrains.map((t,i)=>'<li class="equipe-item"><span class="equipe-num">'+String.fromCharCode(65+i)+'</span><span class="equipe-name">'+t+'</span><button class="btn btn-danger btn-sm" onclick="delTerrain('+i+')">✕</button></li>').join('')}
 rTerrains();
 
@@ -1018,9 +1018,10 @@ db.ref('foot/historique').set(historique||[]),
 db.ref('foot/reglement').set(reglementTexte||'')
 ];
 Promise.all(saves).then(function(){
-_s=false;
-// Déclencher manuellement le listener pour mettre à jour les autres clients
+// Prévenir les AUTRES appareils, mais rester "en écriture" un instant de plus
+// pour ignorer notre propre notification foot_sync (sinon on se re-télécharge nous-même en boucle)
 db.ref('foot_sync').set(Date.now());
+setTimeout(function(){_s=false},1000);
 }).catch(function(err){_s=false;notify('❌ Firebase save',err&&err.message?err.message:String(err));});}function save(){saveLocal();saveFB()}
 function loadLocal(){try{const e=localStorage.getItem('foot_E'),c=localStorage.getItem('foot_C'),t=localStorage.getItem('foot_T');if(e)E=JSON.parse(e);if(c)C=JSON.parse(c);if(t)T=JSON.parse(t)}catch(e){}}
 
