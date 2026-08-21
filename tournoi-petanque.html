@@ -374,9 +374,13 @@ function fixArr(x){if(x==null)return x;return Array.isArray(x)?x:Object.values(x
 function sanitizeT(t){if(!t)return t;
 if(t.r1)t.r1.ms=fixArr(t.r1.ms);
 if(t.r2){if(t.r2.A)t.r2.A.ms=fixArr(t.r2.A.ms);if(t.r2.B)t.r2.B.ms=fixArr(t.r2.B.ms)}
-if(t.groupes){['A','B','C'].forEach(function(k){var g=t.groupes[k];if(!g)return;
+// Firebase supprime les clés dont la valeur est null : si A/B/C valaient toutes null,
+// "groupes" a pu disparaître entièrement (voire A/B/C individuellement). On reconstruit la forme attendue.
+if(!t.groupes)t.groupes={A:null,B:null,C:null};
+else['A','B','C'].forEach(function(k){if(t.groupes[k]===undefined)t.groupes[k]=null});
+['A','B','C'].forEach(function(k){var g=t.groupes[k];if(!g)return;
 if(g.teams)g.teams=fixArr(g.teams);
-if(g.rs){g.rs=fixArr(g.rs);g.rs.forEach(function(r){if(r)r.ms=fixArr(r.ms)})}})}
+if(g.rs){g.rs=fixArr(g.rs);g.rs.forEach(function(r){if(r)r.ms=fixArr(r.ms)})}});
 return t}
 function initFB(){try{firebase.initializeApp(fCfg);db=firebase.database();fbOk=true;document.getElementById('bandeau-firebase').style.display='none';
 db.ref('petanque').on('value',snap=>{if(_s)return;const d=snap.val();if(d){if(Array.isArray(d.E))E=d.E;else if(d.E)E=Object.values(d.E);if(d.C)C=d.C;if(d.T)T=sanitizeT(d.T);if(d.mdp)mdp=d.mdp;if(d.qSec)qSec=d.qSec;if(d.rSec)rSec=d.rSec;if(d.reglement!==undefined)reglementTexte=d.reglement;if(d.eqCounter!==undefined)eqCounter=d.eqCounter;if(d.gains)Object.assign(Gains,d.gains);rEq();if(T)document.getElementById('badge-tour').textContent=T.tour;const ac=document.querySelector('.section.active');if(ac){const n=ac.id.replace('sec-','');if(n==='resultats')rRes();if(n==='tours')rTour();if(n==='gains')rGains();if(n==='reglement')renderReglement()}}})}catch(e){document.getElementById('bandeau-firebase').style.display='flex';loadLocal();rEq()}}
