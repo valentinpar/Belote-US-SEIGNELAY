@@ -438,7 +438,8 @@ db.ref('foot_broadcast').set({title:titM,body:bodM,target:m.e1.id+','+m.e2.id,ts
 if(arb&&notifSettings.arbitre_match!==false&&fbOk&&db){
 var _bt2=Date.now()+(++_bcCounter);
 db.ref('foot_broadcast_arb').set({title:titA,body:bodA,target:arb.id,ts:_bt2});}
-logNotif(tourLabel,matchLabel,'all','manual')}
+logNotif(tourLabel,matchLabel,'all','manual');
+notify('✅ Notification envoyée',matchLabel)}
 
 function notifyMatchSuivant(currentM,currentTour){
 if(!T||!T.tours||!currentM)return;
@@ -587,7 +588,8 @@ if(notifTeams[arb.id])notify(titA,bodA);
 queuePush(titA,bodA,arb.id);
 if(fbOk&&db){var _bt2=Date.now()+(++_bcCounter);db.ref('foot_broadcast_arb').set({title:titA,body:bodA,target:arb.id,ts:_bt2});}
 logNotif(titA,bodA,arb.id,'manual');}
-logNotif(titM,bodM,m.e1.id+','+m.e2.id,'manual');}
+logNotif(titM,bodM,m.e1.id+','+m.e2.id,'manual');
+notify('✅ Notification envoyée',bodM)}
 
 function rElim(){var d=document.getElementById('elim-content');if(!T||!T.el||!T.el.cups){d.innerHTML='<div class="empty-state"><div class="icon">🏆</div>Terminez les poules</div>';return}var scrollY=window.scrollY;var h='';
 T.el.cups.forEach(function(c){if(c.champion)h+='<div class="champion-banner" style="margin-bottom:1rem"><div class="icon">'+c.icon+'</div><div class="nom">'+c.champion.nom+'</div><div class="label">'+(c.key==='P'?'Champion · ':'Vainqueur · ')+c.nom+'</div></div>'});
