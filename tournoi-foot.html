@@ -73,6 +73,11 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
+<div id="loading-overlay" style="position:fixed;inset:0;background:var(--noir);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem">
+<div style="width:44px;height:44px;border:4px solid var(--gris-moyen);border-top-color:var(--or);border-radius:50%;animation:spin .8s linear infinite"></div>
+<div style="color:var(--muted);font-size:.9rem">⏳ Chargement des données du tournoi…</div>
+</div>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
 <div id="bandeau-firebase" style="display:none;background:#92400e;color:#fcd34d;padding:.4rem .8rem;font-size:.76rem;text-align:center">⚠️ <strong>Firebase non configuré</strong> — Sauvegarde locale.</div>
 <header><button id="btn-orga" onclick="ouvrirLogin()">🔐 Organisateur</button><button id="btn-lock" onclick="verrouiller()">🔒 Verrouiller</button><a href="index.html" style="position:absolute;top:1rem;right:1rem;z-index:10;background:rgba(26,92,42,.25);border:1px solid rgba(134,239,172,.35);color:#86efac;border-radius:6px;padding:.4rem .9rem;font-size:.82rem;font-weight:700;font-family:inherit;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem" onmouseover="this.style.background='rgba(26,92,42,.55)'" onmouseout="this.style.background='rgba(26,92,42,.25)'">🏠 Accueil</a><h1>⚽ Tournoi de <span>Football</span></h1><p>US Seignelay</p></header>
 <nav class="tabs"><button class="tab" id="tab-equipes" onclick="goTab('equipes',this)">👥 Équipes <span class="badge" id="badge-eq">0</span></button><button class="tab" id="tab-setup" onclick="goTab('setup',this)">⚙️ Config</button><button class="tab" id="tab-poules" onclick="goTab('poules',this)">📋 Poules</button><button class="tab" id="tab-elim" onclick="goTab('elim',this)">🏆 Élim.</button><button class="tab visible" id="tab-notifs" onclick="goTab('notifs',this)">🔔 Notifs</button><button class="tab visible active" id="tab-resultats" onclick="goTab('resultats',this)">📊 Résultats</button><button class="tab visible" id="tab-planning" onclick="goTab('planning',this)">🗓️ Planning</button><button class="tab visible" id="tab-parequipe" onclick="goTab('parequipe',this)">👤 Par équipe</button><button class="tab visible" id="tab-buvette" onclick="goTab('buvette',this)">🍺 Buvette</button><button class="tab visible" id="tab-reglement" onclick="goTab('reglement',this)">📋 Règlement</button><button class="tab visible" id="tab-qr" onclick="goTab('qr',this)">📱 QR</button><button class="tab visible" id="tab-historique" onclick="goTab('historique',this)">📜 Historique</button></nav>
@@ -120,7 +125,7 @@
 </main>
 <footer>⚽ Tournoi de Football — US Seignelay ⚽</footer>
 <script>
-let E=[],C={np:4,pV:3,pN:1,pD:0,qual:2},T=null,mdp=localStorage.getItem('foot_mdp')||'1234',deb=false;
+let E=[],C={np:4,pV:3,pN:1,pD:0,qual:2},T=null,mdp=localStorage.getItem('foot_mdp')||'1234',deb=false,historique=[];
 let reglementTexte='';
 // ── FCM Push ──
 
@@ -968,7 +973,7 @@ function sauverReglement(){reglementTexte=document.getElementById('regl-textarea
 function flash(e,t,m){e.innerHTML='<div class="alert alert-'+t+'">'+m+'</div>';setTimeout(()=>e.innerHTML='',3e3)}
 const fCfg={apiKey:"AIzaSyDnjxRbAzDJPMUcvoNsB5hoHQnMTP7lZb4",authDomain:"belote-us-seignelay.firebaseapp.com",databaseURL:"https://belote-us-seignelay-default-rtdb.europe-west1.firebasedatabase.app",projectId:"belote-us-seignelay",storageBucket:"belote-us-seignelay.firebasestorage.app",messagingSenderId:"881100486907",appId:"1:881100486907:web:a04a29dd9683ad8fa9d85e"};
 let db=null,fbOk=false,_s=false;
-function initFB(){try{firebase.initializeApp(fCfg);db=firebase.database();fbOk=true;document.getElementById('bandeau-firebase').style.display='none';db.ref('foot').on('value',snap=>{if(_s)return;const d=snap.val();if(d){if(Array.isArray(d.E))E=d.E;else if(d.E)E=Object.values(d.E);if(d.C)C=d.C;if(d.T)T=d.T;if(d.mdp)mdp=d.mdp;if(d.terrains)terrains=d.terrains;if(d.qSec)qSec=d.qSec;if(d.rSec)rSec=d.rSec;if(d.historique)historique=Array.isArray(d.historique)?d.historique:Object.values(d.historique);if(d.reglement!==undefined)reglementTexte=d.reglement;rEq();rTerrains();const ac=document.querySelector('.section.active');if(ac){const n=ac.id.replace('sec-','');if(n==='resultats')rRes();if(n==='poules')rPoules();if(n==='elim')rElim();if(n==='planning')rPlanning();if(n==='setup')rPlanningEditor();if(n==='reglement')renderReglement()}}});
+function initFB(){try{firebase.initializeApp(fCfg);db=firebase.database();fbOk=true;document.getElementById('bandeau-firebase').style.display='none';db.ref('foot').on('value',snap=>{if(_s)return;const d=snap.val();if(d){if(Array.isArray(d.E))E=d.E;else if(d.E)E=Object.values(d.E);if(d.C)C=d.C;if(d.T)T=d.T;if(d.mdp)mdp=d.mdp;if(d.terrains)terrains=d.terrains;if(d.qSec)qSec=d.qSec;if(d.rSec)rSec=d.rSec;if(d.historique)historique=Array.isArray(d.historique)?d.historique:Object.values(d.historique);if(d.reglement!==undefined)reglementTexte=d.reglement;rEq();rTerrains();const ac=document.querySelector('.section.active');if(ac){const n=ac.id.replace('sec-','');if(n==='resultats')rRes();if(n==='poules')rPoules();if(n==='elim')rElim();if(n==='planning')rPlanning();if(n==='setup')rPlanningEditor();if(n==='reglement')renderReglement()}}masquerChargement();});
 // Listener reset abonnements global
 var _notifResetTs=parseInt(localStorage.getItem('foot_notif_reset_ts')||'0');
 db.ref('foot_notif_reset').on('value',function(snap){var d=snap.val();if(!d||!d.ts)return;if(d.ts>_notifResetTs){_notifResetTs=d.ts;localStorage.setItem('foot_notif_reset_ts',d.ts);_resetNotifLocal();notify('🔕 Notifications réinitialisées','Vos abonnements ont été réinitialisés par l\'organisateur.')}});
@@ -1003,7 +1008,8 @@ if(ok)notify(d.title||'📢 Annonce',d.body||'');});
 // Listener séparé pour les notifications d'arbitrage
 db.ref('foot_broadcast_arb').on('value',function(snap){var d=snap.val();if(!d||!d.ts)return;if(d.ts<=_lastArbTs)return;_lastArbTs=d.ts;if(Date.now()-d.ts>30000)return;
 if(notifTeams[d.target])notify(d.title||'🟨 Arbitrage',d.body||'');});
-}catch(e){document.getElementById('bandeau-firebase').style.display='flex';loadLocal();rEq()}}
+}catch(e){document.getElementById('bandeau-firebase').style.display='flex';loadLocal();rEq();masquerChargement()}}
+function masquerChargement(){var o=document.getElementById('loading-overlay');if(o&&!o._hidden){o._hidden=true;o.style.transition='opacity .25s';o.style.opacity='0';setTimeout(function(){o.remove()},300)}}
 function saveLocal(){localStorage.setItem('foot_E',JSON.stringify(E));localStorage.setItem('foot_C',JSON.stringify(C));localStorage.setItem('foot_T',JSON.stringify(T));localStorage.setItem('foot_terrains',JSON.stringify(terrains))}
 function saveFB(){if(!fbOk||!db)return;_s=true;
 var saves=[
@@ -1023,7 +1029,7 @@ Promise.all(saves).then(function(){
 db.ref('foot_sync').set(Date.now());
 setTimeout(function(){_s=false},1000);
 }).catch(function(err){_s=false;notify('❌ Firebase save',err&&err.message?err.message:String(err));});}function save(){saveLocal();saveFB()}
-function loadLocal(){try{const e=localStorage.getItem('foot_E'),c=localStorage.getItem('foot_C'),t=localStorage.getItem('foot_T');if(e)E=JSON.parse(e);if(c)C=JSON.parse(c);if(t)T=JSON.parse(t)}catch(e){}}
+function loadLocal(){try{const e=localStorage.getItem('foot_E'),c=localStorage.getItem('foot_C'),t=localStorage.getItem('foot_T'),h=localStorage.getItem('foot_historique');if(e)E=JSON.parse(e);if(c)C=JSON.parse(c);if(t)T=JSON.parse(t);if(h)historique=JSON.parse(h)}catch(e){}}
 
 // ── FCM Push Notifications ──
 const VAPID_KEY='BPZtvk52BRe7GcYdJ6Ba6C5GklpT37zZ8NE3JhNFFKe6ETJVjO1nqbGeKWEZ9876xBMJ2acEjsnC93OR63dJNhQ';
@@ -1098,6 +1104,7 @@ localStorage.setItem('foot_fcm_asked','1');
 var b=document.getElementById('fcm-banner-prompt');if(b)b.remove()}
 if(localStorage.getItem('foot_session')==='1'){deb=true;['tab-equipes','tab-setup','tab-poules','tab-elim','tab-notifs'].forEach(t=>document.getElementById(t).classList.add('visible'));document.getElementById('btn-orga').style.display='none';document.getElementById('btn-lock').style.display='block';document.getElementById('regl-btn-edit-wrap').style.display=''}
 initFB();if(T)rRes();renderReglement();rNotifBtn();
+setTimeout(masquerChargement,6000);
 // Auto-register FCM + charger settings
 setTimeout(function(){
 loadNotifSettings();
