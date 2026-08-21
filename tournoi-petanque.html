@@ -336,14 +336,31 @@ h+='<div class="card"><h2>'+iconsAdmin[k]+' Pourcentages — Concours '+k+'</h2>
 TIER_KEYS.forEach(function(x){h+='<div><label>'+x[1]+' (%)</label><input type="number" min="0" max="100" step="0.01" value="'+(Gains.pct[k][x[0]]||0)+'" oninput="setPct(\''+k+'\',\''+x[0]+'\',this.value)"></div>'});
 h+='</div></div>'})}
 var icons={A:'🥇',B:'🥈',C:'🥉'},pcts={A:Gains.pctA,B:Gains.pctB,C:Gains.pctC};
+// Sans égalité possible en pétanque, la répartition des équipes entre A/B/C est déterministe dès le départ
+// (seule l'IDENTITÉ des équipes dépend des résultats, pas leur NOMBRE) — même logique que pairRandomP/startT.
+var Ntot=E.length;
+var w1=Math.ceil(Ntot/2),l1=Math.floor(Ntot/2);
+var wA2=Math.ceil(w1/2),lA2=Math.floor(w1/2);
+var wB2=Math.ceil(l1/2),lB2=Math.floor(l1/2);
+var finalSizes={A:wA2,B:lA2+wB2,C:lB2};
 ['A','B','C'].forEach(function(k){
 var pot=total*pcts[k]/100;
 h+='<div class="card"><h2>'+icons[k]+' Concours '+k+' — '+pot.toFixed(2)+' €</h2>';
+var STD_COUNT={gagnant:1,finaliste:1,demi:2,quart:4,huit:8,s16:16,s32:32,s64:64};
+var G=finalSizes[k];
+var exCadrage=null;if(G>2){var sz=bracketSizeP(G);var c=G-sz/2;if(c>0)exCadrage=c}
+var bareme=TIER_KEYS.map(function(x){var pct=Gains.pct[k][x[0]]||0;var nb=x[0]==='cadrage'?exCadrage:STD_COUNT[x[0]];return{label:x[1],unit:Math.round(pot*pct/100),nb:nb}}).filter(function(t){return t.unit>0});
+if(bareme.length){
+h+='<div style="overflow-x:auto"><table><thead><tr><th>Tour</th><th>Nb équipes</th><th>Montant/équipe</th></tr></thead><tbody>';
+bareme.forEach(function(t){h+='<tr><td class="font-bold">'+t.label+'</td><td>'+(t.nb!==null?t.nb:'—')+'</td><td class="pts-cell">'+t.unit+' €</td></tr>'});
+h+='</tbody></table></div>';
+}else{h+='<div class="empty-state" style="padding:.6rem">Aucun pourcentage défini pour ce concours</div>'}
 var g=T&&T.phase==='finales'?T.groupes[k]:null;
-if(!g){h+='<div class="empty-state" style="padding:.6rem">'+(T?'En attente des phases finales':'Lancez le tournoi pour calculer la répartition par tour')+'</div></div>';return}
+if(!g){h+='</div>';return}
 var mm=calcConcoursMoney(g,pot,k);
-if(!mm.tiers.length){h+='<div class="empty-state" style="padding:.6rem">Aucune équipe dans ce groupe</div></div>';return}
-h+='<div style="overflow-x:auto"><table><thead><tr><th>Tour</th><th>Nb équipes</th><th>Prime/équipe</th><th>Total</th></tr></thead><tbody>';
+if(!mm.tiers.length){h+='</div>';return}
+h+='<div style="margin-top:1rem;font-weight:700;color:var(--or);font-size:.85rem">👥 Répartition réelle (effectifs de ce groupe)</div>';
+h+='<div style="overflow-x:auto;margin-top:.4rem"><table><thead><tr><th>Tour</th><th>Nb équipes</th><th>Prime/équipe</th><th>Total</th></tr></thead><tbody>';
 mm.tiers.forEach(function(t){h+='<tr><td class="font-bold">'+t.label+'</td><td>'+t.count+'</td><td class="pts-cell">'+t.unit+' €</td><td>'+t.total+' €</td></tr>'});
 h+='</tbody></table></div>';
 var payouts=computeTeamPayouts(g,mm.roundUnit,mm.finalBonus);
