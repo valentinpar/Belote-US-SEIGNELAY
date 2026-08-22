@@ -479,11 +479,17 @@
       <h3>🤝 Gérer les sponsors</h3>
       <div class="form-grid">
         <div><label>Nom du sponsor</label><input type="text" id="sp-nom" placeholder="Ex: Boulangerie Martin"></div>
-        <div><label>Site web (le logo est récupéré automatiquement)</label><input type="text" id="sp-lien" placeholder="https://…"></div>
+        <div><label>Site web (logo récupéré automatiquement, sauf si vous en téléversez un ci-dessous)</label><input type="text" id="sp-lien" placeholder="https://…"></div>
       </div>
-      <button class="btn-add" onclick="addSponsor()">➕ Ajouter le sponsor</button>
+      <div style="margin-bottom:0.75rem">
+        <label>Logo (optionnel — sinon récupéré depuis le site web)</label>
+        <input type="file" id="sp-logo-file" accept="image/*">
+        <div id="sp-logo-preview" style="margin-top:0.5rem"></div>
+      </div>
+      <button class="btn-add" id="sp-add-btn" onclick="addSponsor()">➕ Ajouter le sponsor</button>
       <div id="alert-sponsor"></div>
-      <div id="sponsors-admin-list" style="margin-top:1rem;display:flex;flex-direction:column;gap:0.5rem"></div>
+      <p style="color:var(--texte-muted);font-size:0.78rem;margin:0.6rem 0 0.3rem">Utilisez les flèches pour changer l'ordre d'affichage.</p>
+      <div id="sponsors-admin-list" style="margin-top:0.4rem;display:flex;flex-direction:column;gap:0.5rem"></div>
     </div>
 
     <!-- RÉSEAUX -->
@@ -563,7 +569,7 @@
   </div>
 
   <div id="panel-sponsors" style="display:none">
-    <div id="sponsors-container" style="display:flex;flex-direction:column;gap:0.6rem"></div>
+    <div id="sponsors-container" style="display:flex;flex-wrap:wrap;gap:0.7rem;justify-content:center"></div>
   </div>
 
   <div id="panel-trombi" style="display:none">
@@ -747,16 +753,39 @@ function faviconUrl(lien) {
 }
 
 // SPONSORS
-function addSponsor() {
+// Aperçu du logo sponsor sélectionné
+document.getElementById('sp-logo-file').addEventListener('change', async function() {
+  const preview = document.getElementById('sp-logo-preview');
+  const file = this.files[0];
+  if (!file) { preview.innerHTML = ''; return; }
+  const dataUrl = await resizeImageFile(file, 200);
+  preview.innerHTML = `<img src="${dataUrl}" style="width:56px;height:56px;object-fit:contain;border-radius:8px;background:white;padding:4px;border:2px solid var(--or)">`;
+});
+
+async function addSponsor() {
   const nom  = document.getElementById('sp-nom').value.trim();
   const lien = document.getElementById('sp-lien').value.trim();
+  const fileInput = document.getElementById('sp-logo-file');
+  const file = fileInput.files[0];
   const alertDiv = document.getElementById('alert-sponsor');
   if (!nom) { flash(alertDiv, 'warning', '⚠️ Entrez un nom.'); return; }
-  sponsors.push({ id: 'sp_' + Date.now(), nom, lien });
+  const btn = document.getElementById('sp-add-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Ajout…';
+  let logo = '';
+  if (file) {
+    try { logo = await resizeImageFile(file, 200); }
+    catch(e) { flash(alertDiv, 'warning', '⚠️ Impossible de lire cette image.'); btn.disabled = false; btn.textContent = '➕ Ajouter le sponsor'; return; }
+  }
+  sponsors.push({ id: 'sp_' + Date.now(), nom, lien, logo });
   document.getElementById('sp-nom').value  = '';
   document.getElementById('sp-lien').value = '';
+  fileInput.value = '';
+  document.getElementById('sp-logo-preview').innerHTML = '';
   flash(alertDiv, 'success', '✅ Sponsor ajouté !');
   logAction(`a ajouté le sponsor "${nom}"`);
+  btn.disabled = false;
+  btn.textContent = '➕ Ajouter le sponsor';
   sauvegarder();
 }
 
@@ -767,24 +796,42 @@ function delSponsor(id) {
   sauvegarder();
 }
 
+function moveSponsor(id, direction) {
+  const i = sponsors.findIndex(s => s.id === id);
+  if (i === -1) return;
+  const j = direction === 'up' ? i - 1 : i + 1;
+  if (j < 0 || j >= sponsors.length) return;
+  [sponsors[i], sponsors[j]] = [sponsors[j], sponsors[i]];
+  sauvegarder();
+}
+
 function renderSponsors() {
   const container = document.getElementById('sponsors-container');
   if (container) {
     container.innerHTML = sponsors.length ? sponsors.map(s => {
-      const favicon = s.lien ? faviconUrl(s.lien) : null;
-      return `
-      <a href="${s.lien || '#'}" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:0.8rem;background:var(--gris);border:1px solid var(--gris-moyen);border-radius:10px;padding:0.8rem 1rem;text-decoration:none;color:var(--texte-clair);transition:border-color .2s" onmouseover="this.style.borderColor='var(--or)'" onmouseout="this.style.borderColor='var(--gris-moyen)'">
-        ${favicon ? `<img src="${favicon}" alt="${s.nom}" style="width:32px;height:32px;object-fit:contain;border-radius:6px;background:transparent;padding:4px" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span style="font-size:1.6rem;display:none">🤝</span>` : '<span style="font-size:1.6rem">🤝</span>'}
-        <span style="font-weight:700">${s.nom}</span>
-      </a>
-    `; }).join('') : '<div style="background:var(--gris);border:1px solid var(--gris-moyen);border-radius:12px;padding:2rem 1.5rem;text-align:center;color:var(--texte-muted)">🤝 La section sponsors arrive bientôt !</div>';
+      const logoSrc = s.logo || (s.lien ? faviconUrl(s.lien) : null);
+      const img = logoSrc
+        ? `<img src="${logoSrc}" alt="${s.nom}" title="${s.nom}" style="width:100%;height:100%;object-fit:contain;background:white;border-radius:8px" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><span title="${s.nom}" style="font-size:1.8rem;display:none;align-items:center;justify-content:center;width:100%;height:100%">🤝</span>`
+        : `<span title="${s.nom}" style="font-size:1.8rem;display:flex;align-items:center;justify-content:center;width:100%;height:100%">🤝</span>`;
+      const inner = `<div style="width:76px;height:76px;display:flex;align-items:center;justify-content:center;background:var(--gris);border:1px solid var(--gris-moyen);border-radius:10px;padding:6px;transition:border-color .2s" onmouseover="this.style.borderColor='var(--or)'" onmouseout="this.style.borderColor='var(--gris-moyen)'">${img}</div>`;
+      return s.lien
+        ? `<a href="${s.lien}" target="_blank" rel="noopener" title="${s.nom}">${inner}</a>`
+        : `<span title="${s.nom}">${inner}</span>`;
+    }).join('') : '<div style="background:var(--gris);border:1px solid var(--gris-moyen);border-radius:12px;padding:2rem 1.5rem;text-align:center;color:var(--texte-muted)">🤝 La section sponsors arrive bientôt !</div>';
   }
   const list = document.getElementById('sponsors-admin-list');
   if (list) {
-    list.innerHTML = sponsors.map(s => `
-      <div style="display:flex;justify-content:space-between;align-items:center;background:var(--gris-fonce);border:1px solid var(--gris-moyen);border-radius:8px;padding:0.5rem 0.8rem">
-        <span>${s.nom}</span>
-        <button class="btn-del" onclick="delSponsor('${s.id}')">🗑</button>
+    list.innerHTML = sponsors.map((s, i) => `
+      <div style="display:flex;justify-content:space-between;align-items:center;background:var(--gris-fonce);border:1px solid var(--gris-moyen);border-radius:8px;padding:0.5rem 0.8rem;gap:0.5rem">
+        <div style="display:flex;align-items:center;gap:0.6rem;overflow:hidden">
+          <img src="${s.logo || (s.lien ? faviconUrl(s.lien) : '')}" alt="" style="width:28px;height:28px;object-fit:contain;background:white;border-radius:4px;flex-shrink:0" onerror="this.style.display='none'">
+          <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.nom}</span>
+        </div>
+        <div style="display:flex;gap:0.3rem;flex-shrink:0">
+          <button class="btn-del" style="opacity:${i === 0 ? '0.3' : '1'}" ${i === 0 ? 'disabled' : ''} onclick="moveSponsor('${s.id}','up')" title="Monter">▲</button>
+          <button class="btn-del" style="opacity:${i === sponsors.length - 1 ? '0.3' : '1'}" ${i === sponsors.length - 1 ? 'disabled' : ''} onclick="moveSponsor('${s.id}','down')" title="Descendre">▼</button>
+          <button class="btn-del" onclick="delSponsor('${s.id}')" title="Supprimer">🗑</button>
+        </div>
       </div>
     `).join('') || '<div style="color:var(--texte-muted);font-size:0.85rem">Aucun sponsor.</div>';
   }
