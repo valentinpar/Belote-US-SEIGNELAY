@@ -41,7 +41,7 @@
   .tour-tag{display:inline-block;padding:.15rem .5rem;border-radius:12px;font-size:.68rem;font-weight:700;text-transform:uppercase;background:rgba(139,105,20,.2);color:var(--ocre-clair);border:1px solid rgba(139,105,20,.4)}
   .subtabs{display:flex;gap:2px;margin-bottom:1rem;background:var(--noir);border-radius:8px;overflow:hidden;border:1px solid var(--gris-moyen);position:sticky;top:0;z-index:5}.subtab{flex:1;padding:.7rem .4rem;background:var(--gris);color:var(--muted);border:none;font-family:inherit;font-size:.8rem;font-weight:700;letter-spacing:.02em;text-transform:uppercase;cursor:pointer;transition:all .2s}.subtab:hover{background:var(--gris-moyen);color:var(--txt)}.subtab.active{background:var(--ocre-fonce);color:var(--sable);box-shadow:inset 0 -3px 0 var(--or)}
   .regl-display{background:var(--gris-fonce);border:1px solid var(--gris-moyen);border-radius:6px;padding:1rem 1.2rem;min-height:100px;color:var(--txt);font-size:.88rem;line-height:1.75;white-space:pre-wrap;word-break:break-word}.regl-display.empty{color:#6a5a3a;font-style:italic}.regl-editor{display:none;margin-top:.8rem}.regl-editor textarea{width:100%;min-height:240px;background:var(--gris-fonce);border:1px solid var(--or);color:var(--txt);border-radius:6px;padding:.9rem;font-family:inherit;font-size:.88rem;line-height:1.7;resize:vertical}.regl-editor textarea:focus{outline:none;border-color:var(--ocre)}.regl-toolbar{display:flex;align-items:center;gap:.5rem;margin-top:.6rem;flex-wrap:wrap}.regl-hint{color:#6a5a3a;font-size:.76rem}  .print-only{display:none;text-align:center}
-  .print-only img{width:100px;height:100px}
+  .print-only img{width:100px;height:100px;image-rendering:-webkit-optimize-contrast;image-rendering:crisp-edges}
   @media print{
     body{background:#fff;color:#000}
     #bandeau-firebase,header,.tabs,footer,.no-print,#btn-orga,#btn-lock{display:none!important}
@@ -50,9 +50,11 @@
     .section{display:none!important}
     .section.active{display:block!important}
     .print-only{display:block!important;margin-bottom:1.5rem}
-    .print-only img{display:block;margin:0 auto .6rem}
+    .print-only img{display:block;margin:0 auto .6rem;width:220px;height:220px;max-width:220px;max-height:220px;object-fit:contain;image-rendering:-webkit-optimize-contrast;image-rendering:crisp-edges}
     .print-only h1{font-family:'Playfair Display',serif;font-size:1.4rem;color:#000;text-align:center}
     .regl-display{color:#000;background:#fff;border:none;padding:0;font-size:1rem;line-height:1.8}
+    #qrcode{margin:0 auto 1rem!important}
+    #qrcode canvas,#qrcode img{width:260px!important;height:260px!important}
   }
 </style>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
