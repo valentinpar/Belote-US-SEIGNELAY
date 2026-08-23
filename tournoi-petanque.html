@@ -45,10 +45,10 @@
   @media print{
     :root{--vert-club:#1c3d2e;--or-club:#b8860b;--muted-club:#8a8578}
     @page{margin:0}
-    html,body{background:#f5f1e6!important;color:var(--vert-club);-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact}
+    html,body{background:#f5f1e6!important;color:var(--vert-club);-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact;height:100%;margin:0;padding:0}
     *{-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact}
     #bandeau-firebase,header,.tabs,footer,.no-print,#btn-orga,#btn-lock{display:none!important}
-    main{max-width:100%;box-sizing:border-box;padding:20mm 16mm;min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center}
+    main{max-width:100%;box-sizing:border-box;padding:20mm 16mm;height:100vh;margin:0;display:flex;flex-direction:column;justify-content:center;align-items:center}
     .section.active{width:100%}
     .card{border:none;background:transparent;padding:0;box-shadow:none;width:100%;max-width:600px;margin:0 auto}
     .card h2{display:none!important}
@@ -56,7 +56,7 @@
     .section.active{display:block!important}
 
     .print-only{display:flex!important;flex-direction:column;align-items:center;text-align:center;margin-bottom:2rem}
-    .print-only img{display:block;margin:0 auto 1.1rem;width:135px;height:135px;max-width:135px;max-height:135px;object-fit:contain;image-rendering:-webkit-optimize-contrast;image-rendering:crisp-edges;border-radius:50%;border:2px solid var(--vert-club);padding:7px;background:#fff}
+    .print-only img{display:block;margin:0 auto 1.1rem;width:135px;height:135px;max-width:135px;max-height:135px;object-fit:contain;image-rendering:-webkit-optimize-contrast;image-rendering:crisp-edges;border-radius:50%;border:2px solid var(--vert-club)}
     .print-eyebrow{font-size:.8rem;letter-spacing:.22em;color:var(--muted-club);font-weight:600;text-transform:uppercase;margin-bottom:.6rem}
     .print-only h1{font-family:'Playfair Display',serif;font-size:2.4rem;font-weight:600;color:var(--vert-club);margin:0;line-height:1.15}
     .print-subtitle{font-family:'Playfair Display',serif;font-style:italic;font-size:1.25rem;color:#4a4740;margin-top:.4rem}
