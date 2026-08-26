@@ -34,6 +34,8 @@
   .empty-state{text-align:center;padding:1.8rem;color:#6a5a3a}.empty-state .icon{font-size:2rem;margin-bottom:.3rem}
   .alert{padding:.55rem .8rem;border-radius:6px;margin-bottom:.5rem;font-size:.82rem}.alert-success{background:rgba(20,83,45,.3);border:1px solid #166534;color:#86efac}
   footer{text-align:center;padding:.8rem;color:#6a5a3a;font-size:.72rem;border-top:1px solid var(--gris);margin-top:1rem}
+  .drawer-item{display:block;width:100%;text-align:left;background:none;border:none;color:var(--txt);padding:.85rem 1.2rem;font-size:.95rem;font-weight:600;font-family:inherit;cursor:pointer;transition:background .15s;text-decoration:none}
+  .drawer-item:hover{background:rgba(212,160,23,.1)}
 
   .print-only{display:none;text-align:center}
   .print-only img{width:100px;height:100px}
@@ -42,7 +44,7 @@
     @page{size:A4;margin:0}
     html,body{background:#f5f1e6!important;color:var(--vert-club);-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact;margin:0;padding:0}
     *{-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact}
-    #bandeau-firebase,header,.tabs,footer,.no-print,#btn-orga,#btn-lock{display:none!important}
+    #bandeau-firebase,header,.tabs,footer,.no-print,#btn-orga,#btn-lock,#btn-hamburger,#drawer,#drawer-overlay{display:none!important}
     main{width:100%;max-width:100%;box-sizing:border-box;padding:0;margin:0}
     .section{display:none!important}
     .section.active{display:block!important;width:100%}
@@ -72,7 +74,15 @@
 </head>
 <body>
 <div id="bandeau-firebase" style="display:none;background:#92400e;color:#fcd34d;padding:.4rem .8rem;font-size:.76rem;text-align:center">⚠️ <strong>Firebase non configuré</strong> — Sauvegarde locale.</div>
-<header><button id="btn-orga" onclick="ouvrirLogin()">🔐 Organisateur</button><button id="btn-lock" onclick="verrouiller()">🔒 Verrouiller</button><a href="index.html" style="position:absolute;top:1rem;right:1rem;z-index:10;background:rgba(139,105,20,.25);border:1px solid rgba(196,160,53,.35);color:var(--ocre-clair);border-radius:6px;padding:.4rem .9rem;font-size:.82rem;font-weight:700;font-family:inherit;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center;gap:.3rem">🏠 Accueil</a><h1>🍹 La <span>Buvette</span></h1><p>US Seignelay</p></header>
+<header><button id="btn-orga" onclick="ouvrirLogin()">🔐 Organisateur</button><button id="btn-lock" onclick="verrouiller()">🔒 Verrouiller</button><button id="btn-hamburger" onclick="openDrawer()" title="Menu" aria-label="Menu" style="position:absolute;top:1rem;right:1rem;z-index:10;display:flex;flex-direction:column;justify-content:center;gap:4px;width:38px;height:38px;background:rgba(212,160,23,.15);border:1px solid rgba(212,160,23,.35);border-radius:8px;cursor:pointer"><span style="display:block;width:18px;height:2px;background:var(--or);margin:0 auto"></span><span style="display:block;width:18px;height:2px;background:var(--or);margin:0 auto"></span><span style="display:block;width:18px;height:2px;background:var(--or);margin:0 auto"></span></button><h1>🍹 La <span>Buvette</span></h1><p>US Seignelay</p></header>
+<div id="drawer-overlay" onclick="closeDrawer()" style="position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:29;display:none"></div>
+<nav id="drawer" style="position:fixed;top:0;left:0;bottom:0;width:250px;max-width:80vw;background:var(--gris-fonce);z-index:30;transform:translateX(-100%);transition:transform .3s ease;box-shadow:2px 0 24px rgba(0,0,0,.6);padding:1.2rem 0;overflow-y:auto">
+  <div style="padding:0 1.2rem 1rem;border-bottom:1px solid var(--gris-moyen);margin-bottom:.6rem;display:flex;justify-content:space-between;align-items:center"><strong style="color:var(--or);font-family:'Playfair Display',serif;font-size:1.1rem">Menu</strong><button onclick="closeDrawer()" aria-label="Fermer" style="background:none;border:none;color:var(--muted);font-size:1.5rem;line-height:1;cursor:pointer">×</button></div>
+  <a class="drawer-item" href="index.html">🏠 Accueil</a>
+  <a class="drawer-item" href="tournoi-petanque.html">🎱 Pétanque</a>
+  <a class="drawer-item" href="tournoi-foot.html">⚽ Football</a>
+  <a class="drawer-item" href="tournoi-belote.html">🃏 Belote</a>
+</nav>
 <nav class="tabs">
   <button class="tab visible active" id="tab-menu" onclick="goTab('menu',this)">📋 Menu</button>
   <button class="tab" id="tab-admin" onclick="goTab('admin',this)">⚙️ Gestion</button>
@@ -117,6 +127,8 @@ function fermerModal(){document.getElementById('modal-pwd').classList.remove('op
 function checkPwd(){if(document.getElementById('pwd-input').value===mdp){deb=true;localStorage.setItem('buv_session','1');fermerModal();document.getElementById('tab-admin').classList.add('visible');document.getElementById('btn-orga').style.display='none';document.getElementById('btn-lock').style.display='block'}else{const e=document.getElementById('pwd-error');e.textContent='❌ Incorrect';document.getElementById('pwd-input').value='';setTimeout(()=>e.textContent='',2e3)}}
 function verrouiller(){deb=false;localStorage.removeItem('buv_session');document.getElementById('tab-admin').classList.remove('visible');document.getElementById('btn-lock').style.display='none';document.getElementById('btn-orga').style.display='block';goTab('menu',document.getElementById('tab-menu'))}
 if(localStorage.getItem('buv_session')==='1'){deb=true}
+function openDrawer(){document.getElementById('drawer').style.transform='translateX(0)';document.getElementById('drawer-overlay').style.display='block'}
+function closeDrawer(){document.getElementById('drawer').style.transform='translateX(-100%)';document.getElementById('drawer-overlay').style.display='none'}
 
 function addItem(){const nom=document.getElementById('inp-nom').value.trim(),prix=parseFloat(document.getElementById('inp-prix').value),cat=document.getElementById('inp-cat').value.trim()||'Divers';const al=document.getElementById('alert-admin');if(!nom||isNaN(prix)){al.innerHTML='<div class="alert alert-danger" style="background:rgba(127,29,29,.3);border:1px solid #7f1d1d;color:#fca5a5">Nom et prix requis</div>';setTimeout(()=>al.innerHTML='',2500);return}items.push({id:++itCounter,nom,prix,cat});document.getElementById('inp-nom').value='';document.getElementById('inp-prix').value='';al.innerHTML='<div class="alert alert-success">✅ Ajouté</div>';setTimeout(()=>al.innerHTML='',1800);saveFB();rMenu();rAdmin()}
 function delItem(id){items=items.filter(i=>i.id!==id);saveFB();rMenu();rAdmin()}
