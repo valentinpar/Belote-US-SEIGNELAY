@@ -45,12 +45,12 @@
   @media print{
     :root{--vert-club:#1c3d2e;--or-club:#b8860b;--muted-club:#8a8578}
     @page{size:A4;margin:0}
-    html,body{background:#f5f1e6!important;color:var(--vert-club);-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact;height:297mm;width:210mm;margin:0;padding:0}
+    html,body{background:#f5f1e6!important;color:var(--vert-club);-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact;margin:0;padding:0}
     *{-webkit-print-color-adjust:exact;print-color-adjust:exact;color-adjust:exact}
     #bandeau-firebase,header,.tabs,footer,.no-print,#btn-orga,#btn-lock{display:none!important}
-    main{display:table;width:210mm;height:297mm;max-width:none;padding:0;margin:0;box-sizing:border-box}
+    main{width:210mm;max-width:100%;box-sizing:border-box;padding:20mm 16mm;margin:0;min-height:297mm;display:flex;flex-direction:column;justify-content:center;align-items:center}
     .section{display:none!important}
-    .section.active{display:table-cell!important;vertical-align:middle;text-align:center;width:210mm;height:297mm;padding:20mm 16mm;box-sizing:border-box}
+    .section.active{display:block!important;width:100%}
     .card{border:none;background:transparent;padding:0;box-shadow:none;width:100%;max-width:600px;margin:0 auto}
     .card h2{display:none!important}
 
