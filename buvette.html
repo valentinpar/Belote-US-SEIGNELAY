@@ -78,11 +78,11 @@
 <div id="drawer-overlay" onclick="closeDrawer()" style="position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:29;display:none"></div>
 <nav id="drawer" style="position:fixed;top:0;left:0;bottom:0;width:250px;max-width:80vw;background:var(--gris-fonce);z-index:30;transform:translateX(-100%);transition:transform .3s ease;box-shadow:2px 0 24px rgba(0,0,0,.6);padding:1.2rem 0;overflow-y:auto">
   <div style="padding:0 1.2rem 1rem;border-bottom:1px solid var(--gris-moyen);margin-bottom:.6rem;display:flex;justify-content:space-between;align-items:center"><strong style="color:var(--or);font-family:'Playfair Display',serif;font-size:1.1rem">Menu</strong><button onclick="closeDrawer()" aria-label="Fermer" style="background:none;border:none;color:var(--muted);font-size:1.5rem;line-height:1;cursor:pointer">×</button></div>
+  <button class="drawer-item" id="drawer-auth" onclick="ouvrirLogin()">🔐 Organisateur</button>
+  <div style="border-top:1px solid var(--gris-moyen);margin:.6rem 0"></div>
   <a class="drawer-item" href="index.html">🏠 Accueil</a>
   <a class="drawer-item" href="tournoi-petanque.html">🎱 Pétanque</a>
   <a class="drawer-item" href="tournoi-foot.html">⚽ Football</a>
-  <div style="border-top:1px solid var(--gris-moyen);margin:.6rem 0"></div>
-  <button class="drawer-item" id="drawer-auth" onclick="ouvrirLogin()">🔐 Organisateur</button>
 </nav>
 <nav class="tabs">
   <button class="tab visible active" id="tab-menu" onclick="goTab('menu',this)">📋 Menu</button>
