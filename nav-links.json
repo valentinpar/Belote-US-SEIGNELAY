@@ -1,0 +1,6 @@
+[
+  { "href": "index.html", "icon": "🏠", "label": "Accueil" },
+  { "href": "tournoi-petanque.html", "icon": "🎱", "label": "Pétanque" },
+  { "href": "tournoi-foot.html", "icon": "⚽", "label": "Football" },
+  { "href": "buvette.html", "icon": "🍹", "label": "Buvette" }
+]
