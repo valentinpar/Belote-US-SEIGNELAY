@@ -241,10 +241,10 @@
   <button class="drawer-item" data-panel="events" onclick="switchPanel('events')">📅 Événements</button>
   <button class="drawer-item" data-panel="trombi" onclick="switchPanel('trombi')">🖼️ Trombinoscope</button>
   <div style="border-top:1px solid var(--gris-moyen);margin:0.6rem 0"></div>
-  <a class="drawer-item" href="tournoi-petanque.html" style="text-decoration:none">🎱 Tournoi Pétanque</a>
-  <a class="drawer-item" href="tournoi-foot.html" style="text-decoration:none">⚽ Tournoi Football</a>
-  <a class="drawer-item" href="buvette.html" style="text-decoration:none">🍹 Buvette</a>
+  <div id="drawer-sites"></div>
 </nav>
+<script src="nav-links.js"></script>
+<script>renderNavLinks();</script>
 <script>
   function openDrawer(){
     document.getElementById('drawer').style.transform = 'translateX(0)';
