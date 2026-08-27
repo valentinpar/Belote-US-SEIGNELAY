@@ -48,7 +48,9 @@
   <div style="padding:0 1.2rem 1rem;border-bottom:1px solid var(--gris-moyen);margin-bottom:.6rem;display:flex;justify-content:space-between;align-items:center"><strong style="color:var(--or);font-family:'Playfair Display',serif;font-size:1.1rem">Menu</strong><button onclick="closeDrawer()" aria-label="Fermer" style="background:none;border:none;color:var(--muted);font-size:1.5rem;line-height:1;cursor:pointer">×</button></div>
   <button class="drawer-item" id="drawer-auth" onclick="ouvrirLogin()">🔐 Organisateur</button>
   <div style="border-top:1px solid var(--gris-moyen);margin:.6rem 0"></div>
-  <!-- NAV-LINKS-AUTO -->
+  <div id="drawer-sites"></div>
+<script src="nav-links.js"></script>
+<script>renderNavLinks();</script>
 </nav>
 <nav class="tabs">
   <button class="tab visible active" id="tab-infos" onclick="goTab('infos',this)">🎉 Infos</button>
