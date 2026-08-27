@@ -1,9 +1,11 @@
 // Script exécuté automatiquement par GitHub Actions à chaque push.
-// Il scanne les fichiers .html à la racine du dépôt et met à jour
-// nav-links.json en conséquence :
-//  - nouvelle page .html trouvée  -> elle est ajoutée (icône/label devinés)
-//  - page existante déjà connue   -> son icône/label perso est conservé
-//  - fichier .html supprimé       -> son entrée est retirée du menu
+// Deux missions :
+//  1) Injecter le code du menu dans les nouveaux fichiers .html qui
+//     contiennent le marqueur <!-- NAV-LINKS-AUTO --> (voir MARKER ci-dessous)
+//  2) Mettre à jour nav-links.json :
+//     - nouvelle page .html trouvée  -> elle est ajoutée (icône/label devinés)
+//     - page existante déjà connue   -> son icône/label perso est conservé
+//     - fichier .html supprimé       -> son entrée est retirée du menu
 const fs = require('fs');
 const path = require('path');
 
@@ -12,6 +14,11 @@ const NAV_JSON = path.join(ROOT, 'nav-links.json');
 
 // Fichiers .html à ne jamais afficher dans le menu
 const IGNORE = ['404.html', 'offline.html'];
+
+// Marqueur à coller une seule fois dans le drawer d'une nouvelle page.
+// Le robot le remplace automatiquement par le vrai code au prochain push.
+const MARKER = '<!-- NAV-LINKS-AUTO -->';
+const SNIPPET = '<div id="drawer-sites"></div>\n<script src="nav-links.js"></script>\n<script>renderNavLinks();</script>';
 
 function guessIcon(filename) {
   const n = filename.toLowerCase();
@@ -34,6 +41,18 @@ const htmlFiles = fs.readdirSync(ROOT)
   .filter(f => !IGNORE.includes(f))
   .sort();
 
+// 1) Injection du code du menu dans les fichiers contenant le marqueur
+for (const file of htmlFiles) {
+  const filePath = path.join(ROOT, file);
+  const content = fs.readFileSync(filePath, 'utf8');
+  if (content.includes(MARKER)) {
+    const newContent = content.split(MARKER).join(SNIPPET);
+    fs.writeFileSync(filePath, newContent);
+    console.log(`✏️  Code du menu injecté automatiquement dans : ${file}`);
+  }
+}
+
+// 2) Mise à jour de nav-links.json
 let existing = [];
 if (fs.existsSync(NAV_JSON)) {
   try {
