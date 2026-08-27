@@ -1,1 +1,28 @@
+name: Mise à jour automatique du menu
 
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '**/*.html'
+
+permissions:
+  contents: write
+
+jobs:
+  update-nav:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout du dépôt
+        uses: actions/checkout@v4
+
+      - name: Régénérer nav-links.json
+        run: node .github/scripts/update-nav.js
+
+      - name: Commit et push si changement
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add nav-links.json
+          git diff --cached --quiet || git commit -m "chore: mise a jour automatique du menu (nav-links.json)"
+          git push
