@@ -1,37 +1,8 @@
 [
-  {
-    "href": "buvette.html",
-    "icon": "🍹",
-    "label": "Buvette"
-  },
-  {
-    "href": "gestionnaire.html",
-    "icon": "🔗",
-    "label": "Gestionnaire"
-  },
-  {
-    "href": "google70d935e1a88a1a5e.html",
-    "icon": "🔗",
-    "label": "Google70d935e1a88a1a5e"
-  },
-  {
-    "href": "index.html",
-    "icon": "🏠",
-    "label": "Accueil"
-  },
-  {
-    "href": "soiree-theme.html",
-    "icon": "🔗",
-    "label": "Soiree theme"
-  },
-  {
-    "href": "tournoi-foot.html",
-    "icon": "⚽",
-    "label": "Football"
-  },
-  {
-    "href": "tournoi-petanque.html",
-    "icon": "🎱",
-    "label": "Pétanque"
-  }
+  { "href": "index.html", "icon": "🏠", "label": "Accueil" },
+  { "href": "tournoi-petanque.html", "icon": "🎱", "label": "Pétanque" },
+  { "href": "tournoi-foot.html", "icon": "⚽", "label": "Football" },
+  { "href": "buvette.html", "icon": "🍹", "label": "Buvette" },
+  { "href": "soiree-theme.html", "icon": "🎉", "label": "Soirée à thème" },
+  { "href": "belote.html", "icon": "🃏", "label": "Belote" }
 ]
