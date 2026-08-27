@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Soirée à Thème — US Seignelay</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--ocre:#1a5c2a;--ocre-fonce:#0d3318;--ocre-clair:#2d8a45;--or:#d4a017;--or-fonce:#b8860b;--noir:#0a0f0a;--gris-fonce:#111811;--gris:#1e2a1e;--gris-moyen:#2d3f2d;--sable:#e7f0e7;--txt:#e7f0e7;--muted:#8aaa8a;--rouge:#dc2626;--rouge-clair:#fca5a5;--rouge-fonce:#7f1d1d}
+  *{box-sizing:border-box;margin:0;padding:0}body{font-family:'Source Sans 3',sans-serif;background:var(--gris-fonce);color:var(--txt);min-height:100vh}
+  header{background:linear-gradient(135deg,var(--noir),var(--ocre-fonce) 60%,var(--gris-fonce));padding:1.8rem 2rem;text-align:center;border-bottom:3px solid var(--or);position:relative;overflow:hidden}
+  header::before{content:'🎉 🎭 🪩';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:9rem;opacity:.04;letter-spacing:2rem;pointer-events:none;white-space:nowrap}
+  header h1{font-family:'Playfair Display',serif;font-size:clamp(1.6rem,5vw,2.8rem);font-weight:900;color:var(--sable);text-shadow:2px 2px 8px rgba(0,0,0,.6)}header h1 span{color:var(--or)}
+  header p{color:var(--ocre-clair);font-size:.85rem;margin-top:.3rem;letter-spacing:.1em;text-transform:uppercase}
+  #btn-lock{position:absolute;top:1rem;left:1rem;z-index:10;display:none;border-radius:6px;padding:.4rem .9rem;font-size:.82rem;font-weight:700;cursor:pointer;font-family:inherit;border:1px solid var(--ocre);background:rgba(13,51,24,.7);color:var(--ocre-clair);transition:all .2s}#btn-lock:hover{background:rgba(26,92,42,.9)}
+  .tabs{display:flex;gap:2px;background:var(--noir);border-bottom:2px solid var(--or)}.tab{flex:1;min-width:85px;padding:.75rem .4rem;background:var(--gris);color:var(--muted);border:none;font-family:inherit;font-size:.78rem;font-weight:600;letter-spacing:.03em;text-transform:uppercase;cursor:pointer;transition:all .2s;display:none}.tab.visible{display:block}.tab:hover{background:var(--gris-moyen);color:var(--txt)}.tab.active{background:var(--ocre-fonce);color:var(--sable);border-bottom:3px solid var(--or)}
+  main{max-width:760px;margin:0 auto;padding:1rem}.section{display:none}.section.active{display:block;animation:fadeIn .25s}@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
+  .card{background:var(--gris);border:1px solid var(--gris-moyen);border-radius:8px;padding:1.1rem;margin-bottom:1.1rem}.card h2{font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--or);margin-bottom:.7rem;display:flex;align-items:center;gap:.4rem;flex-wrap:wrap}
+  input[type="text"],input[type="date"],input[type="time"],input[type="password"],textarea{background:var(--gris-fonce);border:1px solid var(--gris-moyen);color:var(--txt);padding:.45rem .7rem;border-radius:5px;font-family:inherit;font-size:.86rem;width:100%}input:focus,textarea:focus{outline:none;border-color:var(--or)}textarea{resize:vertical;min-height:80px}
+  label{display:block;color:var(--muted);font-size:.76rem;margin-bottom:.2rem;text-transform:uppercase;letter-spacing:.04em}
+  .btn{padding:.45rem 1rem;border:none;border-radius:5px;font-family:inherit;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:.3rem}
+  .btn-primary{background:var(--ocre);color:#fff}.btn-primary:hover{background:var(--ocre-fonce)}
+  .btn-gold{background:var(--or);color:var(--noir)}.btn-gold:hover{background:var(--or-fonce);color:#fff}
+  .btn-ghost{background:transparent;color:var(--ocre-clair);border:1px solid var(--ocre)}.btn-ghost:hover{background:rgba(26,92,42,.15)}
+  .btn-sm{padding:.25rem .6rem;font-size:.72rem}
+  .flex{display:flex}.gap-1{gap:.5rem}.wrap{flex-wrap:wrap}.mt-1{margin-top:.5rem}.mt-2{margin-top:1rem}.text-muted{color:var(--muted)}
+  .field{margin-bottom:.8rem}
+  .theme-titre{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:900;color:var(--or);text-align:center;margin-bottom:.3rem}
+  .theme-sub{text-align:center;color:var(--ocre-clair);font-size:.9rem;letter-spacing:.08em;text-transform:uppercase;margin-bottom:1.2rem}
+  .infos-grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:1rem}@media(max-width:520px){.infos-grid{grid-template-columns:1fr}}
+  .info-box{background:var(--gris-fonce);border:1px solid var(--gris-moyen);border-radius:6px;padding:.7rem .9rem}.info-box .lbl{color:var(--muted);font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.2rem}.info-box .val{font-weight:700;font-size:.98rem;color:var(--txt)}
+  .desc-block{line-height:1.6;font-size:.92rem;color:var(--txt);white-space:pre-wrap}
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center}.modal-overlay.open{display:flex}.modal-box{background:var(--gris);border:1px solid var(--or);border-radius:10px;padding:1.6rem;width:min(350px,92vw);text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.6)}.modal-icon{font-size:2rem;margin-bottom:.3rem}.modal-titre{font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--or);margin-bottom:.3rem}.modal-sous{color:var(--muted);font-size:.8rem;margin-bottom:.9rem}.modal-error{color:var(--rouge-clair);font-size:.78rem;margin-bottom:.4rem;min-height:.8rem}.modal-hint{margin-top:.7rem;font-size:.7rem;color:#4a5a4a}
+  .empty-state{text-align:center;padding:1.8rem;color:#4a5a4a}.empty-state .icon{font-size:2rem;margin-bottom:.3rem}
+  .alert{padding:.55rem .8rem;border-radius:6px;margin-bottom:.5rem;font-size:.82rem}.alert-success{background:rgba(20,83,45,.3);border:1px solid #166534;color:#86efac}
+  footer{text-align:center;padding:.8rem;color:#4a5a4a;font-size:.72rem;border-top:1px solid var(--gris);margin-top:1rem}
+  .drawer-item{display:block;width:100%;text-align:left;background:none;border:none;color:var(--txt);padding:.85rem 1.2rem;font-size:.95rem;font-weight:600;font-family:inherit;cursor:pointer;transition:background .15s;text-decoration:none}
+  .drawer-item:hover{background:rgba(212,160,23,.1)}
+</style>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+</head>
+<body>
+<div id="bandeau-firebase" style="display:none;background:#92400e;color:#fcd34d;padding:.4rem .8rem;font-size:.76rem;text-align:center">⚠️ <strong>Firebase non configuré</strong> — Sauvegarde locale.</div>
+<header><button id="btn-hamburger" onclick="openDrawer()" title="Menu" aria-label="Menu" style="position:absolute;top:1rem;left:1rem;z-index:10;display:flex;flex-direction:column;justify-content:center;gap:4px;width:38px;height:38px;background:rgba(212,160,23,.15);border:1px solid rgba(212,160,23,.35);border-radius:8px;cursor:pointer"><span style="display:block;width:18px;height:2px;background:var(--or);margin:0 auto"></span><span style="display:block;width:18px;height:2px;background:var(--or);margin:0 auto"></span><span style="display:block;width:18px;height:2px;background:var(--or);margin:0 auto"></span></button><h1>🎉 Soirée à <span>Thème</span></h1><p>US Seignelay</p></header>
+<div id="drawer-overlay" onclick="closeDrawer()" style="position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:29;display:none"></div>
+<nav id="drawer" style="position:fixed;top:0;left:0;bottom:0;width:250px;max-width:80vw;background:var(--gris-fonce);z-index:30;transform:translateX(-100%);transition:transform .3s ease;box-shadow:2px 0 24px rgba(0,0,0,.6);padding:1.2rem 0;overflow-y:auto">
+  <div style="padding:0 1.2rem 1rem;border-bottom:1px solid var(--gris-moyen);margin-bottom:.6rem;display:flex;justify-content:space-between;align-items:center"><strong style="color:var(--or);font-family:'Playfair Display',serif;font-size:1.1rem">Menu</strong><button onclick="closeDrawer()" aria-label="Fermer" style="background:none;border:none;color:var(--muted);font-size:1.5rem;line-height:1;cursor:pointer">×</button></div>
+  <button class="drawer-item" id="drawer-auth" onclick="ouvrirLogin()">🔐 Organisateur</button>
+  <div style="border-top:1px solid var(--gris-moyen);margin:.6rem 0"></div>
+  <!-- NAV-LINKS-AUTO -->
+</nav>
+<nav class="tabs">
+  <button class="tab visible active" id="tab-infos" onclick="goTab('infos',this)">🎉 Infos</button>
+  <button class="tab" id="tab-admin" onclick="goTab('admin',this)">⚙️ Gestion</button>
+</nav>
+<div class="modal-overlay" id="modal-pwd"><div class="modal-box"><div class="modal-icon">🔐</div><div class="modal-titre">Accès organisateur</div><div class="modal-sous">Mot de passe</div><div style="position:relative;margin-bottom:.6rem"><input type="password" id="pwd-input" placeholder="Mot de passe…" onkeydown="if(event.key==='Enter')checkPwd()"></div><div class="modal-error" id="pwd-error"></div><div class="flex gap-1" style="justify-content:center"><button class="btn btn-gold" onclick="checkPwd()">🔓 Entrer</button><button class="btn btn-ghost btn-sm" onclick="fermerModal()">Annuler</button></div><div class="modal-hint">Défaut : <strong style="color:var(--muted)">1234</strong></div></div></div>
+<main>
+<!-- INFOS PUBLIC -->
+<section id="sec-infos" class="section active">
+<div class="card" id="infos-card">
+<div id="infos-liste"><div class="empty-state"><div class="icon">🎉</div>Aucune soirée à thème programmée pour le moment</div></div>
+</div>
+</section>
+<!-- ADMIN -->
+<section id="sec-admin" class="section">
+<div class="card"><h2>🎉 Détails de la soirée</h2>
+<div class="field"><label>Thème de la soirée</label><input type="text" id="inp-titre" placeholder="Ex : Soirée Disco"></div>
+<div class="flex gap-1 wrap">
+  <div class="field" style="flex:1;min-width:140px"><label>Date</label><input type="date" id="inp-date"></div>
+  <div class="field" style="flex:1;min-width:100px"><label>Heure</label><input type="time" id="inp-heure"></div>
+</div>
+<div class="field"><label>Lieu</label><input type="text" id="inp-lieu" placeholder="Ex : Salle des fêtes de Seignelay"></div>
+<div class="field"><label>Tenue / déguisement</label><input type="text" id="inp-tenue" placeholder="Ex : Paillettes et couleurs vives obligatoires !"></div>
+<div class="field"><label>Description</label><textarea id="inp-desc" placeholder="Détails, programme de la soirée, infos pratiques…"></textarea></div>
+<div id="alert-admin"></div>
+<button class="btn btn-gold" onclick="saveTheme()">💾 Enregistrer</button>
+</div>
+<div class="card"><h2>🔑 Mot de passe</h2><div class="flex gap-1 wrap" style="align-items:end"><div style="flex:1;min-width:140px"><label>Nouveau</label><input type="password" id="new-pwd"></div><div style="flex:1;min-width:140px"><label>Confirmer</label><input type="password" id="new-pwd2" onkeydown="if(event.key==='Enter')chgMdp()"></div><button class="btn btn-primary" onclick="chgMdp()">💾</button></div><div id="alert-mdp" class="mt-1"></div></div>
+</section>
+</main>
+<footer>US Seignelay — Soirée à Thème</footer>
+<script src="nav-links.js"></script>
+<script>renderNavLinks();</script>
+<script>
+let theme={titre:'',date:'',heure:'',lieu:'',tenue:'',desc:''},mdp=localStorage.getItem('soiree_mdp')||'1234',deb=false,db,fbOk=false,_s=false;
+const fCfg={apiKey:"AIzaSyDnjxRbAzDJPMUcvoNsB5hoHQnMTP7lZb4",authDomain:"belote-us-seignelay.firebaseapp.com",databaseURL:"https://belote-us-seignelay-default-rtdb.europe-west1.firebasedatabase.app",projectId:"belote-us-seignelay",storageBucket:"belote-us-seignelay.firebasestorage.app",messagingSenderId:"881100486907",appId:"1:881100486907:web:a04a29dd9683ad8fa9d85e"};
+function initFB(){try{firebase.initializeApp(fCfg);db=firebase.database();fbOk=true;document.getElementById('bandeau-firebase').style.display='none';
+db.ref('soireeTheme').on('value',snap=>{if(_s)return;const d=snap.val();if(d){if(d.theme)theme=d.theme;if(d.mdp)mdp=d.mdp}rInfos();rAdminForm()})}catch(e){document.getElementById('bandeau-firebase').style.display='flex';loadLocal();rInfos();rAdminForm()}}
+function saveLocal(){localStorage.setItem('soiree_theme',JSON.stringify(theme));localStorage.setItem('soiree_mdp',mdp)}
+function loadLocal(){try{theme=JSON.parse(localStorage.getItem('soiree_theme'))||theme}catch(e){}}
+function saveFB(){saveLocal();if(!fbOk||!db)return;_s=true;db.ref('soireeTheme').set({theme,mdp}).then(()=>setTimeout(()=>_s=false,1e3)).catch(()=>_s=false)}
+
+function goTab(n,btn){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.getElementById('sec-'+n).classList.add('active');btn.classList.add('active');if(n==='admin')rAdminForm()}
+
+function updateAuthDrawer(){const b=document.getElementById('drawer-auth');if(deb){b.textContent='🔒 Verrouiller';b.onclick=verrouiller}else{b.textContent='🔐 Organisateur';b.onclick=ouvrirLogin}}
+function ouvrirLogin(){closeDrawer();document.getElementById('pwd-input').value='';document.getElementById('pwd-error').textContent='';document.getElementById('modal-pwd').classList.add('open');setTimeout(()=>document.getElementById('pwd-input').focus(),50)}
+function fermerModal(){document.getElementById('modal-pwd').classList.remove('open')}
+function checkPwd(){if(document.getElementById('pwd-input').value===mdp){deb=true;localStorage.setItem('soiree_session','1');fermerModal();document.getElementById('tab-admin').classList.add('visible');updateAuthDrawer()}else{const e=document.getElementById('pwd-error');e.textContent='❌ Incorrect';document.getElementById('pwd-input').value='';setTimeout(()=>e.textContent='',2e3)}}
+function verrouiller(){closeDrawer();deb=false;localStorage.removeItem('soiree_session');document.getElementById('tab-admin').classList.remove('visible');updateAuthDrawer();goTab('infos',document.getElementById('tab-infos'))}
+if(localStorage.getItem('soiree_session')==='1'){deb=true}
+function openDrawer(){document.getElementById('drawer').style.transform='translateX(0)';document.getElementById('drawer-overlay').style.display='block'}
+function closeDrawer(){document.getElementById('drawer').style.transform='translateX(-100%)';document.getElementById('drawer-overlay').style.display='none'}
+
+function fmtDate(d){if(!d)return'';const[y,m,j]=d.split('-');return j+'/'+m+'/'+y}
+
+function rInfos(){const el=document.getElementById('infos-liste');
+if(!theme.titre){el.innerHTML='<div class="empty-state"><div class="icon">🎉</div>Aucune soirée à thème programmée pour le moment</div>';return}
+let h='<div class="theme-titre">🎉 '+theme.titre+'</div><div class="theme-sub">US Seignelay</div>';
+h+='<div class="infos-grid">';
+if(theme.date)h+='<div class="info-box"><div class="lbl">📅 Date</div><div class="val">'+fmtDate(theme.date)+'</div></div>';
+if(theme.heure)h+='<div class="info-box"><div class="lbl">🕐 Heure</div><div class="val">'+theme.heure+'</div></div>';
+if(theme.lieu)h+='<div class="info-box" style="grid-column:1/-1"><div class="lbl">📍 Lieu</div><div class="val">'+theme.lieu+'</div></div>';
+if(theme.tenue)h+='<div class="info-box" style="grid-column:1/-1"><div class="lbl">👗 Tenue</div><div class="val">'+theme.tenue+'</div></div>';
+h+='</div>';
+if(theme.desc)h+='<div class="desc-block">'+theme.desc+'</div>';
+el.innerHTML=h}
+
+function rAdminForm(){document.getElementById('inp-titre').value=theme.titre||'';document.getElementById('inp-date').value=theme.date||'';document.getElementById('inp-heure').value=theme.heure||'';document.getElementById('inp-lieu').value=theme.lieu||'';document.getElementById('inp-tenue').value=theme.tenue||'';document.getElementById('inp-desc').value=theme.desc||''}
+
+function saveTheme(){const titre=document.getElementById('inp-titre').value.trim();const al=document.getElementById('alert-admin');if(!titre){al.innerHTML='<div class="alert" style="background:rgba(127,29,29,.3);border:1px solid #7f1d1d;color:#fca5a5">Le thème est requis</div>';setTimeout(()=>al.innerHTML='',2500);return}
+theme={titre,date:document.getElementById('inp-date').value,heure:document.getElementById('inp-heure').value,lieu:document.getElementById('inp-lieu').value.trim(),tenue:document.getElementById('inp-tenue').value.trim(),desc:document.getElementById('inp-desc').value.trim()};
+saveFB();rInfos();al.innerHTML='<div class="alert alert-success">✅ Enregistré</div>';setTimeout(()=>al.innerHTML='',1800)}
+
+function chgMdp(){const p1=document.getElementById('new-pwd').value,p2=document.getElementById('new-pwd2').value;const al=document.getElementById('alert-mdp');if(!p1||p1.length<3){al.innerHTML='<div class="alert" style="background:rgba(127,29,29,.3);border:1px solid #7f1d1d;color:#fca5a5">Mot de passe trop court</div>';return}if(p1!==p2){al.innerHTML='<div class="alert" style="background:rgba(127,29,29,.3);border:1px solid #7f1d1d;color:#fca5a5">Les mots de passe ne correspondent pas</div>';return}mdp=p1;saveFB();document.getElementById('new-pwd').value='';document.getElementById('new-pwd2').value='';al.innerHTML='<div class="alert alert-success">✅ Mot de passe modifié</div>';setTimeout(()=>al.innerHTML='',2000)}
+
+document.addEventListener('DOMContentLoaded',()=>{initFB();if(deb){document.getElementById('tab-admin').classList.add('visible')}updateAuthDrawer()});
+</script>
+</body>
+</html>
