@@ -12,8 +12,21 @@ const path = require('path');
 const ROOT = path.join(__dirname, '..', '..');
 const NAV_JSON = path.join(ROOT, 'nav-links.json');
 
-// Fichiers .html à ne jamais afficher dans le menu
-const IGNORE = ['404.html', 'offline.html'];
+// Fichiers .html à ne jamais afficher dans le menu, par nom exact.
+// Ajoutez ici tout fichier "utilitaire" qui ne doit pas apparaître
+// (ex: pages internes, tests, fichiers de vérification non couverts
+// par les motifs automatiques ci-dessous).
+const IGNORE_EXACT = ['404.html', 'offline.html', 'gestionnaire.html'];
+
+// Motifs de noms de fichiers à ignorer automatiquement.
+const IGNORE_PATTERNS = [
+  /^google[0-9a-z]+\.html$/i   // fichiers de vérification Google Search Console
+];
+
+function isIgnored(filename) {
+  if (IGNORE_EXACT.includes(filename)) return true;
+  return IGNORE_PATTERNS.some(re => re.test(filename));
+}
 
 // Marqueur à coller une seule fois dans le drawer d'une nouvelle page.
 // Le robot le remplace automatiquement par le vrai code au prochain push.
@@ -38,7 +51,7 @@ function guessLabel(filename) {
 
 const htmlFiles = fs.readdirSync(ROOT)
   .filter(f => f.toLowerCase().endsWith('.html'))
-  .filter(f => !IGNORE.includes(f))
+  .filter(f => !isIgnored(f))
   .sort();
 
 // 1) Injection du code du menu dans les fichiers contenant le marqueur
