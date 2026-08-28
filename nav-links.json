@@ -1,7 +1,27 @@
 [
-  { "href": "index.html", "icon": "🏠", "label": "Accueil" },
-  { "href": "tournoi-petanque.html", "icon": "🎱", "label": "Pétanque" },
-  { "href": "tournoi-foot.html", "icon": "⚽", "label": "Football" },
-  { "href": "buvette.html", "icon": "🍹", "label": "Buvette" },
-  { "href": "soiree-theme.html", "icon": "🎉", "label": "Soirée à thème" }
+  {
+    "href": "buvette.html",
+    "icon": "🍹",
+    "label": "Buvette"
+  },
+  {
+    "href": "index.html",
+    "icon": "🏠",
+    "label": "Accueil"
+  },
+  {
+    "href": "soiree-theme.html",
+    "icon": "🎉",
+    "label": "Soirée à thème"
+  },
+  {
+    "href": "tournoi-foot.html",
+    "icon": "⚽",
+    "label": "Football"
+  },
+  {
+    "href": "tournoi-petanque.html",
+    "icon": "🎱",
+    "label": "Pétanque"
+  }
 ]
