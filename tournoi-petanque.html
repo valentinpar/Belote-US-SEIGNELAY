@@ -174,7 +174,7 @@ function roundLabelP(n){if(n===2)return'Finale';if(n===4)return'Demi-finales';if
 function seedPositionsP(size){var pots=[1,2];var rounds=Math.round(Math.log(size)/Math.log(2));for(var r=1;r<rounds;r++){var next=[],sum=pots.length*2+1;pots.forEach(function(p){next.push(p);next.push(sum-p)});pots=next}return pots}
 function resolveByesP(r){if(!r)return;r.ms.forEach(function(m){if(m.e1&&m.e2)return;if(m.e1&&!m.e2){m.bye=true;m.j=true;m.s1=1;m.s2=0}else if(!m.e1&&m.e2){m.bye=true;m.j=true;m.e1=m.e2;m.e2=null;m.s1=1;m.s2=0}})}
 function buildBracketRoundsP(size,key){var rounds=[],level=0,s=size;while(s>=2){var nb=s/2,name=roundLabelP(s),ms=[];for(var i=0;i<nb;i++)ms.push({id:key+'_l'+level+'_m'+i,e1:null,e2:null,s1:'',s2:'',j:false,bye:false,heure:'',terrain:''});rounds.push({level:level,nm:name,ms:ms,ok:false});s/=2;level++}return rounds}
-function buildGroupeP(seeds,key){var size=bracketSizeP(seeds.length),rs=buildBracketRoundsP(size,key);if(!rs.length)return{key:key,teams:seeds,rs:[],champion:seeds[0]||null,second:null};var order=seedPositionsP(size),first=rs[0];for(var i=0;i<first.ms.length;i++){var sa=order[i*2],sb=order[i*2+1];first.ms[i].e1=sa<=seeds.length?seeds[sa-1]:null;first.ms[i].e2=sb<=seeds.length?seeds[sb-1]:null}resolveByesP(first);return{key:key,teams:seeds,rs:rs,champion:null,second:null}}
+function buildGroupeP(seeds,key){if(!seeds.length)return{key:key,teams:seeds,rs:[],champion:null,second:null};if(seeds.length===1)return{key:key,teams:seeds,rs:[],champion:seeds[0],second:null};var ms=pairRandomP(seeds,key+'_r0');return{key:key,teams:seeds,rs:[{level:0,nm:roundLabelP(bracketSizeP(seeds.length)),ms:ms,ok:false}],champion:null,second:null}}
 // Choisir le vainqueur d'un match via un clic (côté 1 ou 2) — reste modifiable tant que le tour n'est pas validé
 function ssR1(mid,side){if(!T||T.r1.ok)return;var idx=T.r1.ms.findIndex(function(x){return x.id===mid});if(idx<0)return;var m=T.r1.ms[idx];if(!m||m.bye)return;if(side===1){m.s1=1;m.s2=0}else{m.s1=0;m.s2=1}m.j=true;fbUpdateMatch('T/r1/ms/'+idx,{s1:m.s1,s2:m.s2,j:m.j});rTourABC()}
 function valR1(){if(!T||T.r1.ok)return;if(!T.r1.ms.every(function(m){return m.j}))return;T.r1.ok=true;
@@ -196,9 +196,9 @@ T.phase='finales';T.tour=3;save();document.getElementById('badge-tour').textCont
 rTourABC()}
 function ssGr(key,ri,mid,side){var g=T.groupes[key];if(!g||!g.rs.length)return;var r=g.rs[ri];if(!r||r.ok)return;var idx=r.ms.findIndex(function(x){return x.id===mid});if(idx<0)return;var m=r.ms[idx];if(!m||m.bye)return;if(side===1){m.s1=1;m.s2=0}else{m.s1=0;m.s2=1}m.j=true;fbUpdateMatch('T/groupes/'+key+'/rs/'+ri+'/ms/'+idx,{s1:m.s1,s2:m.s2,j:m.j});rTourABC()}
 function vGr(key,ri){var g=T.groupes[key];if(!g)return;var r=g.rs[ri];if(!r||r.ok)return;if(!r.ms.every(function(m){return m.bye||m.j}))return;r.ok=true;
-var isFinal=ri===g.rs.length-1;
-if(isFinal){var fm=r.ms[0];g.champion=mWinnerP(fm);g.second=mLoserP(fm);checkFinABC()}
-else{var nextR=g.rs[ri+1];r.ms.forEach(function(m,i){var w=mWinnerP(m);if(!nextR)return;var tgt=nextR.ms[Math.floor(i/2)];if(!tgt)return;if(i%2===0)tgt.e1=w;else tgt.e2=w});resolveByesP(nextR)}
+var winners=r.ms.map(mWinnerP).filter(Boolean);
+if(winners.length<=1){g.champion=winners[0]||null;g.second=r.ms.length===1?mLoserP(r.ms[0]):null;checkFinABC()}
+else{g.rs.push({level:ri+1,nm:roundLabelP(bracketSizeP(winners.length)),ms:pairRandomP(winners,key+'_r'+(ri+1)),ok:false})}
 save();rTourABC()}
 function checkFinABC(){var gs=['A','B','C'].map(function(k){return T.groupes[k]}).filter(Boolean);if(gs.length&&gs.every(function(g){return g.champion}))T.fin=true}
 function matchButtonsP(m,callPrefix,dis){
